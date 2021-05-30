@@ -1,0 +1,7 @@
+name = "Sinograms"
+uuid = "02a14def-c6e6-4ab0-b2df-0ab64bc8cdd7"
+authors = ["fessler <fessler@umich.edu>"]
+version = "0.1.0"
+
+[compat]
+julia = "1.6"
