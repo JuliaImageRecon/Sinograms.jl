@@ -1,9 +1,13 @@
 
 export fbp2
 
+struct FBPGeom
+    sg::
+    window::AbstractVector{<:Real}
+end
 
 """
-geom = fbp2(sg,ig,[setup options])
+    geom = fbp2(sg, ig, [setup options])
 image, sino_filt = fbp2(sino, geom, [recon_options])
 
 FBP 2D tomographic image reconstruction for parallel-beam or fan-beam cases,
@@ -20,12 +24,10 @@ in (for setup)
 - ig::ImageGeom            
 
 options (for setup)
--type = ""                  type of reconstruction 
+-how = ""                  type of reconstruction 
                             (not all are implemented for fan-beam)
-    * "", "std:mex"         call mex file for fast backprojection
-    * "std:mat"             slower matlab backprojector
-    * "dsc"                 backproject using Gtomo2_dsc with system9
-    * "mojette"             use mojette rebinning and Gtomo2_table
+    * :normal               default
+    * :mojette"             use mojette rebinning and Gtomo2_table (later)
     * "table"               use Gtomo2_table with tabulated linear interp
     * "df, pull"            direct Fourier reconstruction with "pull" interp
 -window = ""                "" or "hann", or array
@@ -48,13 +50,13 @@ out (for recon)
 - sino_filt     [nb na *]	filtered sinogram(s)
 
 """
+function fbp2(sg::SinoGeom, ig::ImageGeom ; how::Symbol=:normal, window::Symbol=:none)
+    geom = FBPGeom(sg, ig, ...)
+    return geom
+end
 
 
-
-function fbp2(args...)
-    if ~isnumeric(args[1]) #setup
-        return fbp2_setup(args[1],args[2],args[3:end])
-    else #recon
+function fbp2(geom::FBPGeom, sino::AbstractMatrix{<:Number}, ...)
         out,sino_filt=fbp2_recon(args[1], args[2], args[3:end])
         #=if nargout 
             varargout[1] = sino_filt;
@@ -71,20 +73,18 @@ function fbp2_setup(
     type::Symbol="",
     extra::Array=[],
     window::String="",
-    nthread::Int=jf("ncore")
+    #nthread::Int=jf("ncore")
     )
 
     
    
 # function fbp2_setup_df_pull(sg, ig, arg)
 
-function fbp2_setup_dsc(sg::SinoGeom, ig::ImageGeom, arg::Array)
 
-end
 
 # function fbp2_setup_moj(sg, ig, arg)
 
-function ir_fbp2_par_parker_wt(sg:: SinoGeom)
+function ir_fbp2_par_parker_wt(sg::SinoGeom)
 
 end
 
