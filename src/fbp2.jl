@@ -1,36 +1,39 @@
 export fbp2
 
-struct FBPGeom
+struct FBPplan
     sg::SinoGeom
     ig::ImageGeom
     how::Symbol
     window::AbstractVector{<:Real}
+    parallel_beam_parker_weight::
+    
 end
 
 
 """
-    geom = fbp2(sg, ig; how, window)
-    FBP 2D tomographic image reconstruction for parallel-beam or fan-beam cases,
-    with either flat or arc detector for fan-beam case.
+    plan = fbp2(sg, ig; how, window)
+
+FBP 2D tomographic image reconstruction for parallel-beam or fan-beam cases,
+with either flat or arc detector for fan-beam case.
     
-    To use this, you first call it with the sinogram and image geometry.
-    The routine returns the initialized "geom" structure.  Thereafter, to
-    to perform FBP reconstruction, you call this routine with that structure
-    (perhaps numerous times for the same geometry).
+To use this, you first call it with the sinogram and image geometry.
+The routine returns the initialized "plan" structure. Thereafter, to
+to perform FBP reconstruction, you call this routine with that structure
+(perhaps numerous times for the same geometry).
 
-    setup (returns geom)
-        in 
-        - sg::SinoGeom
-        - ig::ImageGeom
 
-        options
-        - how::Symbol=:normal       how to reconstruct
-                * :normal           default 
-                * :mojette          use mojette rebinning and Gtomo2_table
-        - window::Symbol=:none      e.g. :hann
+in 
+- `sg::SinoGeom`
+- `ig::ImageGeom`
 
-        out
-        - geom::FBPGeom             initialized structure
+options
+- `how::Symbol=:normal`       how to reconstruct
+    * :normal               default 
+    * :mojette              use mojette rebinning and Gtomo2_table
+- `window::Symbol=:none`      e.g. :hann
+
+out
+- `plan::FBPplan`            initialized structure
 
 """
 function fbp2(
@@ -44,12 +47,12 @@ function fbp2(
     if how === :normal
         if sg isa SinoPar
             if abs(sg.orbit) != 180 && abs(sg.orbit) != 360
-                geom.parallel_beam_parker_weight = ir_fbp2_par_parker_wt(sg)
+                plan.parallel_beam_parker_weight = fbp2_par_parker_wt(sg)
             end
             #...
         elseif sg isa SinoFan
             sg.orbit==360 && throw("short-scan fan-beam Parker weighting not done")
-            d(x)=convert(Float64,x)
+            
             #...
         elseif sg isa SinoMoj
             #...
@@ -59,41 +62,38 @@ function fbp2(
         
         
     end
-    return geom
+    return plan
 end
 
 
 """
-    image, sino_filt=fbp2(geom, sino; window)
+    image, sino_filt=fbp2(plan, sino)
 
-    recon (returns image)
-        in 
-        - geom::FBPGeom
-        - sino::AbstractMatrix{<:Number}
+recon (returns image)
+in 
+- `plan::FBPplan`
+- `sino::AbstractMatrix{<:Number}`
         
-        options
-        -window::Symbol=:none       e.g. :hann
-
-        out
-        - image::AbstractMatrix{<:Number}       reconstructed image(s)
-        - sino_filt::AbstractMatrix{<:Number}   filtered sinogram(s)
+out
+- `image::AbstractMatrix{<:Number}`       reconstructed image(s)
+- `sino_filt::AbstractMatrix{<:Number}`   filtered sinogram(s)
 
 
 """
-function fbp2(geom::FBPGeom, sino::AbstractMatrix{<:Number}; window::Symbol=:none)
+function fbp2(plan::FBPplan, sino::AbstractMatrix{<:Number})
 
-    (geom.sg.nb != size(sino, 1) || geom.sg.na != size(sino, 2)) && throw("bad sino size")
+    (plan.sg.nb != plan.sg.dim || plan.sg.na != plan.sg.dim) && throw("bad sino size")
     # comments 
-    if geom.how === :normal
-        if geom.sg isa SinoPar
+    if plan.how === :normal
+        if plan.sg isa SinoPar
             #if isvar 
-            sino = fbp2_sino_filter(:flat, sino, :ds, geom.sg.dr, :window, window)
+            sino = fbp2_sino_filter(:flat, sino, :ds, plan.sg.dr, :window, window)
             
-            if geom.how === :normal
+            if plan.how === :normal
                 #...
             end
-        elseif geom.sg isa SinoFan
-            geom.sg.dfs != 0 && ~isinf(geom.sg.dfs) && throw("only arc or flat fan done")
+        elseif plan.sg isa SinoFan
+            plan.sg.dfs != 0 && ~isinf(plan.sg.dfs) && throw("only arc or flat fan done")
 
             
             #...
@@ -103,7 +103,7 @@ function fbp2(geom::FBPGeom, sino::AbstractMatrix{<:Number}; window::Symbol=:non
 
 end 
 
-function ir_fbp2_par_parker_wt(sg::SinoGeom)
+function fbp2_par_parker_wt(sg::SinoGeom)
     orbit = abs(sg.orbit)
     na = sg.na
     ad = abs(sg.ad-sg.orbit_start)
@@ -118,7 +118,7 @@ function ir_fbp2_par_parker_wt(sg::SinoGeom)
     
     extra = orbit - 180 #extra beyond 180 
 
-    wt = ones(1, na)
+    wt = ones(na)
     #=
     ii = ad < extra
     wt(ii) = sin(ad(ii) / extra * pi / 2).^2
