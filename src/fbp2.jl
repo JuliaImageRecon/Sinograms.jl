@@ -102,6 +102,7 @@ function fbp2_setup_normal(sg::SinoGeom, ig::ImageGeom; how::Symbol=:normal, win
     else 
         throw("bad sino type")
     end
+    plan = FBPplan(sg,ig,how,window,weight)
     return plan
 end
 
@@ -119,12 +120,13 @@ out
 - `image::AbstractMatrix{<:Number}`       reconstructed image(s)
 - `sino_filt::AbstractMatrix{<:Number}`   filtered sinogram(s)
 
-
 """
 function fbp2(sino::AbstractMatrix{<:Number}, plan::FBPplan)
 
-    (plan.sg.nb != plan.sg.dim || plan.sg.na != plan.sg.dim) && throw("bad sino size")
+    #(plan.sg.nb != plan.sg.dim || plan.sg.na != plan.sg.dim) && throw("bad sino size")
+    plan.sg.dim != size(sino) && throw("bad sino size")
     # comments 
+    
     if plan.how === :normal
         image, sino_filt=fbp2_recon_normal(sino, plan)
     elseif plan.how === :df
