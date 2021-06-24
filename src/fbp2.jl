@@ -9,8 +9,8 @@ struct FBPplan
 end
 
 
-"""}
-    plan = fbp2(sg, ig; how, window)
+"""
+    plan = fbp2(sg, ig; how=:normal, window=:none)
 
 FBP 2D tomographic image reconstruction for parallel-beam or fan-beam cases,
 with either flat or arc detector for fan-beam case.
