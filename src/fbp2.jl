@@ -91,6 +91,7 @@ function fbp2_setup_normal(sg::SinoGeom, ig::ImageGeom; how::Symbol=:normal, win
         if abs(sg.orbit) != 180 && abs(sg.orbit) != 360
             weight = fbp2_par_parker_wt(sg)
         end
+    
         
         
     elseif sg isa SinoFan

@@ -60,7 +60,7 @@ function fbp2_sino_filter(how::Symbol, sino::AbstractVector{<:Real};
     #= linear interpolation is like blur with a triangular response,
     so we can compensate for this approximately in frequency domain =#
     if decon1 != 0
-        Hk = Hk ./ fftshift(nufft_sinc(nn / npad).^2)
+        Hk = Hk ./ fftshift(sinc(nn / npad).^2)
     end
 
     sino = ifft_sym( fft(sino, [], 1) .* repeat(Hk, [1 na]), [], 1) # apply filter
