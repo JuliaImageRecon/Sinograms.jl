@@ -13,7 +13,7 @@ would be caused by sampling the ramp directly in the frequency domain.
 
 in
 - `how::Symbol`                         `:arc` (3rd generation CT) or `:flat` (for parallel too)
-- `sino::AbstractVector{<:Real}`        `[nb (L)]` sinograms
+- `sino::AbstractArray{<:Real}`        `[nb (L)]` sinograms
 
 options
 - `ds::Real=1`                          sample spacing (in distance units, e.g., cm) (default: 1)
@@ -30,13 +30,13 @@ out
 - `nn::AbstractMatrix{<:Number}`        [-np/2,...,np/2-1] vector for convenience
 
 """
-function fbp2_sino_filter(how::Symbol, sino::AbstractVector{<:Real}; 
-    ds::Real=1, dsd::Real, extra::Int=0, npad::Int=0, decon1::Int=1, window::Symbol=:none)
+function fbp2_sino_filter(how::Symbol, sino::AbstractArray{<:Number}; 
+    ds::RealU=1, dsd::RealU=0, extra::Int=0, npad::Int=0, decon1::Int=1, window::Symbol=:none)
 
 
     dims = size(sino)
     sino = reshape(sino, dims[1], :)
-
+    # todo: we might be able to use map or mapslices or broadcast to avoid this reshape stuff
     
     nb, na = size(sino)
     if npad==0
@@ -53,17 +53,18 @@ function fbp2_sino_filter(how::Symbol, sino::AbstractVector{<:Real};
 
     Hk = Hk .* fbp2_window(npad, window)
 
-    Hk = ds .* Hk # differential for discrete-space convolution vs integral
+    Hk = ds * Hk # differential for discrete-space convolution vs integral
 
     
 
     #= linear interpolation is like blur with a triangular response,
     so we can compensate for this approximately in frequency domain =#
     if decon1 != 0
-        Hk = Hk ./ fftshift(sinc(nn / npad).^2)
+        Hk = Hk ./ fftshift(sinc.(nn / npad).^2)
     end
 
     sino = ifft_sym( fft(sino, [], 1) .* repeat(Hk, [1 na]), [], 1) # apply filter
+    # todo: definitely use broadcast or map here.  should be no need to repeat
 
     # trick: possibly keep extra column(s) for zeros!
     sino = sino[1:(nb+extra),:]
@@ -73,7 +74,6 @@ function fbp2_sino_filter(how::Symbol, sino::AbstractVector{<:Real};
     sino = reshape(sino, (size(sino, 1) dims[2:end]))
 
     return sino, Hk, hn, nn
-
 end
 
 

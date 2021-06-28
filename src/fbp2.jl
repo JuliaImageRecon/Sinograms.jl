@@ -68,7 +68,7 @@ function fbp2_par_parker_wt(sg::SinoGeom)
 
     if orbit<180
         @warn("orbit $orbit < 180")
-        return 1
+        return sg.ones
     end
 
     orbit>360 && throw("only 180 <= orbit <= 360 supported for Parker weighting")
@@ -82,18 +82,17 @@ function fbp2_par_parker_wt(sg::SinoGeom)
     ii = ad .>= 180
     wt[ii] = sin((orbit .- ad[ii]) ./ extra .* pi ./ 2).^2
     wt = wt * orbit / 180 #trick because of the back-projector normalization
-    return repeat(wt, nb, 1) #[nb na] sinogram sized
-    
+    return repeat(wt, nb, 1) #[nb na] sinogram sized 
 end
 
-function fbp2_setup_normal(sg::SinoGeom, ig::ImageGeom; how::Symbol=:normal, window::Symbol=:none)
+function fbp2_setup_normal(sg::SinoGeom, ig::ImageGeom, how::Symbol, window::Symbol)
     if sg isa SinoPar
         if abs(sg.orbit) != 180 && abs(sg.orbit) != 360
             weight = fbp2_par_parker_wt(sg)
         end
     
         
-        
+    
     elseif sg isa SinoFan
         sg.orbit != 360 && @warn("short-scan fan-beam Parker weighting not done")
         
@@ -122,14 +121,14 @@ out
 - `sino_filt::AbstractMatrix{<:Number}`   filtered sinogram(s)
 
 """
-function fbp2(sino::AbstractMatrix{<:Number}, plan::FBPplan)
+function fbp2(plan::FBPplan, sino::AbstractMatrix{<:Number})
 
     #(plan.sg.nb != plan.sg.dim || plan.sg.na != plan.sg.dim) && throw("bad sino size")
     plan.sg.dim != size(sino) && throw("bad sino size")
     # comments 
     
     if plan.how === :normal
-        image, sino_filt=fbp2_recon_normal(sino, plan)
+        return fbp2_recon_normal(plan, sino)
     elseif plan.how === :df
         #=
         if ~isempty(opt.window), error 'no window for DF', 
@@ -148,11 +147,10 @@ function fbp2(sino::AbstractMatrix{<:Number}, plan::FBPplan)
 
 end 
 
-function fbp2_recon_normal()
+function fbp2_recon_normal(plan::FBPplan, sino::AbstractMatrix{<:Number})
     if plan.sg isa SinoPar
-        #=if isvar('geom.parallel_beam_parker_weight')
-		sino = bsxfun(@times, sino, geom.parallel_beam_parker_weight);
-	    end
+        sino = sino .* plan.parallel_beam_parker_weight
+        #=
 	    sino = fbp2_sino_filter('flat', sino, ...
 			'ds', geom.sg.dr, 'window', opt.window);
 
@@ -166,7 +164,8 @@ function fbp2_recon_normal()
 		    image = fbp2_back(geom.arg_back2{:}, single(sino));
 	    otherwise
 		    error 'bug'
-	    end=#
+	    end
+        =#
     elseif plan.sg isa SinoFan
         plan.sg.dfs != 0 && ~isinf(plan.sg.dfs) && throw("only arc or flat fan done")
         

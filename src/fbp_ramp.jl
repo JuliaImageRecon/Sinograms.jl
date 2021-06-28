@@ -1,5 +1,6 @@
 export fbp_ramp
 
+
 """
     h, nn = fbp_ramp(how, n, ds, dsd)
 'ramp-like' filters for parallel-beam and fan-beam FBP reconstruction.
@@ -16,7 +17,7 @@ out
 - `h::AbstractMatrix{<:Number}`     samples of band-limited ramp filter
 
 """
-function fbp_ramp(how::Symbol, n::Int, ds::Real, dsd::Real)
+function fbp_ramp(how::Symbol, n::Int, ds::RealU, dsd::RealU)
     
     isodd(n) && throw("n must be even")
 
@@ -37,7 +38,6 @@ function fbp_ramp(how::Symbol, n::Int, ds::Real, dsd::Real)
         throw("bad fan type")
     end
     return h, nn
-
 end
 
 
@@ -55,7 +55,6 @@ function ramp_arc(n, ds, dsd)
     h[odd] .= -1 ./ (pi .* dsd .* sin.(nn[odd] .* ds / dsd)).^2
 
     return h, nn 
-
 end
 
 
@@ -68,6 +67,5 @@ function ramp_flat(n, ds)
     h = h ./ ds^2
 
     return h, nn
-
 end
 
