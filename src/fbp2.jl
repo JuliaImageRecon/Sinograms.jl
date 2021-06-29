@@ -5,7 +5,7 @@ struct FBPplan
     ig::ImageGeom
     how::Symbol
     window::AbstractVector{<:Real}
-    parallel_beam_parker_weight::AbstractMatrix{<:Real}
+    parallel_beam_parker_weight::Union{AbstractMatrix{<:Real},Nothing}
 end
 
 
@@ -26,10 +26,10 @@ in
 - `ig::ImageGeom`
 
 options
-- `how::Symbol=:normal`      how to reconstruct
-    * `:normal`              default 
-    * `:mojette`             use mojette rebinning and Gtomo2_table
-- `window::Symbol=:none`      e.g. `:hann`
+- `how::Symbol`             how to reconstruct
+    * `:normal`             default 
+    * `:mojette`            use mojette rebinning and Gtomo2_table
+- `window::Symbol`          e.g. `:hann` (default: `:none`)
 
 out
 - `plan::FBPplan`            initialized plan
@@ -123,7 +123,6 @@ out
 """
 function fbp2(plan::FBPplan, sino::AbstractMatrix{<:Number})
 
-    #(plan.sg.nb != plan.sg.dim || plan.sg.na != plan.sg.dim) && throw("bad sino size")
     plan.sg.dim != size(sino) && throw("bad sino size")
     # comments 
     
@@ -150,22 +149,15 @@ end
 function fbp2_recon_normal(plan::FBPplan, sino::AbstractMatrix{<:Number})
     if plan.sg isa SinoPar
         sino = sino .* plan.parallel_beam_parker_weight
-        #=
-	    sino = fbp2_sino_filter('flat', sino, ...
-			'ds', geom.sg.dr, 'window', opt.window);
+        
+	    sino = fbp2_sino_filter(:flat, sino, 
+			ds = geom.sg.dr, window = plan.window)
 
-	    switch arg.type
-	    case 'dsc'
-		    image = geom.G' * sino;
-		    image =	geom.scale * image;
-	    case 'std:mex'
-		    image = jf_mex('back2', geom.arg_back2{:}, single(sino));
-	    case 'std:mat'
-		    image = fbp2_back(geom.arg_back2{:}, single(sino));
-	    otherwise
-		    error 'bug'
+	    
+		image = fbp2_back(plan.sg, plan.ig, sino) # single(sino) ?
+	    
 	    end
-        =#
+        
     elseif plan.sg isa SinoFan
         plan.sg.dfs != 0 && ~isinf(plan.sg.dfs) && throw("only arc or flat fan done")
         
@@ -184,24 +176,26 @@ function fbp2_recon_normal(plan::FBPplan, sino::AbstractMatrix{<:Number})
 		image = fbp2_back_fan(plan.sg, plan.ig, sino)
         #...
     elseif plan.sg isa SinoMoj
-    #=sino = fbp2_apply_sino_filter_moj(sino, geom.moj.H);
+        #=sino = fbp2_apply_sino_filter_moj(sino, geom.moj.H);
 
-	if geom.sg.dx == abs(geom.ig.dx)
-		image = geom.moj.G' * sino; % backproject
-		image = image * (pi / geom.sg.na); % account for "dphi" in integral
-	else % revert to conventional pixel driven
-		ig = geom.ig;
-		sg = geom.sg;
-		arg1 = {uint8(ig.mask), ig.dx, ig.dy, ig.offset_x, ...
-			sign(ig.dy) * ig.offset_y}; % trick: old backproject
-		arg2 = {sg.d(1:sg.na), sg.offset, sg.orbit, sg.orbit_start};
-		image = jf_mex('back2', arg1{:}, arg2{:}, ...
-				int32(arg.nthread), single(sino));
-		image = image .* geom.ig.mask;
-	    end=#
+        if geom.sg.dx == abs(geom.ig.dx)
+            image = geom.moj.G' * sino; % backproject
+            image = image * (pi / geom.sg.na); % account for "dphi" in integral
+        else % revert to conventional pixel driven
+            ig = geom.ig;
+            sg = geom.sg;
+            arg1 = {uint8(ig.mask), ig.dx, ig.dy, ig.offset_x, ...
+                sign(ig.dy) * ig.offset_y}; % trick: old backproject
+            arg2 = {sg.d(1:sg.na), sg.offset, sg.orbit, sg.orbit_start};
+            image = jf_mex('back2', arg1{:}, arg2{:}, ...
+                    int32(arg.nthread), single(sino));
+            image = image .* geom.ig.mask;
+            end=#
     else
         throw("not done")
     end
+    
+    return image, sino
 end
 
 

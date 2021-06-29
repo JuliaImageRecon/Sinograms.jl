@@ -10,8 +10,8 @@ caused by sampling the ramp directly in the frequency domain.
 in
 - `how::Symbol`                     `:arc` (3rd generation CT) or `:flat` (for parallel too)
 - `n::Int`                          # of samples (must be even)
-- `ds::Real`                        sample spacing (in distance units, e.g., cm)
-- `dsd::Real`                       source-to-detector distance, for `:arc` case
+- `ds::RealU`                       sample spacing (in distance units, e.g., cm)
+- `dsd::RealU`                      source-to-detector distance, for `:arc` case
 
 out
 - `h::AbstractMatrix{<:Number}`     samples of band-limited ramp filter

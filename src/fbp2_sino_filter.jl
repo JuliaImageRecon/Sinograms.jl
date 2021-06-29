@@ -12,31 +12,31 @@ This approach of sampling the band-limited ramp avoids the aliasing that
 would be caused by sampling the ramp directly in the frequency domain.
 
 in
-- `how::Symbol`                         `:arc` (3rd generation CT) or `:flat` (for parallel too)
-- `sino::AbstractArray{<:Real}`        `[nb (L)]` sinograms
+- `how::Symbol`                        `:arc` (3rd generation CT) or `:flat` (for parallel too)
+- `sino::AbstractArray{<:Number}`        `[nb (L)]` sinograms
 
 options
-- `ds::Real=1`                          sample spacing (in distance units, e.g., cm) (default: 1)
-- `dsd::Real=0`                         source-to-detector distance, for `:arc` case only.
-- `extra::Int=0`                        # of extra sinogram radial samples to keep (default: 0)
-- `npad::Int=0`                         # of padded samples. (default: 0, means next power of 2)
-- `decon1::Int=1`                       deconvolve effect of linear interpolator? (default: 1)
-- `window::Symbol=:none`
+- `ds::RealU`                           sample spacing (in distance units, e.g., cm) (default: 1)
+- `dsd::RealU`                          source-to-detector distance, for `:arc` case only.
+- `extra::Int`                          # of extra sinogram radial samples to keep (default: 0)
+- `npad::Int`                           # of padded samples. (default: 0, means next power of 2)
+- `decon1::Int`                         deconvolve effect of linear interpolator? (default: 1)
+- `window::Symbol`                      default: `:none`
 
 out
 - `sino::AbstractMatrix{<:Number}`      filtered sinogram rows
-- `Hk::AbstractMatrix{<:Number}`        apodized ramp filter frequency response
-- `hn::AbstractMatrix{<:Number}`        samples of band-limited ramp filter
-- `nn::AbstractMatrix{<:Number}`        [-np/2,...,np/2-1] vector for convenience
+- `Hk::AbstractVector{<:Number}`        apodized ramp filter frequency response
+- `hn::AbstractVector{<:Number}`        samples of band-limited ramp filter
+- `nn::AbstractVector{<:Number}`        [-np/2,...,np/2-1] vector for convenience
 
 """
-function fbp2_sino_filter(how::Symbol, sino::AbstractArray{<:Number}; 
-    ds::RealU=1, dsd::RealU=0, extra::Int=0, npad::Int=0, decon1::Int=1, window::Symbol=:none)
+function fbp2_sino_filter(how::Symbol, sino::AbstractMatrix{<:Number}; 
+    ds::RealU=1, dsd::RealU=Inf, extra::Int=0, npad::Int=0, decon1::Int=1, window::Symbol=:none)
 
 
     dims = size(sino)
-    sino = reshape(sino, dims[1], :)
-    # todo: we might be able to use map or mapslices or broadcast to avoid this reshape stuff
+    
+    
     
     nb, na = size(sino)
     if npad==0
@@ -75,6 +75,8 @@ function fbp2_sino_filter(how::Symbol, sino::AbstractArray{<:Number};
 
     return sino, Hk, hn, nn
 end
+
+# todo: we might be able to use map or mapslices or broadcast to handle stack of sinograms
 
 
 
