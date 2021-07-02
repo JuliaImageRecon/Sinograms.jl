@@ -4,7 +4,7 @@ struct FBPplan
     sg::SinoGeom
     ig::ImageGeom
     how::Symbol
-    window::AbstractVector{<:Real}
+    window::Union{Symbol,AbstractVector{<:Real}}
     parallel_beam_parker_weight::Union{AbstractMatrix{<:Real},Nothing}
 end
 
@@ -135,7 +135,8 @@ function fbp2(plan::FBPplan, sino::AbstractMatrix{<:Number})
 	    image = fbp2_recon_df_pull(sino, geom, opt);
 	    sino_filt = [];=#
     elseif plan.how === :mojette
-        #=if ~isempty(opt.window), error 'window only at setup for mojette', end
+        #=
+        if ~isempty(opt.window), error 'window only at setup for mojette', end
 	    image = fbp2_recon_moj(sino, geom.moj);
 	    sino_filt = [];=#
     elseif plan.how === :table
@@ -150,8 +151,7 @@ function fbp2_recon_normal(plan::FBPplan, sino::AbstractMatrix{<:Number})
     if plan.sg isa SinoPar
         sino = sino .* plan.parallel_beam_parker_weight
         
-	    sino = fbp2_sino_filter(:flat, sino, 
-			ds = geom.sg.dr, window = plan.window)
+	    sino = fbp2_sino_filter(:flat, sino, ds = plan.sg.dr, window = plan.window)
 
 	    
 		image = fbp2_back(plan.sg, plan.ig, sino) # single(sino) ?
@@ -159,24 +159,27 @@ function fbp2_recon_normal(plan::FBPplan, sino::AbstractMatrix{<:Number})
 	    end
         
     elseif plan.sg isa SinoFan
-        plan.sg.dfs != 0 && ~isinf(plan.sg.dfs) && throw("only arc or flat fan done")
+
+        dfs=plan.sg.dfs
+
+        dfs != 0 && ~isinf(dfs) && throw("only arc or flat fan done")
         
-		if isinf(geom.sg.dfs)
+		if isinf(dfs)
 			dtype = :flat
-		elseif geom.sg.dfs == 0
+		elseif dfs == 0
 			dtype = :arc
 		else
-            dfs=geom.sg.dfs
 			throw("bad detector dfs: $dfs")
 		end
 		sino = fbp2_sino_weight(plan.sg, sino)
 		sino = fbp2_sino_filter(dtype, sino,
-			:ds, plan.sg.ds, :dsd, plan.sg.dsd,
-			:window, window)
-		image = fbp2_back_fan(plan.sg, plan.ig, sino)
-        #...
+			ds=plan.sg.ds, dsd=plan.sg.dsd,
+			window=plan.window)
+		return fbp2_back_fan(plan.sg, plan.ig, sino)
+        
     elseif plan.sg isa SinoMoj
-        #=sino = fbp2_apply_sino_filter_moj(sino, geom.moj.H);
+        #=
+        sino = fbp2_apply_sino_filter_moj(sino, geom.moj.H);
 
         if geom.sg.dx == abs(geom.ig.dx)
             image = geom.moj.G' * sino; % backproject
@@ -190,11 +193,12 @@ function fbp2_recon_normal(plan::FBPplan, sino::AbstractMatrix{<:Number})
             image = jf_mex('back2', arg1{:}, arg2{:}, ...
                     int32(arg.nthread), single(sino));
             image = image .* geom.ig.mask;
-            end=#
+            end
+            =#
     else
         throw("not done")
     end
-    
+
     return image, sino
 end
 

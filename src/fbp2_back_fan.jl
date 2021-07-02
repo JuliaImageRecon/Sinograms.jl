@@ -47,7 +47,33 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
     rmax=[]
 
     na,nb=size(sino)
+
+    # trick: extra zero column saves linear interpolation indexing within loop!
+    # sino(end+1,:,:) = 0;   
     
+    # precompute as much as possible
+    wx = (nx+1)/2 - offset_x
+    wy = (ny+1)/2 - offset_y
+    # xc, yc = ndgrid(dx * ([1:nx]-wx), dy * ([1:ny]-wy));
+    rr = sqrt.(xc.^2 + yc.^2) # [nx,ny] 
+
+    smax = ((nb-1)/2 - abs(offset)) * ds
+
+    if isempty(rmax)
+        if is_arc
+            gamma_max = smax / dsd
+        else # flat
+            gamma_max = atan(smax / dsd)
+        end
+        rmax = dso * sin(gamma_max)
+    end
+    #=
+
+    
+    =#
+
+
+
 
 
 

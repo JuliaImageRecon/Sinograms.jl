@@ -17,7 +17,7 @@ in
 
 options
 - `ds::RealU`                           sample spacing (in distance units, e.g., cm) (default: 1)
-- `dsd::RealU`                          source-to-detector distance, for `:arc` case only.
+- `dsd::RealU`                          source-to-detector distance, for `:arc` case only. (default: Inf)
 - `extra::Int`                          # of extra sinogram radial samples to keep (default: 0)
 - `npad::Int`                           # of padded samples. (default: 0, means next power of 2)
 - `decon1::Int`                         deconvolve effect of linear interpolator? (default: 1)
@@ -63,10 +63,11 @@ function fbp2_sino_filter(how::Symbol, sino::AbstractMatrix{<:Number};
         Hk = Hk ./ fftshift(sinc.(nn / npad).^2)
     end
 
-    sino = ifft_sym( fft(sino, [], 1) .* repeat(Hk, [1 na]), [], 1) # apply filter
+    sino = ifft(reale.(( fft(sino, [], 1) .* repeat(Hk, [1 na]), [], 1))) # apply filter
     # todo: definitely use broadcast or map here.  should be no need to repeat
 
-    # trick: possibly keep extra column(s) for zeros!
+    # trick: possibly keep extra column(s) for zeros! 
+    # NOTE: (todo) need to adjust to julia
     sino = sino[1:(nb+extra),:]
     sino[(nb+1):(nb+extra),:] .= 0
 

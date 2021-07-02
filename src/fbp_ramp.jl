@@ -1,5 +1,6 @@
 export fbp_ramp
 
+const RealU = Number
 
 """
     h, nn = fbp_ramp(how, n, ds, dsd)
