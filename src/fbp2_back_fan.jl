@@ -49,7 +49,9 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
     na,nb=size(sino)
 
     # trick: extra zero column saves linear interpolation indexing within loop!
-    # sino(end+1,:,:) = 0;   
+    # sino(end+1,:,:) = 0;
+    
+    
     
     # precompute as much as possible
     wx = (nx+1)/2 - offset_x
@@ -69,7 +71,7 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
     end
     #=
 
-    
+
     =#
 
 

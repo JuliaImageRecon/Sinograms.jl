@@ -40,6 +40,8 @@ function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix, ia_skip::I
 
     #=
     [xc yc] = ndgrid(ig.x, ig.y);
+    rad(x,y)=sqrt(x^2+y^2)
+    rr = rad.(ig.x, ig.y')
     rr = sqrt(xc.^2 + yc.^2); % [nx ny]
     rmax = ((sg.nb-1)/2-abs(sg.offset)) * sg.d;
     mask = ig.mask;

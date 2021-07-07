@@ -14,19 +14,19 @@ function window=fbp2_window(n::Int,window::Union{Symbol,AbstractVector{<:Real}})
         # boxcar?
         if window===:none || window===:ramp
             window = ones(n)
-
+            #=
         elseif window===:boxcar
             #cut = sscanf(window, 'boxcar,%g');
-            window = my_boxcar(n, cut);
+            window = my_boxcar(n, cut)
     
         elseif window===:hamming
             #cut = sscanf(window, 'hamming,%g');
-            window = my_hamming(n, cut);
+            window = my_hamming(n, cut)
     
         elseif window===:hanning
             #cut = sscanf(window, 'hanning,%g');
-            window = my_hann(n, cut);
-    
+            window = my_hann(n, cut)
+            =#
         elseif window===:hann
             window = my_hann(n, 1.0)
         elseif window===:hann50

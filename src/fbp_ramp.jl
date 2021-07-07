@@ -22,16 +22,14 @@ function fbp_ramp(how::Symbol, n::Int, ds::RealU, dsd::RealU)
     
     isodd(n) && throw("n must be even")
 
+    # todo: replace if statements with multiple dispatch
     if how==:arc
         
-        #if nargin ~= 4, help(mfilename), error 'need 4 args', end
 	    h, nn = ramp_arc(n, ds, dsd)
         
 
     elseif how==:flat
         
-        
-        #if nargin ~= 3 && ~isempty(dsd), warn('only need 3 args for flat'), end
 	    h, nn = ramp_flat(n, ds)
         
 
