@@ -5,6 +5,11 @@ module Sinograms
 
 const RealU = Number # temporary
 
+struct test
+    num::Int
+end
+
+
 include("fbp2.jl")
 include("fbp2_sino_filter.jl")
 include("fbp2_back.jl")

@@ -1,8 +1,9 @@
 
 using Revise
-using Sinograms
 using MIRT
 using MIRTjim: jim
+using Sinograms
+
 
 
 down = 2
@@ -22,6 +23,8 @@ sino = ellipse_sino(sg, ell, oversample=4)
 clim = (1 .+ (-1, 1) .* 0.05) .* 1000
 p1=jim(ig.x, ig.y, xtrue; clim)
 p2=jim(sg.r, sg.ad, sino, aspect_ratio=:none)
+
+println("done")
 
 
 

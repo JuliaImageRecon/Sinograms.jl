@@ -1,11 +1,14 @@
 export fbp2
 
+using MIRT
+using Revise
+
 struct FBPplan
     sg::SinoGeom
     ig::ImageGeom
     how::Symbol
     window::Union{Symbol,AbstractVector{<:Real}}
-    parallel_beam_parker_weight::Union{AbstractMatrix{<:Real},Nothing}
+    parallel_beam_parker_weight::AbstractMatrix{<:Real}
 end
 
 
@@ -33,6 +36,8 @@ options
 
 out
 - `plan::FBPplan`            initialized plan
+
+
 
 """
 function fbp2(
@@ -86,6 +91,8 @@ function fbp2_par_parker_wt(sg::SinoGeom)
 end
 
 function fbp2_setup_normal(sg::SinoGeom, ig::ImageGeom, how::Symbol, window::Symbol)
+    
+    weight=ones(sg.na,sg.nb)
     if sg isa SinoPar
         if abs(sg.orbit) != 180 && abs(sg.orbit) != 360
             weight = fbp2_par_parker_wt(sg)
@@ -112,6 +119,7 @@ end
     image, sino_filt=fbp2(plan, sino)
 
 recon (returns image)
+
 in 
 - `plan::FBPplan`
 - `sino::AbstractMatrix{<:Number}`
@@ -156,7 +164,7 @@ function fbp2_recon_normal(plan::FBPplan, sino::AbstractMatrix{<:Number})
 	    
 		image = fbp2_back(plan.sg, plan.ig, sino) # single(sino) ?
 	    
-	    end
+	    
         
     elseif plan.sg isa SinoFan
 

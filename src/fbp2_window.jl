@@ -8,45 +8,43 @@ using FFTW
 
 compute an apodizing window of length n and fft shift it
 """
-function window=fbp2_window(n::Int,window::Union{Symbol,AbstractVector{<:Real}})
+function window=fbp2_window(n::Int,window::Symbol)
 
-    if typeof(window)==Symbol
-        # boxcar?
-        if window===:none || window===:ramp
-            window = ones(n)
-            #=
-        elseif window===:boxcar
-            #cut = sscanf(window, 'boxcar,%g');
-            window = my_boxcar(n, cut)
-    
-        elseif window===:hamming
-            #cut = sscanf(window, 'hamming,%g');
-            window = my_hamming(n, cut)
-    
-        elseif window===:hanning
-            #cut = sscanf(window, 'hanning,%g');
-            window = my_hann(n, cut)
-            =#
-        elseif window===:hann
-            window = my_hann(n, 1.0)
-        elseif window===:hann50
-            window = my_hann(n, 0.5)
-        elseif window===:hann75
-            window = my_hann(n, 0.75)
-        elseif window===:hann80
-            window = my_hann(n, 0.80)
-    
-        else
-            throw("unknown window $window")
-        end
+    # boxcar?
+    if window===:none || window===:ramp
+        window = ones(n)
+        #=
+    elseif window===:boxcar
+        #cut = sscanf(window, 'boxcar,%g');
+        window = my_boxcar(n, cut)
 
-    elseif length(window) != n
-        throw("bad window length")
+    elseif window===:hamming
+        #cut = sscanf(window, 'hamming,%g');
+        window = my_hamming(n, cut)
 
+    elseif window===:hanning
+        #cut = sscanf(window, 'hanning,%g');
+        window = my_hann(n, cut)
+        =#
+    elseif window===:hann
+        window = my_hann(n, 1.0)
+    elseif window===:hann50
+        window = my_hann(n, 0.5)
+    elseif window===:hann75
+        window = my_hann(n, 0.75)
+    elseif window===:hann80
+        window = my_hann(n, 0.80)
+
+    else
+        throw("unknown window $window")
     end
 
-    window=fftshift(window)
+    return fftshift(window)
+end
 
+function window(n::Int,window::AbstractVector{<:Real})
+
+    return fftshift(window)
 end
 
 
