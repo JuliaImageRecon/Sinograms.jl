@@ -92,7 +92,7 @@ end
 
 function fbp2_setup_normal(sg::SinoGeom, ig::ImageGeom, how::Symbol, window::Symbol)
     
-    weight=ones(sg.na,sg.nb)
+    weight=ones(sg.na,sg.nb)'
     if sg isa SinoPar
         if abs(sg.orbit) != 180 && abs(sg.orbit) != 360
             weight = fbp2_par_parker_wt(sg)
@@ -116,7 +116,7 @@ end
 
 
 """
-    image, sino_filt=fbp2(plan, sino)
+    image, sino_filt = fbp2(plan, sino)
 
 recon (returns image)
 

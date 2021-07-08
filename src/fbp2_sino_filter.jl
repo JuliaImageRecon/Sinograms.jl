@@ -40,14 +40,22 @@ function fbp2_sino_filter(how::Symbol, sino::AbstractMatrix{<:Number};
     
     nb, na = size(sino)
     if npad==0
-        npad = 2^ceil(log2(2*nb-1)) # padded size
+        npad = 2^ceil(Int64, log2(2*nb-1)) # padded size
     end
 
     sino = [sino; zeros(npad-nb,na)] # padded sinogram
 
     hn, nn = fbp_ramp(how, npad, ds, dsd)
 
-    reale = (x) -> (@assert x ≈ real(x); real(x))
+    # reale = (x) -> (@assert x ≈ real(x); real(x))
+
+    #temp 
+    function reale(x)
+        if x ≈ real(x)
+            return real(x)
+        end
+        return x
+    end
 
     Hk = reale.(fft(fftshift(hn)))
 
@@ -63,7 +71,9 @@ function fbp2_sino_filter(how::Symbol, sino::AbstractMatrix{<:Number};
         Hk = Hk ./ fftshift(sinc.(nn / npad).^2)
     end
 
-    sino = ifft(reale.(( fft(sino, [], 1) .* repeat(Hk, [1 na]), [], 1))) # apply filter
+    sino = ifft(reale.(( fft(sino, 1) .* repeat(Hk, [1 na]), [], 1))) # apply filter---
+    #NOTE: was fft(sino, [], 1) in matlab  
+
     # todo: definitely use broadcast or map here.  should be no need to repeat
 
     # trick: possibly keep extra column(s) for zeros! 
@@ -72,7 +82,7 @@ function fbp2_sino_filter(how::Symbol, sino::AbstractMatrix{<:Number};
     sino[(nb+1):(nb+extra),:] .= 0
 
     
-    sino = reshape(sino, (size(sino, 1) dims[2:end]))
+    sino = reshape(sino, (size(sino, 1), dims[2:end]))
 
     return sino, Hk, hn, nn
 end

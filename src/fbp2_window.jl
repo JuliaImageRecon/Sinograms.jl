@@ -8,7 +8,7 @@ using FFTW
 
 compute an apodizing window of length n and fft shift it
 """
-function window=fbp2_window(n::Int,window::Symbol)
+function fbp2_window(n::Int,window::Symbol)
 
     # boxcar?
     if window===:none || window===:ramp

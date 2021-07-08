@@ -1,8 +1,8 @@
+include("Sinograms.jl")
 
 using Revise
 using MIRT
 using MIRTjim: jim
-using Sinograms
 
 
 
@@ -26,5 +26,7 @@ p2=jim(sg.r, sg.ad, sino, aspect_ratio=:none)
 
 println("done")
 
+plan=Sinograms.fbp2(sg, ig)
+Sinograms.fbp2(plan,sino)
 
 

@@ -40,7 +40,7 @@ function fbp_ramp(how::Symbol, n::Int, ds::RealU, dsd::RealU)
 end
 
 
-function ramp_arc(n, ds, dsd)
+function ramp_arc(n::Int, ds::RealU, dsd::RealU)
 
     if n/2 * ds / dsd > 0.9 * pi/2
         println("angle is $(rad2deg(n/2 * ds / dsd)) degrees: too large")
@@ -57,10 +57,10 @@ function ramp_arc(n, ds, dsd)
 end
 
 
-function ramp_flat(n, ds)
+function ramp_flat(n::Int, ds::RealU)
     nn = -(n/2):(n/2-1)
     h = zeros(size(nn))
-    h[n/2+1] .= 1 / 4
+    h[n÷2+1] = 1 / 4
     odd = nn .% 2 .== 1
     h[odd] .= -1 ./ (pi .* nn[odd]).^2
     h = h ./ ds^2
