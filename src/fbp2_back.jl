@@ -19,7 +19,7 @@ out
 
 
 """
-function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix; ia_skip::Int=1)
+function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}; ia_skip::Int=1)
 
     if sg isa SinoFan
         return fbp2_back_fan(sg, ig, sino, ia_skip=ia_skip)
@@ -30,13 +30,13 @@ function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix; ia_skip::I
     end
 end
 
-function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix, ia_skip::Int)
+function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}, ia_skip::Int)
 
     # trick: extra zero column saves linear interpolation indexing within loop!
 
     nb = size(sino,1) # number of radial bins
     nb != sg.nb && throw("nb size") 
-    sino=[sino;zeros(size(a,2))']
+    sino=[sino;zeros(size(sino,2))']
 
     #=
     [xc yc] = ndgrid(ig.x, ig.y);

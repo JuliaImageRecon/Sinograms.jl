@@ -162,7 +162,7 @@ function fbp2_recon_normal(plan::FBPplan, sino::AbstractMatrix{<:Number})
 	    sino = fbp2_sino_filter(:flat, sino, ds = plan.sg.dr, window = plan.window)
 
 	    
-		image = fbp2_back(plan.sg, plan.ig, sino) # single(sino) ?
+		image = fbp2_back(plan.sg, plan.ig, sino[1]) # single(sino) ?
 	    
 	    
         
