@@ -19,6 +19,11 @@ Currently under development.
 
 Tested with Julia ≥ 1.6.
 
+
+### Related packages
+
+* https://github.com/JuliaImages/ImageReconstruction.jl (`radon`, `iradon`)
+
 <!-- URLs -->
 [action-img]: https://github.com/JeffFessler/Sinograms.jl/workflows/CI/badge.svg
 [action-url]: https://github.com/JeffFessler/Sinograms.jl/actions
