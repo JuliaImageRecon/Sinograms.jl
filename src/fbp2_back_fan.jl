@@ -40,9 +40,9 @@ function fbp2_back_fan(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix; ia_ski
 end
 
 function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}, orbit_start::Real, 
-	dsd::RealU, dso::Real, dfs::Real, ds::RealU, offset::Float32, source_offset::Float32, 
-	nx::Cint, ny::Cint, dx::Cfloat, dy::Cfloat, offset_x::Cfloat, offset_y::Cfloat,
-    is_arc::Bool, mask::Union{Symbol,AbstractArray{Bool}}, ia_skip::Int)
+	dsd::RealU, dso::Real, dfs::RealU, ds::RealU, offset::Real, source_offset::Real, 
+	nx::Int, ny::Int, dx::RealU, dy::RealU, offset_x::Real, offset_y::Real,
+    is_arc::Bool, mask::AbstractArray{Bool}, ia_skip::Int)
 
     rmax=[]
 

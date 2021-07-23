@@ -1,4 +1,6 @@
 export fbp_ramp
+export ramp_flat
+export ramp_arc
 
 const RealU = Number
 
@@ -47,10 +49,10 @@ function ramp_arc(n::Int, ds::RealU, dsd::RealU)
         throw("physically impossible arc geometry")
     end
 
-    nn = -(n/2):(n/2-1)
+    nn = -(n÷2):(n÷2-1)
     h = zeros(size(nn))
     h[nn.==0] .= 1 / (4 * ds^2)
-    odd = nn .% 2 .== 1
+    odd = isodd.(nn)
     h[odd] .= -1 ./ (pi .* dsd .* sin.(nn[odd] .* ds / dsd)).^2
 
     return h, nn 
@@ -58,10 +60,10 @@ end
 
 
 function ramp_flat(n::Int, ds::RealU)
-    nn = -(n/2):(n/2-1)
+    nn = -(n÷2):(n÷2-1)
     h = zeros(size(nn))
     h[n÷2+1] = 1 / 4
-    odd = nn .% 2 .== 1
+    odd = isodd.(nn)
     h[odd] .= -1 ./ (pi .* nn[odd]).^2
     h = h ./ ds^2
 

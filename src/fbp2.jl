@@ -1,15 +1,40 @@
 export fbp2
 
 using MIRT
-using Revise
 
-struct FBPplan
+abstract type FBPplan end
+
+struct NormalPlan <: FBPplan
     sg::SinoGeom
     ig::ImageGeom
-    how::Symbol
     window::Union{Symbol,AbstractVector{<:Real}}
     parallel_beam_parker_weight::AbstractMatrix{<:Real}
 end
+
+struct DfPlan <: FBPplan
+    sg::SinoGeom
+    ig::ImageGeom
+    window::Union{Symbol,AbstractVector{<:Real}}
+    parallel_beam_parker_weight::AbstractMatrix{<:Real}
+end
+
+struct MojPlan <: FBPplan
+    sg::SinoGeom
+    ig::ImageGeom
+    window::Union{Symbol,AbstractVector{<:Real}}
+    parallel_beam_parker_weight::AbstractMatrix{<:Real}
+end
+
+struct TabPlan <: FBPplan
+    sg::SinoGeom
+    ig::ImageGeom
+    window::Union{Symbol,AbstractVector{<:Real}}
+    parallel_beam_parker_weight::AbstractMatrix{<:Real}
+end
+
+
+
+
 
 
 """
@@ -33,6 +58,7 @@ options
     * `:normal`             default 
     * `:mojette`            use mojette rebinning and Gtomo2_table
 - `window::Symbol`          e.g. `:hann` (default: `:none`)
+-`T::DataType`              type of sino elements (default: `Float32`)
 
 out
 - `plan::FBPplan`            initialized plan
@@ -44,12 +70,13 @@ function fbp2(
     sg::SinoGeom,
     ig::ImageGeom;
     how::Symbol=:normal,
-    window::Symbol=:none
+    window::Symbol=:none,
+    T::DataType=Float32,
     #nthread::Int=jf("ncore")
     )
     
     if how === :normal
-        plan = fbp2_setup_normal(sg,ig,how,window)
+        plan = fbp2_setup_normal(sg,ig,window,T)
     elseif how === :dsc
         #plan = fbp2_setup_dsc(sg,ig,how,window)
     elseif how === :df
@@ -77,29 +104,26 @@ function fbp2_par_parker_wt(sg::SinoGeom)
     end
 
     orbit>360 && throw("only 180 <= orbit <= 360 supported for Parker weighting")
-    
     extra = orbit - 180 #extra beyond 180 
 
-    wt = ones(na)
+    wt = ones(Float32,na)
     
     ii = ad .< extra
-    wt[ii] = sin(ad[ii] ./ extra .* pi ./ 2).^2
+    wt[ii] = abs2.(sin(ad[ii] ./ extra .* pi ./ 2))
     ii = ad .>= 180
-    wt[ii] = sin((orbit .- ad[ii]) ./ extra .* pi ./ 2).^2
+    wt[ii] = abs2.(sin((orbit .- ad[ii]) ./ extra .* pi ./ 2))
     wt = wt * orbit / 180 #trick because of the back-projector normalization
     return repeat(wt, nb, 1) #[nb na] sinogram sized 
 end
 
-function fbp2_setup_normal(sg::SinoGeom, ig::ImageGeom, how::Symbol, window::Symbol)
+function fbp2_setup_normal(sg::SinoGeom, ig::ImageGeom, window::Symbol, T::DataType)
     
-    weight=ones(sg.na,sg.nb)'
+    weight=ones(T,sg.nb,sg.na)
     if sg isa SinoPar
         if abs(sg.orbit) != 180 && abs(sg.orbit) != 360
             weight = fbp2_par_parker_wt(sg)
         end
-    
-        
-    
+
     elseif sg isa SinoFan
         sg.orbit != 360 && @warn("short-scan fan-beam Parker weighting not done")
         
@@ -109,9 +133,13 @@ function fbp2_setup_normal(sg::SinoGeom, ig::ImageGeom, how::Symbol, window::Sym
     else 
         throw("bad sino type")
     end
-    plan = FBPplan(sg,ig,how,window,weight)
-    return plan
+    return NormalPlan(sg,ig,window,weight)
+
 end
+
+
+
+
 
 
 
@@ -129,12 +157,13 @@ out
 - `sino_filt::AbstractMatrix{<:Number}`   filtered sinogram(s)
 
 """
+#=
 function fbp2(plan::FBPplan, sino::AbstractMatrix{<:Number})
 
     plan.sg.dim != size(sino) && throw("bad sino size")
     # comments 
     
-    if plan.how === :normal
+    if plan isa NormalPlan
         return fbp2_recon_normal(plan, sino)
     elseif plan.how === :df
         #=
@@ -154,17 +183,19 @@ function fbp2(plan::FBPplan, sino::AbstractMatrix{<:Number})
     end
 
 end 
+=#
 
-function fbp2_recon_normal(plan::FBPplan, sino::AbstractMatrix{<:Number})
+# fbp2_recon_normal
+function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
+
+    plan.sg.dim != size(sino) && throw("bad sino size")
+
     if plan.sg isa SinoPar
         sino = sino .* plan.parallel_beam_parker_weight
         
-	    sino = fbp2_sino_filter(:flat, sino, ds = plan.sg.dr, window = plan.window)
+	    sino,_,_,_ = fbp2_sino_filter(:flat, sino, ds = plan.sg.dr, window = plan.window)
 
-	    
-		image = fbp2_back(plan.sg, plan.ig, sino[1]) # single(sino) ?
-	    
-	    
+		image = fbp2_back(plan.sg, plan.ig, sino) 
         
     elseif plan.sg isa SinoFan
 
@@ -179,7 +210,7 @@ function fbp2_recon_normal(plan::FBPplan, sino::AbstractMatrix{<:Number})
 		else
 			throw("bad detector dfs: $dfs")
 		end
-		sino = fbp2_sino_weight(plan.sg, sino)
+		sino = fbp2_sino_weight(plan.sg, sino) #todo 
 		sino = fbp2_sino_filter(dtype, sino,
 			ds=plan.sg.ds, dsd=plan.sg.dsd,
 			window=plan.window)
@@ -187,7 +218,7 @@ function fbp2_recon_normal(plan::FBPplan, sino::AbstractMatrix{<:Number})
         
     elseif plan.sg isa SinoMoj
         #=
-        sino = fbp2_apply_sino_filter_moj(sino, geom.moj.H);
+        sino = fbp2_apply_sino_filter_moj(sino, geom.moj.H)
 
         if geom.sg.dx == abs(geom.ig.dx)
             image = geom.moj.G' * sino; % backproject

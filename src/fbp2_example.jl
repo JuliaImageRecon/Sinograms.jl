@@ -1,6 +1,7 @@
-include("Sinograms.jl")
+#include("Sinograms.jl")
 
 using Revise
+using Sinograms
 using MIRT
 using MIRTjim: jim
 
@@ -24,9 +25,14 @@ clim = (1 .+ (-1, 1) .* 0.05) .* 1000
 p1=jim(ig.x, ig.y, xtrue; clim)
 p2=jim(sg.r, sg.ad, sino, aspect_ratio=:none)
 
+
+
+plan=fbp2(sg, ig)
+result,sino_filtered=fbp2(plan,sino)
+
+p3=jim(result)
+p4=jim(sino_filtered)
+
 println("done")
 
-plan=Sinograms.fbp2(sg, ig)
-Sinograms.fbp2(plan,sino)
-
-
+jim(p1,p2,p3,p4)
