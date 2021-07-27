@@ -61,8 +61,7 @@ function fbp2_sino_filter(how::Symbol, sino::AbstractMatrix{<:Number};
     Hk = fft(fftshift(hn))
     # Hk = reale(Hk)
 
-    @show size(hn)
-    #@show Hk
+    
 
     Hk = Hk .* fbp2_window(npad, window)
 

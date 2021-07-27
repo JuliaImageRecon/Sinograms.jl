@@ -63,8 +63,6 @@ options
 out
 - `plan::FBPplan`            initialized plan
 
-
-
 """
 function fbp2(
     sg::SinoGeom,
