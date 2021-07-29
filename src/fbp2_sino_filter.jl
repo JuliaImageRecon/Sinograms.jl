@@ -46,22 +46,8 @@ function fbp2_sino_filter(how::Symbol, sino::AbstractMatrix{<:Number};
     hn, nn = fbp_ramp(how, npad, ds, dsd)
 
     reale = (x) -> (@assert x ≈ real(x); real(x))
-
-    #temp 
-    #=
-    function reale(x)
-        if x ≈ real(x)
-            return real(x)
-        end
-        return x
-    end
-    =#
-    
-
     Hk = fft(fftshift(hn))
-    # Hk = reale(Hk)
-
-    
+    Hk = reale(Hk)
 
     Hk = Hk .* fbp2_window(npad, window)
 
@@ -74,16 +60,11 @@ function fbp2_sino_filter(how::Symbol, sino::AbstractMatrix{<:Number};
         Hk = Hk ./ fftshift(sinc.(nn / npad).^2)
     end
     
-    
-
-    sino = ifft(convert(Matrix{ComplexF64},real( fft(sino, 1) .* repeat(Hk, 1, na))), 1) # apply filter---
+    sino = ifft(real(fft(sino, 1) .* repeat(Hk, 1, na)), 1) # apply filter---
     #NOTE: was fft(sino, [], 1) and ifft(..., [], 1) in matlab  
-    # NOTE: convert may not be necessary. Certainly rework this whole area
-
     # todo: definitely use broadcast or map here.  should be no need to repeat
 
     # trick: possibly keep extra column(s) for zeros! 
-    # NOTE: (todo) need to adjust to julia
     sino = sino[1:(nb+extra),:]
     sino[(nb+1):(nb+extra),:] .= 0
 

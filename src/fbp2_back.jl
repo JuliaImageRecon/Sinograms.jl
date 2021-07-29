@@ -42,9 +42,6 @@ function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}, 
     #xc, yc = ndgrid(ig.x, ig.y)
     xc = repeat(ig.x, 1, length(ig.y))
     yc = repeat(ig.y', length(ig.x), 1)
-
-    #rad(x,y) = sqrt(abs2(x) + abs2(y))
-    #rr = rad.(ig.x, ig.y')
     rr = sqrt.(abs2.(xc) + abs2.(yc)) # [nx ny]
 
     rmax = ((sg.nb-1)/2-abs(sg.offset)) * sg.d
@@ -76,22 +73,31 @@ function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}, 
     %	img = img + sino(ib, ia) ./ L2;
     =#
         # linear interpolation:
-        il = floor.(rr) # left bin
+        il = floor.(Int64, rr) # left bin
         #=
         if ~do_r_mask
             il = max(il,1);
             il = min(il,nb);
         end
         =#
-    #	if any(il < 1 | il >= nb), error 'bug', end
+
+        #temp
+        il = min.(il,nb)
+        il = max.(il,1)
+
+    	# (any(il .< 1) || any(il .>= nb)) && throw("bug")
+
         wr = rr - il # left weight
         wl = 1 .- wr # right weight
-        println(size(sino),size(il))
         img = img .+ wl .* sino[il, ia] + wr .* sino[il.+1, ia]
     end
 
     # img = (deg2rad(sg.orbit) / (sg.na/ia_skip)) * embed(img, mask);
-    img = pi / (sg.na/ia_skip) * embed(img, mask) # 2008-10-14
+    # img = pi / (sg.na/ia_skip) * embed(img, mask) % 2008-10-14
+
+    return pi / (sg.na/ia_skip) * img # NOTE: possible temp
+
+
     
     
 end

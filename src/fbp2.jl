@@ -33,10 +33,6 @@ struct TabPlan <: FBPplan
 end
 
 
-
-
-
-
 """
     plan = fbp2(sg, ig; how=:normal, window=:none)
 
@@ -104,7 +100,7 @@ function fbp2_par_parker_wt(sg::SinoGeom)
     orbit>360 && throw("only 180 <= orbit <= 360 supported for Parker weighting")
     extra = orbit - 180 #extra beyond 180 
 
-    wt = ones(Float32,na)
+    wt = ones(T,na)
     
     ii = ad .< extra
     wt[ii] = abs2.(sin(ad[ii] ./ extra .* pi ./ 2))
@@ -125,7 +121,6 @@ function fbp2_setup_normal(sg::SinoGeom, ig::ImageGeom, window::Symbol, T::DataT
     elseif sg isa SinoFan
         sg.orbit != 360 && @warn("short-scan fan-beam Parker weighting not done")
         
-        #...
     elseif sg isa SinoMoj
         #...
     else 
@@ -134,11 +129,6 @@ function fbp2_setup_normal(sg::SinoGeom, ig::ImageGeom, window::Symbol, T::DataT
     return NormalPlan(sg,ig,window,weight)
 
 end
-
-
-
-
-
 
 
 """
@@ -200,7 +190,6 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
         dfs=plan.sg.dfs
 
         dfs != 0 && ~isinf(dfs) && throw("only arc or flat fan done")
-        
 		if isinf(dfs)
 			dtype = :flat
 		elseif dfs == 0
@@ -208,6 +197,7 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
 		else
 			throw("bad detector dfs: $dfs")
 		end
+
 		sino = fbp2_sino_weight(plan.sg, sino) #todo 
 		sino = fbp2_sino_filter(dtype, sino,
 			ds=plan.sg.ds, dsd=plan.sg.dsd,
@@ -240,4 +230,11 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
 end
 
 
-#function fbp2_apply_sino_filter_moj(sino, H)
+function fbp2_apply_sino_filter_moj(sino, H)
+
+    nb = size(sino,1)
+    npad = 2^ceil(log2(2*nb-1)) # padded size
+    sinopad = [sino; zeros(npad-nb,size(sino,2))] # padded sinogram
+    #sino = ifft_sym(fft(sinopad, [], 1) .* H, [], 1); TODO
+    sino = sino(1:nb,:)
+end
