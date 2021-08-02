@@ -1,5 +1,6 @@
-
 export fbp2_back
+
+using LazyGrids
 
 """
     img = fbp2_back(sg, ig, sino; ia_skip)
@@ -39,9 +40,7 @@ function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}, 
     sino=[sino;zeros(eltype(sino),size(sino,2))']
 
     
-    #xc, yc = ndgrid(ig.x, ig.y)
-    xc = repeat(ig.x, 1, length(ig.y))
-    yc = repeat(ig.y', length(ig.x), 1)
+    xc, yc = LazyGrids.ndgrid(ig.x, ig.y)
     rr = sqrt.(abs2.(xc) + abs2.(yc)) # [nx ny]
 
     rmax = ((sg.nb-1)/2-abs(sg.offset)) * sg.d
@@ -54,15 +53,16 @@ function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}, 
     yc = yc(mask(:));
     =#
 
-    cang = cos.(sg.ar)
-    sang = sin.(sg.ar)
-
+    cs = sincos.(sg.ar) 
+    sang = getindex.(cs, 1)
+    cang = getindex.(cs, 2)
+    
     img = 0
     for ia=1:ia_skip:sg.na
         # ticker(mfilename, ia, sg.na)
 
-        rr = xc .* cang[ia] + yc .* sang[ia] # [np,1]
-        rr = rr ./ sg.d .+ sg.w .+ 1 # unitless bin index, +1 because matlab |  NOTE: still +1 in julia?
+        rr = @.(xc * cang[ia] + yc * sang[ia]) # [np,1]
+        rr = @.(rr / sg.d + sg.w + 1) # unitless bin index, +1 because julia 
 
         # nearest neighbor interpolation:
     #=
@@ -89,7 +89,7 @@ function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}, 
 
         wr = rr - il # left weight
         wl = 1 .- wr # right weight
-        img = img .+ wl .* sino[il, ia] + wr .* sino[il.+1, ia]
+        img = @.(img + wl * sino[il, ia] + wr * sino[il.+1, ia])
     end
 
     # img = (deg2rad(sg.orbit) / (sg.na/ia_skip)) * embed(img, mask);

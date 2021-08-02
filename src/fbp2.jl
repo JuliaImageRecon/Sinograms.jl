@@ -232,9 +232,11 @@ end
 
 function fbp2_apply_sino_filter_moj(sino, H)
 
+    reale = (x) -> (@assert x ≈ real(x); real(x))
+
     nb = size(sino,1)
     npad = 2^ceil(log2(2*nb-1)) # padded size
     sinopad = [sino; zeros(npad-nb,size(sino,2))] # padded sinogram
-    #sino = ifft_sym(fft(sinopad, [], 1) .* H, [], 1); TODO
-    sino = sino(1:nb,:)
+    sino = ifft(reale(fft(sinopad, 1) .* H), 1) 
+    sino = sino[1:nb,:]
 end
