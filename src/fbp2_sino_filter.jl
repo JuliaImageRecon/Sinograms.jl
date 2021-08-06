@@ -33,9 +33,6 @@ out
 function fbp2_sino_filter(how::Symbol, sino::AbstractMatrix{<:Number}; 
     ds::RealU=1, dsd::RealU=Inf, extra::Int=0, npad::Int=0, decon1::Int=1, window::Symbol=:none)
 
-    
-    # sino = reshape(sino, dims(1), []); ? 
-    
     nb, na = size(sino)
     if npad==0
         npad = 2^ceil(Int64, log2(2*nb-1)) # padded size

@@ -32,6 +32,8 @@ struct TabPlan <: FBPplan
     parallel_beam_parker_weight::AbstractMatrix{<:Real}
 end
 
+reale = (x) -> (@assert x ≈ real(x); real(x))
+
 
 """
     plan = fbp2(sg, ig; how=:normal, window=:none)
@@ -228,6 +230,32 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
 
     return image, sino
 end
+
+function fbp_make_sino_filter_moj(nb, na, dx, orbit, orbit_start, window)
+    ang = deg2rad(orbit_start .+ (0:na-1)./na .* orbit)
+    npad = 2^ceil(log2(2*nb-1)) # padded size
+
+    dr = dx * max(abs(cos(ang)), abs(sin(ang)))
+    if true
+        junk, H = fbp2_sino_filter(:flat, ones(nb,1), ds=1, window=:window, decon1=0)
+            
+        # trick: ramp filter usually has 1/dr^2 in it, but convolution by sum
+        # requires "dr" so we need dr / dr^2 = 1 / dr
+        return H * (1 ./ dr) # [npad,na]
+    
+    else # trick: make sure cutoff frequencies match
+        u0 = 1/2/dx # standard cutoff for coarsest sampling
+        r = -(npad/2):(npad/2-1) * dr # [nb na]
+        h = u0^2 .* (2 .* sinc.(2*u0*r) - sinc.(u0*r).^2)
+        h = h .* repeat(dr, [npad 1]) # extra dr for discrete-space convolution
+    #	clf, plot(r, h, '.'), keyboard
+        H = reale(fft(fftshift(h,1), 1))
+    #	H = fbp_apodize(H, nb, window);
+        !isempty(window) && throw("window not done yet due to dr")
+    end
+end
+
+
 
 
 function fbp2_apply_sino_filter_moj(sino, H)
