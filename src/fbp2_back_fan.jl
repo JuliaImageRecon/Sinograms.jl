@@ -85,60 +85,47 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
     for ia=1:ia_skip:na
 	#ticker(mfilename, ia, na)
 
-	beta = betas[ia]
-	d_loop = @.(dso + xc * sin(beta) - yc * cos(beta)) # dso - y_beta
-	r_loop = @.(xc * cos(beta) + yc * sin(beta) - source_offset) # x_beta-roff
+        beta = betas[ia]
+        d_loop = @.(dso + xc * sin(beta) - yc * cos(beta)) # dso - y_beta
+        r_loop = @.(xc * cos(beta) + yc * sin(beta) - source_offset) # x_beta-roff
 
-	if is_arc
-		sprime_ds = (dsd/ds) .* atan.(r_loop, d_loop) # s' / ds
-		w2 = dsd^2 ./ (d_loop.^2 + r_loop.^2) # [np] image weighting
-	else # flat
-		mag = dsd ./ d_loop
-		sprime_ds = mag .* r_loop ./ ds
-		w2 = mag.^2 # [np] image-domain weighting
-	end
+        if is_arc
+            sprime_ds = (dsd/ds) .* atan.(r_loop, d_loop) # s' / ds
+            w2 = dsd^2 ./ (d_loop.^2 + r_loop.^2) # [np] image weighting
+        else # flat
+            mag = dsd ./ d_loop
+            sprime_ds = mag .* r_loop ./ ds
+            w2 = mag.^2 # [np] image-domain weighting
+        end
 
-	bb = sprime_ds .+ wb # [np] bin "index"
+        bb = sprime_ds .+ wb # [np] bin "index"
 
-	# nearest neighbor interpolation:
-    #=
-%	ib = round(bb);
-%	if any(ib < 1 | ib > nb), error 'bug', end
-%	% trick: make out-of-sinogram indices point to those extra zeros
-%%	ib(ib < 1 | ib > nb) = nb+1;
-%	img = img + sino(ib, ia) ./ L2;
-    =#
+        # nearest neighbor interpolation:
+        #=
+    %	ib = round(bb);
+    %	if any(ib < 1 | ib > nb), error 'bug', end
+    %	% trick: make out-of-sinogram indices point to those extra zeros
+    %%	ib(ib < 1 | ib > nb) = nb+1;
+    %	img = img + sino(ib, ia) ./ L2;
+        =#
 
-	# linear interpolation:
-	il = floor[bb] # left bin
-	ir = 1.+il # right bin
+        # linear interpolation:
+        il = floor[bb] # left bin
+        ir = 1.+il # right bin
 
-	# deal with truncated sinograms
-	ig = il >= 1 && ir <= nb
-	il[~ig] = nb+1
-	ir[~ig] = nb+1
-#	if any(il < 1 | il >= nb), error 'bug', end
+        # deal with truncated sinograms
+        ig = (il .>= 1) .& (ir .<= nb)
+        il[.!ig] = nb+1
+        ir[.!ig] = nb+1
+    #	if any(il < 1 | il >= nb), error 'bug', end
 
-	wr = bb - il # left weight
-	wl = 1 - wr # right weight
-	if nz > 1
-		wr = repeat(wr, [1 nz])
-		wl = repeat(wl, [1 nz])
-		img = img + (wl .* squeeze(sino(il, ia, :)) ...
-			+ wr .* squeeze(sino(ir, ia, :))) .* repmat(w2, [1 nz]);
-	else
-		img = img + (wl .* sino(il, ia) + wr .* sino(ir, ia)) .* w2;
-	end
-end
+        wr = bb - il # left weight
+        wl = 1 - wr # right weight
+        
+        img = img .+ (wl .* sino[il, ia] + wr .* sino[ir, ia]) .* w2
+	
+    end
 
-img = pi / (na/ia_skip) * embed(img, mask);
-
-
-    =#
-
-
-
-
-
+    return pi / (na/ia_skip) * img # NOTE: possible temp
 end
 
