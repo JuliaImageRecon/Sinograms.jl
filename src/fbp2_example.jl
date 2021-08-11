@@ -24,6 +24,6 @@ println("plan complete")
 result,sino_filtered=fbp2(plan,sino)
 println("backprojection complete")
 
-p3 = jim(result)
-p4 = jim(sino_filtered)
+p3 = jim(ig.x, ig.y, result; clim)
+p4 = jim(real(sino_filtered))
 jim(p1,p2,p3,p4)

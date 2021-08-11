@@ -1,6 +1,6 @@
 export fbp2_back_fan
 
-Using LazyGrids
+using LazyGrids
 
 """
     img = fbp2_back_fan(sg, ig, sino; ia_skip)
@@ -50,7 +50,7 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
 
     # trick: extra zero column saves linear interpolation indexing within loop!
     
-    sino=[sino;zeros(size(sino,1)]
+    sino=[sino;zeros(size(sino,1))]
     
     # precompute as much as possible
     wx = (nx+1)/2 - offset_x
@@ -111,7 +111,7 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
 
         # linear interpolation:
         il = floor[bb] # left bin
-        ir = 1.+il # right bin
+        ir = 1 .+ il # right bin
 
         # deal with truncated sinograms
         ig = (il .>= 1) .& (ir .<= nb)

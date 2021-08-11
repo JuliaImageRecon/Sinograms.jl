@@ -184,8 +184,9 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
         sino = sino .* plan.parallel_beam_parker_weight
         
 	    sino,_,_,_ = fbp2_sino_filter(:flat, sino, ds = plan.sg.dr, window = plan.window)
-
-		image = fbp2_back(plan.sg, plan.ig, sino) 
+        
+        #NOTE: mask temporary
+		image = fbp2_back(plan.sg, plan.ig, sino, do_r_mask=true) 
         
     elseif plan.sg isa SinoFan
 

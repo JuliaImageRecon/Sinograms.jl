@@ -57,14 +57,14 @@ function fbp2_sino_filter(how::Symbol, sino::AbstractMatrix{<:Number};
         Hk = Hk ./ fftshift(sinc.(nn / npad).^2)
     end
     
-    sino = ifft(real(fft(sino, 1) .* repeat(Hk, 1, na)), 1) # apply filter
+    sino = reale(ifft(fft(sino, 1) .* repeat(Hk, 1, na), 1)) # apply filter
     #NOTE: was fft(sino, [], 1) and ifft(..., [], 1) in matlab  
+    #NOTE: still assertion error for reale 
     # todo: definitely use broadcast or map here.  should be no need to repeat
     # trick: possibly keep extra column(s) for zeros! 
     sino = sino[1:(nb+extra),:]
     sino[(nb+1):(nb+extra),:] .= 0
 
-    
     sino = reshape(sino, nb, na)
 
     return sino, Hk, hn, nn

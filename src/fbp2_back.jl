@@ -20,18 +20,18 @@ out
 
 
 """
-function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}; ia_skip::Int=1)
+function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}; ia_skip::Int=1, do_r_mask::Bool=false)
 
     if sg isa SinoFan
         return fbp2_back_fan(sg, ig, sino, ia_skip=ia_skip)
     elseif sg isa SinoPar
-        return fbp2_back(sg, ig, sino, ia_skip)
+        return fbp2_back(sg, ig, sino, ia_skip, do_r_mask)
     else 
         throw("unknown type")
     end
 end
 
-function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}, ia_skip::Int)
+function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}, ia_skip::Int, do_r_mask::Bool)
 
     # trick: extra zero column saves linear interpolation indexing within loop!
 
@@ -39,23 +39,20 @@ function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}, 
     nb != sg.nb && throw("nb size") 
     sino=[sino;zeros(eltype(sino),size(sino,2))']
 
-    
     xc, yc = LazyGrids.ndgrid(ig.x, ig.y)
     rr = sqrt.(abs2.(xc) + abs2.(yc)) # [nx ny]
 
     rmax = ((sg.nb-1)/2-abs(sg.offset)) * sg.d
-    #=
+
     mask = ig.mask
     if do_r_mask
-        mask = mask & (rr < rmax);
+        mask = mask .& (rr .< rmax)
     end
-    xc = xc(mask(:)); % [np] pixels within mask
-    yc = yc(mask(:));
-    =#
-
-    cs = sincos.(sg.ar) 
-    sang = getindex.(cs, 1)
-    cang = getindex.(cs, 2)
+    xc = xc[mask[:]] # [np] pixels within mask
+    yc = yc[mask[:]]
+    
+    sang = sin.(sg.ar)
+    cang = cos.(sg.ar)
     
     img = 0
     for ia=1:ia_skip:sg.na
@@ -74,18 +71,14 @@ function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}, 
     =#
         # linear interpolation:
         il = floor.(Int64, rr) # left bin
-        #=
-        if ~do_r_mask
-            il = max(il,1);
-            il = min(il,nb);
+        
+        if !do_r_mask
+            il = min.(il,nb)
+            il = max.(il,1)
         end
-        =#
+        
 
-        #temp
-        il = min.(il,nb)
-        il = max.(il,1)
-
-    	# (any(il .< 1) || any(il .>= nb)) && throw("bug")
+    	# % (any(il .< 1) || any(il .>= nb)) && throw("bug")
 
         wr = rr - il # left weight
         wl = 1 .- wr # right weight
@@ -95,7 +88,7 @@ function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}, 
     # img = (deg2rad(sg.orbit) / (sg.na/ia_skip)) * embed(img, mask);
     # img = pi / (sg.na/ia_skip) * embed(img, mask) % 2008-10-14
 
-    return pi / (sg.na/ia_skip) * img # NOTE: possible temp
+    return pi / (sg.na/ia_skip) * embed(img, mask) # NOTE: possible temp
 
 
     
