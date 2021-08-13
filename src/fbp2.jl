@@ -185,8 +185,8 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
         
 	    sino,_,_,_ = fbp2_sino_filter(:flat, sino, ds = plan.sg.dr, window = plan.window)
         
-        #NOTE: mask temporary
-		image = fbp2_back(plan.sg, plan.ig, sino, do_r_mask=true) 
+		#image = fbp2_back(plan.sg, plan.ig, sino, do_r_mask=true) 
+        image = fbp2_back(plan.sg, plan.ig, sino) 
         
     elseif plan.sg isa SinoFan
 

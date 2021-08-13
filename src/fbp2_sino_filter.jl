@@ -24,7 +24,7 @@ options
 - `window::Symbol`                      default: `:none`
 
 out
-- `sino::AbstractMatrix{<:Number}`      filtered sinogram rows
+- `sino::AbstractArray{<:Number}`      filtered sinogram rows
 - `Hk::AbstractVector{<:Number}`        apodized ramp filter frequency response
 - `hn::AbstractVector{<:Number}`        samples of band-limited ramp filter
 - `nn::AbstractVector{<:Number}`        [-np/2,...,np/2-1] vector for convenience
@@ -64,13 +64,13 @@ function fbp2_sino_filter(how::Symbol, sino::AbstractMatrix{<:Number};
     # trick: possibly keep extra column(s) for zeros! 
     sino = sino[1:(nb+extra),:]
     sino[(nb+1):(nb+extra),:] .= 0
-
     sino = reshape(sino, nb, na)
 
     return sino, Hk, hn, nn
 end
 
-# todo: we might be able to use map or mapslices or broadcast to handle stack of sinograms
-
-
+function fbp2_sino_filter(how::Symbol, sino::AbstractArray{<:Number}; 
+ds::RealU=1, dsd::RealU=Inf, extra::Int=0, npad::Int=0, decon1::Int=1, window::Symbol=:none)
+    return mapslices(fbp2_sino_filter, sino, [1,2])
+end
 
