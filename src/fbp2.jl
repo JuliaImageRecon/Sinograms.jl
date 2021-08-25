@@ -257,8 +257,6 @@ function fbp_make_sino_filter_moj(nb, na, dx, orbit, orbit_start, window)
 end
 
 
-
-
 function fbp2_apply_sino_filter_moj(sino, H)
 
     reale = (x) -> (@assert x ≈ real(x); real(x))

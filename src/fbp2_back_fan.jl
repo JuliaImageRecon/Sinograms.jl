@@ -1,6 +1,6 @@
 export fbp2_back_fan
 
-using LazyGrids
+using LazyGrids: ndgrid
 
 """
     img = fbp2_back_fan(sg, ig, sino; ia_skip)
@@ -10,13 +10,13 @@ using LazyGrids
 in
 - `sg::SinoGeom`                
 - `ig::ImageGeom`
-- `sino::AbstractMatrix{<:Number}`      sinogram (line integrals) 
+- `sino::AbstractArray{<:Number}`      sinogram(s) (line integrals) 
 
 options
 - `ia_skip::Int`                        downsample in angle to save time for quick tests (default: 1)
 
 out
-- `img::AbstractMatrix{<:Number}`       reconstructed image
+- `img::AbstractArray{<:Number}`       reconstructed image(s)
 
 """
 function fbp2_back_fan(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}; ia_skip::Int=1)
@@ -50,37 +50,33 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
 
     # trick: extra zero column saves linear interpolation indexing within loop!
     
-    sino=[sino;zeros(size(sino,1))]
+    sino=[sino;zeros(size(sino,1))] # TEMP 
     
     # precompute as much as possible
     wx = (nx+1)/2 - offset_x
     wy = (ny+1)/2 - offset_y
-    xc, yc = LazyGrids.ndgrid(dx .* ((1:nx).-wx), dy .* ((1:ny).-wy))
+    xc, yc = ndgrid(dx * ((1:nx) .- wx), dy * ((1:ny) .- wy))
     rr = @.(sqrt(xc^2 + yc^2)) # [nx,ny] 
 
     smax = ((nb-1)/2 - abs(offset)) * ds
 
-    if isempty(rmax)
-        if is_arc
-            gamma_max = smax / dsd
-        else # flat
-            gamma_max = atan(smax / dsd)
-        end
-        rmax = dso * sin(gamma_max)
+    #todo: rmax possibly extracable from SinoGeom
+    if is_arc
+        gamma_max = smax / dsd
+    else # flat
+        gamma_max = atan(smax / dsd)
     end
-    #=
-    mask = mask & (rr < rmax);
-    xc = xc(mask(:)); % [np] pixels within mask
-    yc = yc(mask(:));
-    clear wx wy rr smax
-    =#
+    rmax = dso * sin(gamma_max)
+    
+    mask = mask .& (rr .< rmax)
+    xc = xc[mask[:]] # [np] pixels within mask
+    yc = yc[mask[:]]
+    #clear wx wy rr smax
 
     betas = @.(deg2rad(orbit_start + orbit * (0:na-1) / na)) # [na]
     wb = (nb+1)/2 + offset_s
 
     img = 0
-
-    
 
     for ia=1:ia_skip:na
 	#ticker(mfilename, ia, na)
@@ -127,5 +123,10 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
     end
 
     return pi / (na/ia_skip) * img # NOTE: possible temp
+end
+
+
+function fbp2_back_fan(sg::SinoGeom, ig::ImageGeom, sino::AbstractArray{<:Number}; kwargs...)
+    return mapslices(sino -> fbp2_back_fan(sg, ig, sino; kwargs...), sino, [1,2])
 end
 
