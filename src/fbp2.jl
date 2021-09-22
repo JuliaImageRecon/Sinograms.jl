@@ -9,6 +9,7 @@ struct NormalPlan <: FBPplan
     ig::ImageGeom
     window::Union{Symbol,AbstractVector{<:Real}}
     parallel_beam_parker_weight::AbstractMatrix{<:Real}
+    #moj::
 end
 
 struct DfPlan <: FBPplan
@@ -124,11 +125,21 @@ function fbp2_setup_normal(sg::SinoGeom, ig::ImageGeom, window::Symbol, T::DataT
         sg.orbit != 360 && @warn("short-scan fan-beam Parker weighting not done")
         
     elseif sg isa SinoMoj
-        #...
+        if sg.dx == abs(ig.dx)
+            plan.moj.G = Gtomo2_table(sg, ig, ["mojette,back1"], nthread=nthread)
+        else
+            d=sg.dx
+            dx=ig.dx
+            @warn("mojette sinogram with d=$d vs image with dx=$dx")
+        end
+    
+        plan.moj.H = fbp2_make_sino_filter_moj(sg.nb, sg.na, sg.dx, sg.orbit, sg.orbit_start, window)
+
     else 
         throw("bad sino type")
     end
     return NormalPlan(sg,ig,window,weight)
+    #TODO: plan.moj
 
 end
 
@@ -207,24 +218,22 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
 			window=plan.window)
 		return fbp2_back_fan(plan.sg, plan.ig, sino)
         
-    elseif plan.sg isa SinoMoj
-        #=
-        sino = fbp2_apply_sino_filter_moj(sino, geom.moj.H)
+    elseif plan.sg isa SinoMoj #TODO (incomplete)
+        
+        sino = fbp2_apply_sino_filter_moj(sino, plan.moj.H)
 
-        if geom.sg.dx == abs(geom.ig.dx)
-            image = geom.moj.G' * sino; % backproject
-            image = image * (pi / geom.sg.na); % account for "dphi" in integral
-        else % revert to conventional pixel driven
-            ig = geom.ig;
-            sg = geom.sg;
-            arg1 = {uint8(ig.mask), ig.dx, ig.dy, ig.offset_x, ...
-                sign(ig.dy) * ig.offset_y}; % trick: old backproject
-            arg2 = {sg.d(1:sg.na), sg.offset, sg.orbit, sg.orbit_start};
-            image = jf_mex('back2', arg1{:}, arg2{:}, ...
-                    int32(arg.nthread), single(sino));
-            image = image .* geom.ig.mask;
-            end
-            =#
+        if plan.sg.dx == abs(plan.ig.dx)
+            image = plan.moj.G' * sino # backproject
+            image = image * (pi / plan.sg.na) # account for "dphi" in integral
+        else # revert to conventional pixel driven
+            ig = plan.ig
+            sg = plan.sg
+            arg1 = [uint8(ig.mask), ig.dx, ig.dy, ig.offset_x, sign(ig.dy) * ig.offset_y] # trick: old backproject
+            arg2 = [sg.d(1:sg.na), sg.offset, sg.orbit, sg.orbit_start]
+            image = jf_mex("back2", arg1[:], arg2[:], int32(arg.nthread), single(sino))
+            image = image .* plan.ig.mask
+        end
+            
     else
         throw("not done")
     end
