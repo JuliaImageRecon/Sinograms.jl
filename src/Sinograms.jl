@@ -12,6 +12,7 @@ include("fbp2_back.jl")
 include("fbp2_back_fan.jl")
 include("fbp_ramp.jl")
 include("fbp2_window.jl")
+include("fbp2_sino_weight.jl")
 
 
 

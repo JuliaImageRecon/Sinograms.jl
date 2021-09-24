@@ -213,7 +213,7 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
 		end
 
 		sino = fbp2_sino_weight(plan.sg, sino) #todo 
-		sino = fbp2_sino_filter(dtype, sino,
+		sino,_,_,_ = fbp2_sino_filter(dtype, sino,
 			ds=plan.sg.ds, dsd=plan.sg.dsd,
 			window=plan.window)
 		return fbp2_back_fan(plan.sg, plan.ig, sino)

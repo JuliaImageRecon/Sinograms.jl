@@ -6,7 +6,7 @@ using MIRTjim: jim
 down = 2
 ig = image_geom(nx=512, ny=504, fov=500)
 ig = ig.down(down)
-sg = sino_geom(:par, nb=888, na=984, orbit=180 , d=541/949, offset=0.25)
+sg = sino_geom(:fan, nb=888, na=984, orbit=180 , d=541/949, offset=0.25)
 sg=sg.down(down)
 
 ell = ellipse_im_params(ig, :shepplogan)

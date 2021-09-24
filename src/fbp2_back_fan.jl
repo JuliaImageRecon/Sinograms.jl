@@ -32,7 +32,7 @@ function fbp2_back_fan(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Numbe
     end
 
     return fbp2_back_fan(sino, sg.orbit, sg.orbit_start, 
-	sg.dsd, sg.dso, sg.dfs, sg.ds, sg.offset_s, 
+	sg.dsd, sg.dso, sg.dfs, sg.ds, sg.offset, 
 	sg.source_offset, 
 	ig.nx, ig.ny, ig.dx, ig.dy, ig.offset_x, ig.offset_y, 
 	is_arc, ig.mask, ia_skip)
@@ -50,7 +50,7 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
 
     # trick: extra zero column saves linear interpolation indexing within loop!
     
-    sino=[sino;zeros(size(sino,1))] # TEMP 
+    sino=[sino;zeros(size(sino,2))'] # TEMP 
     
     # precompute as much as possible
     wx = (nx+1)/2 - offset_x
@@ -74,7 +74,7 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
     #clear wx wy rr smax
 
     betas = @.(deg2rad(orbit_start + orbit * (0:na-1) / na)) # [na]
-    wb = (nb+1)/2 + offset_s
+    wb = (nb+1)/2 + offset
 
     img = 0
 
@@ -106,17 +106,17 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
         =#
 
         # linear interpolation:
-        il = floor[bb] # left bin
+        il = floor.(bb) # left bin
         ir = 1 .+ il # right bin
 
         # deal with truncated sinograms
         ig = (il .>= 1) .& (ir .<= nb)
-        il[.!ig] = nb+1
-        ir[.!ig] = nb+1
+        il[.!ig] .= nb+1
+        ir[.!ig] .= nb+1
     #	if any(il < 1 | il >= nb), error 'bug', end
 
-        wr = bb - il # left weight
-        wl = 1 - wr # right weight
+        wr = bb .- il # left weight
+        wl = 1 .- wr # right weight
         
         img = img .+ (wl .* sino[il, ia] + wr .* sino[ir, ia]) .* w2
 	
