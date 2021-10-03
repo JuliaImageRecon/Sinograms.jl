@@ -106,7 +106,7 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
         =#
 
         # linear interpolation:
-        il = floor.(bb) # left bin
+        il = floor.(Int, bb) # left bin
         ir = 1 .+ il # right bin
 
         # deal with truncated sinograms
@@ -115,14 +115,18 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
         ir[.!ig] .= nb+1
     #	if any(il < 1 | il >= nb), error 'bug', end
 
+    # Temporary: 
+        il=min.(il,na)
+        ir=min.(ir,na)
+
         wr = bb .- il # left weight
         wl = 1 .- wr # right weight
-        
-        img = img .+ (wl .* sino[il, ia] + wr .* sino[ir, ia]) .* w2
+
+        img = @.(img + (wl * sino[il, ia] + wr * sino[ir, ia]) * w2)
 	
     end
 
-    return pi / (na/ia_skip) * img # NOTE: possible temp
+    return pi / (na/ia_skip) * embed(img,mask) # NOTE: possible temp
 end
 
 
