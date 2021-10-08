@@ -2,7 +2,6 @@ export fbp_ramp
 export ramp_flat
 export ramp_arc
 
-const RealU = Number
 
 """
     h, nn = fbp_ramp(how, n, ds, dsd)
