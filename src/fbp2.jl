@@ -216,7 +216,7 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
 		sino,_,_,_ = fbp2_sino_filter(dtype, sino,
 			ds=plan.sg.ds, dsd=plan.sg.dsd,
 			window=plan.window)
-		image = fbp2_back_fan(plan.sg, plan.ig, sino)
+		image = fbp2_back(plan.sg, plan.ig, sino)
         
     elseif plan.sg isa SinoMoj #TODO (incomplete)
         

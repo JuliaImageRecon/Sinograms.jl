@@ -13,24 +13,13 @@ out
 - `sino::AbstractMatrix{<:Number}`
 
 """
-function fbp2_sino_weight(sg::SinoGeom, sino::AbstractMatrix{<:Number})
+function fbp2_sino_weight(sg::SinoFanArc, sino::AbstractMatrix{<:Number})
+    ss = sg.s
+    dsd = sg.dsd
+    dso = sg.dso
+    source_offset = sg.source_offset
 
-    #=
-    idim = size(sino);
-    sino = reshape(sino, idim(1), idim(2), []);
-    =#
-
-    if isinf(sg.dfs)
-        return fbp2_sino_weight_flat(sino, sg.s, sg.dsd, sg.dso, sg.source_offset)
-    elseif sg.dfs == 0
-        return fbp2_sino_weight_arc(sino, sg.s, sg.dsd, sg.dso, sg.source_offset)
-    else
-        throw("only flat and arc done")
-    end
-end
-
-function fbp2_sino_weight_arc(sino, ss, dsd, dso, source_offset)
-    na=size(sino,2)
+    na = size(sino,2)
     gam = ss / dsd
     w1 = abs.(dso * cos.(gam) - source_offset * sin.(gam)) / dsd # 1D weighting
     return sino .* repeat(w1, 1, na)
@@ -38,7 +27,12 @@ function fbp2_sino_weight_arc(sino, ss, dsd, dso, source_offset)
 end
 
 
-function fbp2_sino_weight_flat(sino, ss, dsd, dso, source_offset)
+function fbp2_sino_weight_flat(sg::SinoFanFlat, sino::AbstractMatrix{<:Number})
+    ss = sg.s
+    dsd = sg.dsd
+    dso = sg.dso
+    source_offset = sg.source_offset
+
     na = size(sino,2)
     gam = atan(ss / dsd)
     w1 = abs.(dso * cos.(gam) - source_offset * sin.(gam)) / dsd # 1D weighting

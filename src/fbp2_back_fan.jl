@@ -1,5 +1,7 @@
 export fbp2_back_fan
 
+#obselete: fbp2_back now covers both fan and par case
+
 using LazyGrids: ndgrid
 
 """

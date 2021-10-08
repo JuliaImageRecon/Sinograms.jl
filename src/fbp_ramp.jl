@@ -27,12 +27,9 @@ function fbp_ramp(how::Symbol, n::Int, ds::RealU, dsd::RealU)
     if how==:arc
         
 	    h, nn = ramp_arc(n, ds, dsd)
-        
 
-    elseif how==:flat
-        
+    elseif how==:flat   
 	    h, nn = ramp_flat(n, ds)
-        
 
     else
         throw("bad fan type")
@@ -50,9 +47,9 @@ function ramp_arc(n::Int, ds::RealU, dsd::RealU)
 
     nn = -(n÷2):(n÷2-1)
     h = zeros(size(nn))
-    h[nn.==0] .= 1 / (4 * ds^2)
+    h[nn.==0] .= 1 / (4 * abs2(ds))
     odd = isodd.(nn)
-    h[odd] .= -1 ./ (pi .* dsd .* sin.(nn[odd] .* ds / dsd)).^2
+    h[odd] .= abs2.(@.(-1 / (pi * dsd * sin(nn[odd] * ds / dsd))))
 
     return h, nn 
 end
