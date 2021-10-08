@@ -64,7 +64,7 @@ function ramp_flat(n::Int, ds::RealU)
     h[n÷2+1] = 1 / 4
     odd = isodd.(nn)
     h[odd] .= -1 ./ (pi .* nn[odd]).^2
-    h = h ./ ds^2
+    h ./= abs2(ds)
 
     return h, nn
 end
