@@ -25,13 +25,13 @@ function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}; 
     if sg isa SinoFan
         return fbp2_back_fan(sg, ig, sino, ia_skip=ia_skip)
     elseif sg isa SinoPar
-        return fbp2_back(sg, ig, sino, ia_skip, do_r_mask)
+        return fbp2_back(sg, ig, sino; ia_skip, do_r_mask)
     else 
         throw("unknown type")
     end
 end
 
-function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}, ia_skip::Int, do_r_mask::Bool)
+function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}; ia_skip::Int=1, do_r_mask::Bool=false)
 
     # trick: extra zero column saves linear interpolation indexing within loop!
 
@@ -56,7 +56,7 @@ function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}, 
     for ia = 1:ia_skip:sg.na
         # ticker(mfilename, ia, sg.na)
 
-        rr = @.(xc * cang[ia] + yc * sang[ia]) # [np,1]
+        rr = @.(xc * cang[ia] + yc * sang[ia]) # [np]
         rr = @.(rr / sg.d + sg.w + 1) # unitless bin index, +1 because julia 
 
         # nearest neighbor interpolation:
