@@ -1,6 +1,6 @@
 export fbp2_back
 
-using LazyGrids
+using LazyGrids: ndgrid
 
 """
     img = fbp2_back(sg, ig, sino; ia_skip)
