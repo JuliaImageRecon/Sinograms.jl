@@ -42,7 +42,8 @@ end
 function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}, orbit_start::Real, 
 	dsd::RealU, dso::Real, dfs::RealU, ds::RealU, offset::Real, source_offset::Real, 
 	nx::Int, ny::Int, dx::RealU, dy::RealU, offset_x::Real, offset_y::Real,
-    is_arc::Bool, mask::AbstractArray{Bool}, ia_skip::Int)
+     is_arc::Bool, mask::AbstractMatrix{Bool}, ia_skip::Int,
+)
 
     rmax=[]
 
