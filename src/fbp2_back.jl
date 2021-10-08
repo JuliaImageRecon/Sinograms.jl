@@ -46,8 +46,8 @@ function fbp2_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Number}, 
     if do_r_mask
         mask = mask .& (rr .< rmax)
     end
-    xc = xc[mask[:]] # [np] pixels within mask
-    yc = yc[mask[:]]
+    xc = xc[vec(mask)] # [np] pixels within mask
+    yc = yc[vec(mask)]
     
     sang = sin.(sg.ar)
     cang = cos.(sg.ar)
