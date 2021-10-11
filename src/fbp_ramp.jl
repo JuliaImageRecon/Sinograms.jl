@@ -49,7 +49,7 @@ function ramp_arc(n::Int, ds::RealU, dsd::RealU)
     h = zeros(size(nn))
     h[nn.==0] .= 1 / (4 * abs2(ds))
     odd = isodd.(nn)
-    h[odd] .= abs2.(@.(-1 / (pi * dsd * sin(nn[odd] * ds / dsd))))
+    @. h[odd] = abs2(-1 / (pi * dsd * sin(nn[odd] * ds / dsd)))
 
     return h, nn 
 end
