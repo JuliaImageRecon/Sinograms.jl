@@ -24,6 +24,7 @@ struct MojPlan <: FBPplan
     ig::ImageGeom
     window::Union{Symbol,AbstractVector{<:Real}}
     parallel_beam_parker_weight::AbstractMatrix{<:Real}
+    #moj::
 end
 
 struct TabPlan <: FBPplan
@@ -239,6 +240,18 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
     end
 
     return image, sino
+end
+
+#fbp2_recon_moj
+function fpb2(plan::MojPlan, sino::AbstractMatrix{<:Number})
+
+    moj=plan.moj
+    # bin sinogram to mojette sampling, whether it is fan or parallel
+    msino = moj.ob_rebin * sino
+    msino = fbp2_apply_sino_filter_moj(msino, moj.H) # filter mojette sinogram
+    image = moj.G' * msino # backproject
+    return image * (pi / size(sino,2)) # account for "dphi" in integral
+
 end
 
 function fbp_make_sino_filter_moj(nb, na, dx, orbit, orbit_start, window)

@@ -27,7 +27,7 @@ function fbp2_sino_weight(sg::SinoFanArc, sino::AbstractMatrix{<:Number})
 end
 
 
-function fbp2_sino_weight_flat(sg::SinoFanFlat, sino::AbstractMatrix{<:Number})
+function fbp2_sino_weight(sg::SinoFanFlat, sino::AbstractMatrix{<:Number})
     ss = sg.s
     dsd = sg.dsd
     dso = sg.dso
