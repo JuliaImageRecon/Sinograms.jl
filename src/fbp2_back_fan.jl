@@ -72,8 +72,8 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
     rmax = dso * sin(gamma_max)
     
     mask = mask .& (rr .< rmax)
-    xc = xc[mask[vec(mask)]] # [np] pixels within mask
-    yc = yc[mask[vec(mask)]]
+    xc = xc[vec(mask)] # [np] pixels within mask
+    yc = yc[vec(mask)]
     #clear wx wy rr smax
 
     betas = @.(deg2rad(orbit_start + orbit * (0:na-1) / na)) # [na]
@@ -129,7 +129,7 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
 	
     end
 
-    return pi / (na/ia_skip) * embed(img,mask) # NOTE: possible temp
+    return pi / (na/ia_skip) * embed(img,mask) 
 end
 
 

@@ -4,14 +4,26 @@ using MIRT
 
 abstract type FBPplan end
 
-struct NormalPlan <: FBPplan
-    sg::SinoGeom
-    ig::ImageGeom
-    window::Union{Symbol,AbstractVector{<:Real}}
-    parallel_beam_parker_weight::AbstractMatrix{<:Real}
-    #moj::
+struct Moj 
+    H::AbstractMatrix{<:Real}
+    G::AbstractMatrix{<:Real}
 end
 
+Moj()=Moj(zeros(Real,1,1),zeros(Real,1,1))
+
+struct NormalPlan{S} <: FBPplan
+    sg::S
+    ig::ImageGeom
+    window::Union{Symbol,AbstractVector{<:Real}}
+    parker_weight::AbstractMatrix{<:Real}
+    moj::Moj
+end
+#=todo
+NormalPlan{S}(sg::S,
+ig::ImageGeom,
+window::Union{Symbol,AbstractVector{<:Real}},
+parker_weight::AbstractMatrix{<:Real})=NormalPlan{S}(sg,ig,window,parker_weight,Moj([0],[0])) 
+=#
 struct DfPlan <: FBPplan
     sg::SinoGeom
     ig::ImageGeom
@@ -24,7 +36,7 @@ struct MojPlan <: FBPplan
     ig::ImageGeom
     window::Union{Symbol,AbstractVector{<:Real}}
     parallel_beam_parker_weight::AbstractMatrix{<:Real}
-    #moj::
+    moj::Moj
 end
 
 struct TabPlan <: FBPplan
@@ -35,6 +47,7 @@ struct TabPlan <: FBPplan
 end
 
 reale = (x) -> (@assert x ≈ real(x); real(x))
+
 
 
 """
@@ -114,17 +127,19 @@ function fbp2_par_parker_wt(sg::SinoGeom)
     return repeat(wt, nb, 1) #[nb na] sinogram sized 
 end
 
-function fbp2_setup_normal(sg::SinoGeom, ig::ImageGeom, window::Symbol, T::DataType)
+function fbp2_setup_normal(sg::S, ig::ImageGeom, window::Symbol, T::DataType) where {S <: SinoGeom}
     
-    weight=ones(T,sg.nb,sg.na)
+    weight = ones(T,sg.nb,sg.na)
     if sg isa SinoPar
         if abs(sg.orbit) != 180 && abs(sg.orbit) != 360
             weight = fbp2_par_parker_wt(sg)
         end
+        return NormalPlan{SinoPar}(sg,ig,window,weight,Moj())
 
     elseif sg isa SinoFan
         sg.orbit != 360 && @warn("short-scan fan-beam Parker weighting not done")
-        
+        return NormalPlan{SinoFan}(sg,ig,window,weight,Moj())
+
     elseif sg isa SinoMoj
         if sg.dx == abs(ig.dx)
             plan.moj.G = Gtomo2_table(sg, ig, ["mojette,back1"], nthread=nthread)
@@ -133,14 +148,13 @@ function fbp2_setup_normal(sg::SinoGeom, ig::ImageGeom, window::Symbol, T::DataT
             dx=ig.dx
             @warn("mojette sinogram with d=$d vs image with dx=$dx")
         end
-    
+
         plan.moj.H = fbp2_make_sino_filter_moj(sg.nb, sg.na, sg.dx, sg.orbit, sg.orbit_start, window)
+        return NormalPlan{sinoPar}(sg,ig,window,weight,moj)
 
     else 
         throw("bad sino type")
     end
-    return NormalPlan(sg,ig,window,weight)
-    #TODO: plan.moj
 
 end
 
@@ -193,7 +207,7 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
     plan.sg.dim != size(sino) && throw("bad sino size")
 
     if plan.sg isa SinoPar
-        sino = sino .* plan.parallel_beam_parker_weight
+        sino = sino .* plan.parker_weight
         
 	    sino,_,_,_ = fbp2_sino_filter(:flat, sino, ds = plan.sg.dr, window = plan.window)
         
@@ -272,7 +286,7 @@ function fbp_make_sino_filter_moj(nb, na, dx, orbit, orbit_start, window)
         h = u0^2 .* (2 .* sinc.(2*u0*r) - sinc.(u0*r).^2)
         h = h .* repeat(dr, [npad 1]) # extra dr for discrete-space convolution
     #	clf, plot(r, h, '.'), keyboard
-        H = reale(fft(fftshift(h,1), 1))
+        return reale(fft(fftshift(h,1), 1))
     #	H = fbp_apodize(H, nb, window);
         !isempty(window) && throw("window not done yet due to dr")
     end

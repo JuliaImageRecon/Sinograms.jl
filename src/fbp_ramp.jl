@@ -19,6 +19,8 @@ out
 - `h::AbstractMatrix{<:Number}`     samples of band-limited ramp filter
 
 """
+#=
+#in progress 
 function fbp_ramp(how::Symbol, n::Int, ds::RealU, dsd::RealU)
     
     isodd(n) && throw("n must be even")
@@ -71,9 +73,11 @@ function fbp_ramp(sg::SinoFanFlat, n::Int, ds::RealU,dsd::RealU)
 
     return h, nn
 end
+=#
 
-#=
-original
+
+
+#original
 function fbp_ramp(how::Symbol, n::Int, ds::RealU, dsd::RealU)
     
     isodd(n) && throw("n must be even")
@@ -119,5 +123,5 @@ function ramp_flat(n::Int, ds::RealU)
     h ./= abs2(ds)
 
     return h, nn
-end=#
+end
 

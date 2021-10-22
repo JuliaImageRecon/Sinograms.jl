@@ -26,7 +26,7 @@ function fbp2_back(sg::SinoPar, ig::ImageGeom, sino::AbstractMatrix{<:Number}; i
 
     nb = size(sino,1) # number of radial bins
     nb != sg.nb && throw("nb size") 
-    sino = [sino;zeros(eltype(sino),size(sino,2))']
+    sino = [sino;zeros(eltype(sino),size(sino,2),2)']
 
     xc, yc = ndgrid(ig.x, ig.y)
     rr = sqrt.(abs2.(xc) + abs2.(yc)) # [nx ny]
@@ -60,12 +60,14 @@ function fbp2_back(sg::SinoPar, ig::ImageGeom, sino::AbstractMatrix{<:Number}; i
         il = floor.(Int64, rr) # left bin
         
         if !do_r_mask
-            il = min.(il,nb)
+            il = min.(il,nb+1)
             il = max.(il,1)
         end
+        #@show size(rr)
     	# % (any(il .< 1) || any(il .>= nb)) && throw("bug")
 
         wr = rr - il # left weight
+        #@show extrema(wr), rr[1000:1005], il[1000:1005]
         wl = 1 .- wr # right weight
         img = @.(img + wl * sino[il, ia] + wr * sino[il.+1, ia])
     end
