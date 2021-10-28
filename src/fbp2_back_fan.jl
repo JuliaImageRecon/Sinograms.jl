@@ -46,20 +46,18 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
 	nx::Int, ny::Int, dx::RealU, dy::RealU, offset_x::Real, offset_y::Real,
      is_arc::Bool, mask::AbstractMatrix{Bool}, ia_skip::Int,
 )
-
     rmax=[]
 
     na,nb=size(sino)
 
     # trick: extra zero column saves linear interpolation indexing within loop!
-    
-    sino=[sino;zeros(size(sino,2))'] # TEMP 
+    sino = [sino;zeros(eltype(sino),size(sino,2),2)'] 
     
     # precompute as much as possible
     wx = (nx+1)/2 - offset_x
     wy = (ny+1)/2 - offset_y
     xc, yc = ndgrid(dx * ((1:nx) .- wx), dy * ((1:ny) .- wy))
-    rr = @.(sqrt(xc^2 + yc^2)) # [nx,ny] 
+    rr = @.(sqrt(abs2(xc) + abs2(yc))) # [nx,ny] 
 
     smax = ((nb-1)/2 - abs(offset)) * ds
 
@@ -89,12 +87,12 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
         r_loop = @.(xc * cos(beta) + yc * sin(beta) - source_offset) # x_beta-roff
 
         if is_arc
-            sprime_ds = (dsd/ds) .* atan.(r_loop, d_loop) # s' / ds
-            w2 = dsd^2 ./ (d_loop.^2 + r_loop.^2) # [np] image weighting
+            sprime_ds = (dsd/ds) * atan.(r_loop, d_loop) # s' / ds
+            w2 = @.(dsd^2 / (abs2(d_loop) + abs2(r_loop))) # [np] image weighting
         else # flat
             mag = dsd ./ d_loop
             sprime_ds = mag .* r_loop ./ ds
-            w2 = mag.^2 # [np] image-domain weighting
+            w2 = abs2.(mag) # [np] image-domain weighting
         end
 
         bb = sprime_ds .+ wb # [np] bin "index"
@@ -124,7 +122,7 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
 
         wr = bb .- il # left weight
         wl = 1 .- wr # right weight
-
+        
         img = @.(img + (wl * sino[il, ia] + wr * sino[ir, ia]) * w2)
 	
     end

@@ -18,12 +18,12 @@ struct NormalPlan{S} <: FBPplan
     parker_weight::AbstractMatrix{<:Real}
     moj::Moj
 end
-#=todo
-NormalPlan{S}(sg::S,
+
+NormalPlan(sg::SinoGeom,
 ig::ImageGeom,
 window::Union{Symbol,AbstractVector{<:Real}},
-parker_weight::AbstractMatrix{<:Real})=NormalPlan{S}(sg,ig,window,parker_weight,Moj([0],[0])) 
-=#
+parker_weight::AbstractMatrix{<:Real}) = NormalPlan{typeof(sg)}(sg,ig,window,parker_weight,Moj()) 
+
 struct DfPlan <: FBPplan
     sg::SinoGeom
     ig::ImageGeom
@@ -134,11 +134,11 @@ function fbp2_setup_normal(sg::S, ig::ImageGeom, window::Symbol, T::DataType) wh
         if abs(sg.orbit) != 180 && abs(sg.orbit) != 360
             weight = fbp2_par_parker_wt(sg)
         end
-        return NormalPlan{SinoPar}(sg,ig,window,weight,Moj())
+        return NormalPlan(sg,ig,window,weight)
 
     elseif sg isa SinoFan
         sg.orbit != 360 && @warn("short-scan fan-beam Parker weighting not done")
-        return NormalPlan{SinoFan}(sg,ig,window,weight,Moj())
+        return NormalPlan(sg,ig,window,weight)
 
     elseif sg isa SinoMoj
         if sg.dx == abs(ig.dx)
@@ -150,7 +150,7 @@ function fbp2_setup_normal(sg::S, ig::ImageGeom, window::Symbol, T::DataType) wh
         end
 
         plan.moj.H = fbp2_make_sino_filter_moj(sg.nb, sg.na, sg.dx, sg.orbit, sg.orbit_start, window)
-        return NormalPlan{sinoPar}(sg,ig,window,weight,moj)
+        return NormalPlan{SinoMoj}(sg,ig,window,weight,moj)
 
     else 
         throw("bad sino type")

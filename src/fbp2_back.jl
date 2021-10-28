@@ -110,13 +110,13 @@ function fbp2_back(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}, or
 
     # trick: extra zero column saves linear interpolation indexing within loop!
     
-    sino=[sino;zeros(size(sino,2))'] # TEMP 
+    sino=[sino;zeros(size(sino,2))']  
     
     # precompute as much as possible
     wx = (nx+1)/2 - offset_x
     wy = (ny+1)/2 - offset_y
     xc, yc = ndgrid(dx * ((1:nx) .- wx), dy * ((1:ny) .- wy))
-    rr = @.(sqrt(xc^2 + yc^2)) # [nx,ny] 
+    rr = @.(sqrt(abs2(xc) + abs2(yc))) # [nx,ny] 
 
     smax = ((nb-1)/2 - abs(offset)) * ds
 
@@ -137,6 +137,8 @@ function fbp2_back(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}, or
     wb = (nb+1)/2 + offset
 
     img = 0
+    #TEMP: 
+    sino=sino'
 
     for ia=1:ia_skip:na
 	#ticker(mfilename, ia, na)
@@ -146,12 +148,12 @@ function fbp2_back(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}, or
         r_loop = @.(xc * cos(beta) + yc * sin(beta) - source_offset) # x_beta-roff
 
         if is_arc
-            sprime_ds = (dsd/ds) .* atan.(r_loop, d_loop) # s' / ds
-            w2 = dsd^2 ./ (d_loop.^2 + r_loop.^2) # [np] image weighting
+            sprime_ds = (dsd/ds) * atan.(r_loop, d_loop) # s' / ds
+            w2 = @.(abs2(dsd) / (abs2(d_loop) + abs2(r_loop))) # [np] image weighting
         else # flat
             mag = dsd ./ d_loop
-            sprime_ds = mag .* r_loop ./ ds
-            w2 = mag.^2 # [np] image-domain weighting
+            sprime_ds = mag .* r_loop / ds
+            w2 = abs2.(mag) # [np] image-domain weighting
         end
 
         bb = sprime_ds .+ wb # [np] bin "index"
@@ -176,17 +178,19 @@ function fbp2_back(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}, or
     #	if any(il < 1 | il >= nb), error 'bug', end
 
     # Temporary: 
-        il=min.(il,na)
-        ir=min.(ir,na)
+        #il=min.(il,na)
+        #ir=min.(ir,na)
 
         wr = bb .- il # left weight
         wl = 1 .- wr # right weight
+
+        
 
         img = @.(img + (wl * sino[il, ia] + wr * sino[ir, ia]) * w2)
 	
     end
 
-    return pi / (na/ia_skip) * embed(img,mask) # NOTE: possible temp
+    return pi / (na/ia_skip) * embed(img,mask)
 end
 
 #3d accesibility
