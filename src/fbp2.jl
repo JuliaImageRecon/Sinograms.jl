@@ -173,35 +173,6 @@ out
 - `sino_filt::AbstractMatrix{<:Number}`   filtered sinogram(s)
 
 """
-#=
-function fbp2(plan::FBPplan, sino::AbstractMatrix{<:Number})
-
-    plan.sg.dim != size(sino) && throw("bad sino size")
-    # comments 
-    
-    if plan isa NormalPlan
-        return fbp2_recon_normal(plan, sino)
-    elseif plan.how === :df
-        #=
-        if ~isempty(opt.window), error 'no window for DF', 
-        end
-	    image = fbp2_recon_df_pull(sino, geom, opt);
-	    sino_filt = [];=#
-    elseif plan.how === :mojette
-        #=
-        if ~isempty(opt.window), error 'window only at setup for mojette', end
-	    image = fbp2_recon_moj(sino, geom.moj);
-	    sino_filt = [];=#
-    elseif plan.how === :table
-        throw("not done")
-    else 
-        throw("type bug")
-    end
-
-end 
-=#
-
-# fbp2_recon_normal
 function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
 
     plan.sg.dim != size(sino) && throw("bad sino size")

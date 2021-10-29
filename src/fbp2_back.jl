@@ -106,7 +106,7 @@ function fbp2_back(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}, or
 
     rmax=[]
 
-    na,nb=size(sino)
+    nb,na=size(sino)
 
     # trick: extra zero column saves linear interpolation indexing within loop!
     
@@ -137,8 +137,6 @@ function fbp2_back(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}, or
     wb = (nb+1)/2 + offset
 
     img = 0
-    #TEMP: 
-    sino=sino'
 
     for ia=1:ia_skip:na
 	#ticker(mfilename, ia, na)
@@ -177,14 +175,8 @@ function fbp2_back(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}, or
         ir[.!ig] .= nb+1
     #	if any(il < 1 | il >= nb), error 'bug', end
 
-    # Temporary: 
-        #il=min.(il,na)
-        #ir=min.(ir,na)
-
         wr = bb .- il # left weight
-        wl = 1 .- wr # right weight
-
-        
+        wl = 1 .- wr # right weight      
 
         img = @.(img + (wl * sino[il, ia] + wr * sino[ir, ia]) * w2)
 	
