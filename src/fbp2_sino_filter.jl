@@ -30,7 +30,7 @@ out
 - `nn::AbstractVector{<:Number}`        [-np/2,...,np/2-1] vector for convenience
 
 """
-function fbp2_sino_filter(how::Symbol, sino::AbstractMatrix{<:Number}; 
+function fbp2_sino_filter(sg::SinoGeom, sino::AbstractMatrix{<:Number}; 
     ds::RealU=1, dsd::RealU=Inf, extra::Int=0, npad::Int=0, decon1::Int=1, window::Symbol=:none)
 
     nb, na = size(sino)
@@ -39,7 +39,7 @@ function fbp2_sino_filter(how::Symbol, sino::AbstractMatrix{<:Number};
     end
 
     sino = [sino; zeros(npad-nb,na)] # padded sinogram
-    hn, nn = fbp_ramp(how, npad, ds, dsd)
+    hn, nn = fbp_ramp(sg, npad, ds, dsd)
 
     reale = (x) -> (@assert x ≈ real(x); real(x))
     Hk = fft(fftshift(hn))

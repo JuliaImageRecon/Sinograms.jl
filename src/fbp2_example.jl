@@ -8,7 +8,7 @@ using Plots
 down = 2
 ig = image_geom(nx=512, ny=504, fov=500)
 ig = ig.down(down)
-sg = sino_geom(:fan, nb=1088, na=984, orbit=360 , orbit_start=0, d=541/949, offset=0.25)
+sg = sino_geom(:par, nb=1088, na=984, orbit=360 , orbit_start=0, d=541/949, offset=0.25)
 sg=sg.down(down)
 
 ell = ellipse_im_params(ig, :shepplogan)

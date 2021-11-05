@@ -184,7 +184,7 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
     if plan.sg isa SinoPar
         sino = sino .* plan.parker_weight
         
-	    sino,_,_,_ = fbp2_sino_filter(:flat, sino, ds = plan.sg.dr, window = plan.window)
+	    sino,_,_,_ = fbp2_sino_filter(plan.sg, sino, ds = plan.sg.dr, window = plan.window)
         
 		#image = fbp2_back(plan.sg, plan.ig, sino, do_r_mask=true) 
         image = fbp2_back(plan.sg, plan.ig, sino) 
@@ -194,17 +194,10 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
         dfs=plan.sg.dfs
 
         dfs != 0 && ~isinf(dfs) && throw("only arc or flat fan done")
-		if isinf(dfs)
-			dtype = :flat
-		elseif dfs == 0
-			dtype = :arc
-		else
-			throw("bad detector dfs: $dfs")
-		end
 
 		sino = fbp2_sino_weight(plan.sg, sino) #todo
         
-		sino,_,_,_ = fbp2_sino_filter(dtype, sino,
+		sino,_,_,_ = fbp2_sino_filter(plan.sg, sino,
 			ds=plan.sg.ds, dsd=plan.sg.dsd,
 			window=plan.window)
 		image = fbp2_back(plan.sg, plan.ig, sino)
