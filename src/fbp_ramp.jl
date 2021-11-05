@@ -84,7 +84,6 @@ function fbp_ramp(how::Symbol, n::Int, ds::RealU, dsd::RealU)
 
     # todo: replace if statements with multiple dispatch
     if how==:arc
-        
 	    h, nn = ramp_arc(n, ds, dsd)
 
     elseif how==:flat   
@@ -108,7 +107,7 @@ function ramp_arc(n::Int, ds::RealU, dsd::RealU)
     h = zeros(size(nn))
     h[nn.==0] .= 1 / (4 * abs2(ds))
     odd = isodd.(nn)
-    @. h[odd] = abs2(-1 / (pi * dsd * sin(nn[odd] * ds / dsd)))
+    h[odd] = @.( -1 / abs2((pi * dsd * sin(nn[odd] * ds / dsd))))
 
     return h, nn 
 end

@@ -4,12 +4,16 @@ using MIRT
 
 abstract type FBPplan end
 
-struct Moj 
-    H::AbstractMatrix{<:Real}
-    G::AbstractMatrix{<:Real}
+struct Moj{Th,Tg}
+    H::Th
+    G::Tg
+
 end
 
-Moj()=Moj(zeros(Real,1,1),zeros(Real,1,1))
+
+
+Moj()=Moj{AbstractMatrix{<:Real}}{AbstractMatrix{<:Real}}(zeros(Real,1,1),zeros(Real,1,1))
+Moj(a,b)=Moj{AbstractMatrix{<:Real}}{AbstractMatrix{<:Real}}(zeros(Real,1,1),zeros(Real,1,1))
 
 struct NormalPlan{S} <: FBPplan
     sg::S
@@ -198,7 +202,8 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
 			throw("bad detector dfs: $dfs")
 		end
 
-		sino = fbp2_sino_weight(plan.sg, sino) #todo 
+		sino = fbp2_sino_weight(plan.sg, sino) #todo
+        
 		sino,_,_,_ = fbp2_sino_filter(dtype, sino,
 			ds=plan.sg.ds, dsd=plan.sg.dsd,
 			window=plan.window)
