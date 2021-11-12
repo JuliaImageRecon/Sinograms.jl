@@ -10,8 +10,6 @@ struct Moj{Th,Tg}
 
 end
 
-
-
 Moj()=Moj{AbstractMatrix{<:Real}}{AbstractMatrix{<:Real}}(zeros(Real,1,1),zeros(Real,1,1))
 Moj(a,b)=Moj{AbstractMatrix{<:Real}}{AbstractMatrix{<:Real}}(zeros(Real,1,1),zeros(Real,1,1))
 

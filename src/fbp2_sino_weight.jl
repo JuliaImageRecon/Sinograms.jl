@@ -26,7 +26,6 @@ function fbp2_sino_weight(sg::SinoFanArc, sino::AbstractMatrix{<:Number})
 
 end
 
-
 function fbp2_sino_weight(sg::SinoFanFlat, sino::AbstractMatrix{<:Number})
     ss = sg.s
     dsd = sg.dsd
@@ -34,7 +33,7 @@ function fbp2_sino_weight(sg::SinoFanFlat, sino::AbstractMatrix{<:Number})
     source_offset = sg.source_offset
 
     na = size(sino,2)
-    gam = atan(ss / dsd)
+    gam = atan.(ss / dsd)
     w1 = abs.(dso * cos.(gam) - source_offset * sin.(gam)) / dsd # 1D weighting
     return sino .* repeat(w1, 1, na)
     

@@ -43,7 +43,6 @@ function fbp2_back(sg::SinoPar, ig::ImageGeom, sino::AbstractMatrix{<:Number}; i
     
     img = 0
     for ia = 1:ia_skip:sg.na
-        # ticker(mfilename, ia, sg.na)
 
         rr = @.(xc * cang[ia] + yc * sang[ia]) # [np]
         rr = @.(rr / sg.d + sg.w + 1) # unitless bin index, +1 because julia 
@@ -80,11 +79,9 @@ end
 #fan-beam case 
 function fbp2_back(sg::SinoFan, ig::ImageGeom, sino::AbstractMatrix{<:Number}; ia_skip::Int=1)
 
-    sg isa SinoFan || throw("need fan type")
-
     if sg.dfs == 0
         is_arc=true
-    elseif isinf(dsf)
+    elseif isinf(sg.dfs)
         is_arc=false
     else
         throw("bad dsf")
@@ -101,7 +98,7 @@ end
 function fbp2_back(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}, orbit_start::Real, 
 	dsd::RealU, dso::Real, dfs::RealU, ds::RealU, offset::Real, source_offset::Real, 
 	nx::Int, ny::Int, dx::RealU, dy::RealU, offset_x::Real, offset_y::Real,
-     is_arc::Bool, mask::AbstractMatrix{Bool}, ia_skip::Int,
+    is_arc::Bool, mask::AbstractMatrix{Bool}, ia_skip::Int,
 )
 
     rmax=[]
