@@ -10,8 +10,8 @@ struct Moj{Th,Tg}
 
 end
 
-Moj()=Moj{AbstractMatrix{<:Real}}{AbstractMatrix{<:Real}}(zeros(Real,1,1),zeros(Real,1,1))
-Moj(a,b)=Moj{AbstractMatrix{<:Real}}{AbstractMatrix{<:Real}}(zeros(Real,1,1),zeros(Real,1,1))
+Moj() = Moj{AbstractMatrix{<:Real},AbstractMatrix{<:Real}}(zeros(Real,1,1),zeros(Real,1,1))
+Moj(a,b) = Moj{AbstractMatrix{<:Real},AbstractMatrix{<:Real}}(zeros(Real,1,1),zeros(Real,1,1))
 
 struct NormalPlan{S} <: FBPplan
     sg::S
@@ -24,7 +24,8 @@ end
 NormalPlan(sg::SinoGeom,
 ig::ImageGeom,
 window::Union{Symbol,AbstractVector{<:Real}},
-parker_weight::AbstractMatrix{<:Real}) = NormalPlan{typeof(sg)}(sg,ig,window,parker_weight,Moj()) 
+parker_weight::AbstractMatrix{<:Real}
+) = NormalPlan{typeof(sg)}(sg,ig,window,parker_weight,Moj()) 
 
 struct DfPlan <: FBPplan
     sg::SinoGeom
@@ -129,37 +130,37 @@ function fbp2_par_parker_wt(sg::SinoGeom)
     return repeat(wt, nb, 1) #[nb na] sinogram sized 
 end
 
-function fbp2_setup_normal(sg::S, ig::ImageGeom, window::Symbol, T::DataType) where {S <: SinoGeom}
-    
+function fbp2_setup_normal(sg::SinoPar, ig::ImageGeom, window::Symbol, T::DataType)
+
     weight = ones(T,sg.nb,sg.na)
-    if sg isa SinoPar
-        if abs(sg.orbit) != 180 && abs(sg.orbit) != 360
-            weight = fbp2_par_parker_wt(sg)
-        end
-        return NormalPlan(sg,ig,window,weight)
-
-    elseif sg isa SinoFan
-        sg.orbit != 360 && @warn("short-scan fan-beam Parker weighting not done")
-        return NormalPlan(sg,ig,window,weight)
-
-    elseif sg isa SinoMoj
-        if sg.dx == abs(ig.dx)
-            plan.moj.G = Gtomo2_table(sg, ig, ["mojette,back1"], nthread=nthread)
-        else
-            d=sg.dx
-            dx=ig.dx
-            @warn("mojette sinogram with d=$d vs image with dx=$dx")
-        end
-
-        plan.moj.H = fbp2_make_sino_filter_moj(sg.nb, sg.na, sg.dx, sg.orbit, sg.orbit_start, window)
-        return NormalPlan{SinoMoj}(sg,ig,window,weight,moj)
-
-    else 
-        throw("bad sino type")
+    if abs(sg.orbit) != 180 && abs(sg.orbit) != 360
+        weight = fbp2_par_parker_wt(sg)
     end
-
+    return NormalPlan(sg,ig,window,weight)
 end
 
+function fbp2_setup_normal(sg::SinoFan, ig::ImageGeom, window::Symbol, T::DataType)
+
+    weight = ones(T,sg.nb,sg.na)
+    sg.orbit != 360 && @warn("short-scan fan-beam Parker weighting not done")
+    return NormalPlan(sg,ig,window,weight)
+end
+
+function fbp2_setup_normal(sg::SinoMoj, ig::ImageGeom, window::Symbol, T::DataType)
+
+    weight = ones(T,sg.nb,sg.na)
+    if sg.dx == abs(ig.dx)
+        plan.moj.G = Gtomo2_table(sg, ig, ["mojette,back1"], nthread=nthread)
+    else
+        d=sg.dx
+        dx=ig.dx
+        @warn("mojette sinogram with d=$d vs image with dx=$dx")
+    end
+
+    plan.moj.H = fbp2_make_sino_filter_moj(sg.nb, sg.na, sg.dx, sg.orbit, sg.orbit_start, window)
+    return NormalPlan{SinoMoj}(sg,ig,window,weight,moj)
+
+end
 
 """
     image, sino_filt = fbp2(plan, sino)
