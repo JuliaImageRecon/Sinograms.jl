@@ -20,7 +20,13 @@ out
 
 
 """
-function fbp2_back(sg::SinoPar, ig::ImageGeom, sino::AbstractMatrix{<:Number}; ia_skip::Int=1, do_r_mask::Bool=false)
+function fbp2_back(
+    sg::SinoPar, 
+    ig::ImageGeom, 
+    sino::AbstractMatrix{<:Number}; 
+    ia_skip::Int=1, 
+    do_r_mask::Bool=false
+    )
 
     # trick: extra zero column saves linear interpolation indexing within loop!
 
@@ -62,7 +68,6 @@ function fbp2_back(sg::SinoPar, ig::ImageGeom, sino::AbstractMatrix{<:Number}; i
             il = min.(il,nb+1)
             il = max.(il,1)
         end
-        #@show size(rr)
     	# % (any(il .< 1) || any(il .>= nb)) && throw("bug")
 
         wr = rr - il # left weight
@@ -112,7 +117,7 @@ function fbp2_back(sino::AbstractMatrix{<:Number},
     is_arc::Bool, 
     mask::AbstractMatrix{Bool}, 
     ia_skip::Int,
-)
+    )
 
     rmax=[]
 
