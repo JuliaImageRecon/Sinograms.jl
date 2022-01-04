@@ -1,6 +1,8 @@
+# fbp2_back_fan.jl
+# obsolete: fbp2_back now covers both fan and par case
+
 export fbp2_back_fan
 
-#obselete: fbp2_back now covers both fan and par case
 
 using LazyGrids: ndgrid
 
@@ -10,9 +12,9 @@ using LazyGrids: ndgrid
 2D backprojection for fan-beam FBP.
 
 in
-- `sg::SinoGeom`                
+- `sg::SinoGeom`
 - `ig::ImageGeom`
-- `sino::AbstractArray{<:Number}`      sinogram(s) (line integrals) 
+- `sino::AbstractArray{<:Number}`      sinogram(s) (line integrals)
 
 options
 - `ia_skip::Int`                        downsample in angle to save time for quick tests (default: 1)
@@ -33,17 +35,17 @@ function fbp2_back_fan(sg::SinoGeom, ig::ImageGeom, sino::AbstractMatrix{<:Numbe
         throw("bad dsf")
     end
 
-    return fbp2_back_fan(sino, sg.orbit, sg.orbit_start, 
-	sg.dsd, sg.dso, sg.dfs, sg.ds, sg.offset, 
-	sg.source_offset, 
-	ig.nx, ig.ny, ig.dx, ig.dy, ig.offset_x, ig.offset_y, 
-	is_arc, ig.mask, ia_skip)
+    return fbp2_back_fan(sino, sg.orbit, sg.orbit_start,
+    sg.dsd, sg.dso, sg.dfs, sg.ds, sg.offset,
+    sg.source_offset,
+    ig.nx, ig.ny, ig.dx, ig.dy, ig.offset_x, ig.offset_y,
+    is_arc, ig.mask, ia_skip)
 
 end
 
-function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}, orbit_start::Real, 
-	dsd::RealU, dso::Real, dfs::RealU, ds::RealU, offset::Real, source_offset::Real, 
-	nx::Int, ny::Int, dx::RealU, dy::RealU, offset_x::Real, offset_y::Real,
+function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}, orbit_start::Real,
+    dsd::RealU, dso::Real, dfs::RealU, ds::RealU, offset::Real, source_offset::Real,
+    nx::Int, ny::Int, dx::RealU, dy::RealU, offset_x::Real, offset_y::Real,
      is_arc::Bool, mask::AbstractMatrix{Bool}, ia_skip::Int,
 )
     rmax=[]
@@ -51,13 +53,13 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
     na,nb=size(sino)
 
     # trick: extra zero column saves linear interpolation indexing within loop!
-    sino = [sino;zeros(eltype(sino),size(sino,2),2)'] 
-    
+    sino = [sino;zeros(eltype(sino),size(sino,2),2)']
+
     # precompute as much as possible
     wx = (nx+1)/2 - offset_x
     wy = (ny+1)/2 - offset_y
     xc, yc = ndgrid(dx * ((1:nx) .- wx), dy * ((1:ny) .- wy))
-    rr = @.(sqrt(abs2(xc) + abs2(yc))) # [nx,ny] 
+    rr = @.(sqrt(abs2(xc) + abs2(yc))) # [nx,ny]
 
     smax = ((nb-1)/2 - abs(offset)) * ds
 
@@ -68,7 +70,7 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
         gamma_max = atan(smax / dsd)
     end
     rmax = dso * sin(gamma_max)
-    
+
     mask = mask .& (rr .< rmax)
     xc = xc[vec(mask)] # [np] pixels within mask
     yc = yc[vec(mask)]
@@ -80,7 +82,7 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
     img = 0
 
     for ia=1:ia_skip:na
-	#ticker(mfilename, ia, na)
+    #ticker(mfilename, ia, na)
 
         beta = betas[ia]
         d_loop = @.(dso + xc * sin(beta) - yc * cos(beta)) # dso - y_beta
@@ -99,11 +101,11 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
 
         # nearest neighbor interpolation:
         #=
-    %	ib = round(bb);
-    %	if any(ib < 1 | ib > nb), error 'bug', end
-    %	% trick: make out-of-sinogram indices point to those extra zeros
-    %%	ib(ib < 1 | ib > nb) = nb+1;
-    %	img = img + sino(ib, ia) ./ L2;
+    %    ib = round(bb);
+    %    if any(ib < 1 | ib > nb), error 'bug', end
+    %    % trick: make out-of-sinogram indices point to those extra zeros
+    %%    ib(ib < 1 | ib > nb) = nb+1;
+    %    img = img + sino(ib, ia) ./ L2;
         =#
 
         # linear interpolation:
@@ -114,20 +116,19 @@ function fbp2_back_fan(sino::AbstractMatrix{<:Number}, orbit::Union{Symbol,Real}
         ig = (il .>= 1) .& (ir .<= nb)
         il[.!ig] .= nb+1
         ir[.!ig] .= nb+1
-    #	if any(il < 1 | il >= nb), error 'bug', end
+    #    if any(il < 1 | il >= nb), error 'bug', end
 
-    # Temporary: 
+    # Temporary:
         il=min.(il,na)
         ir=min.(ir,na)
 
         wr = bb .- il # left weight
         wl = 1 .- wr # right weight
-        
+
         img = @.(img + (wl * sino[il, ia] + wr * sino[ir, ia]) * w2)
-	
     end
 
-    return pi / (na/ia_skip) * embed(img,mask) 
+    return π / (na/ia_skip) * embed(img,mask)
 end
 
 
