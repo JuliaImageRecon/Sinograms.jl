@@ -1,7 +1,7 @@
 # fbp2_example.jl
 # todo: belongs in docs/lit not in src/
 
-using Revise
+#using Revise
 using Sinograms
 using MIRT
 using MIRTjim: jim
