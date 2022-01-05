@@ -3,6 +3,8 @@
 export fbp2_back
 
 using LazyGrids: ndgrid
+using ImageGeoms: embed
+
 
 """
     img = fbp2_back(sg, ig, sino; ia_skip)
@@ -78,7 +80,7 @@ function fbp2_back(
 
     # img = (deg2rad(sg.orbit) / (sg.na/ia_skip)) * embed(img, mask);
     # img = pi / (sg.na/ia_skip) * embed(img, mask) % 2008-10-14
-    return pi / (sg.na/ia_skip) * embed(img, mask)
+    return π / (sg.na/ia_skip) * embed(img, mask)
 end
 
 # fan-beam case
