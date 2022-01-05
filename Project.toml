@@ -5,11 +5,13 @@ version = "0.1.0"
 
 [deps]
 FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
+ImageGeoms = "9ee76f2b-840d-4475-b6d6-e485c9297852"
 LazyGrids = "7031d0ef-c40d-4431-b2f8-61a8d2f650db"
 MIRT = "7035ae7a-3787-11e9-139a-5545ed3dc201"
 
 [compat]
-julia = "1.6"
 FFTW = "1.4.5"
+ImageGeoms = "0.4.0"
 LazyGrids = "0.2.0"
 MIRT = "0.15.0"
+julia = "1.6"
