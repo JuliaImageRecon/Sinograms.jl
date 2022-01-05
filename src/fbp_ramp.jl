@@ -4,6 +4,8 @@ export fbp_ramp
 export ramp_flat
 export ramp_arc
 
+using MIRT: SinoFanFlat, SinoFanArc
+
 
 """
     h, nn = fbp_ramp(how, n, ds, dsd)

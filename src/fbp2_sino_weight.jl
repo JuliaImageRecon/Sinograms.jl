@@ -2,6 +2,8 @@
 
 export fbp2_sino_weight
 
+using MIRT: SinoFanFlat, SinoFanArc
+
 """
     sino = fbp2_sino_weight(sg, ig, sino)
 

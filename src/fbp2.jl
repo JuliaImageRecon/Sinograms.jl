@@ -2,7 +2,8 @@
 
 export fbp2
 
-using MIRT
+using MIRT: ImageGeom # todo ImageGeoms.jl
+using MIRT: SinoGeom, SinoPar, SinoFan, SinoMoj
 
 abstract type FBPplan end
 
@@ -120,7 +121,7 @@ function fbp2_par_parker_wt(sg::SinoGeom)
         return sg.ones
     end
 
-    orbit>360 && throw("only 180 ≤ orbit ≤ 360 supported for Parker weighting")
+    orbit > 360 && throw("only 180 ≤ orbit ≤ 360 supported for Parker weighting")
     extra = orbit - 180 # extra beyond 180
 
     wt = ones(T,na)
