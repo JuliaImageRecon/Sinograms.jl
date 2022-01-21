@@ -5,7 +5,7 @@ using Sinograms
 
 @testset "Sinograms" begin
     # todo
-    # include("todo.jl")
+    include("fbp-par.jl")
 
     @test length(detect_ambiguities(Sinograms)) == 0
 end
