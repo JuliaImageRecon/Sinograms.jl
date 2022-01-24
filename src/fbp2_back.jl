@@ -101,10 +101,10 @@ function fbp2_back(
 
     return fbp2_back(
         sino, sg.orbit, sg.orbit_start,
-        sg.dsd, sg.dso, sg.dfs, sg.ds, sg.offset,
-        sg.source_offset,
+        sg.dsd, sg.dso, sg.dfs, sg.ds, sg.offset, 
+        sg.source_offset, sg.rfov,
         ig.nx, ig.ny, ig.dx, ig.dy, ig.offset_x, ig.offset_y,
-        is_arc, ig.mask, ia_skip,
+        is_arc, ig.mask, ia_skip, 
     )
 end
 
@@ -118,6 +118,7 @@ function fbp2_back(
     ds::RealU,
     offset::Real,
     source_offset::RealU,
+    rfov::RealU,
     nx::Int,
     ny::Int,
     dx::RealU,
@@ -127,9 +128,8 @@ function fbp2_back(
     is_arc::Bool,
     mask::AbstractMatrix{Bool},
     ia_skip::Int,
+    
 )
-
-    rmax = []
 
     nb,na = size(sino)
 
@@ -143,17 +143,7 @@ function fbp2_back(
     xc, yc = ndgrid(dx * ((1:nx) .- wx), dy * ((1:ny) .- wy))
     rr = @.(sqrt(abs2(xc) + abs2(yc))) # [nx,ny]
 
-    smax = ((nb-1)/2 - abs(offset)) * ds
-
-    #todo: rmax possibly extractable from SinoGeom
-    if is_arc
-        gamma_max = smax / dsd
-    else # flat
-        gamma_max = atan(smax / dsd)
-    end
-    rmax = dso * sin(gamma_max)
-
-    mask = mask .& (rr .< rmax)
+    mask = mask .& (rr .< rfov)
     xc = xc[vec(mask)] # [np] pixels within mask
     yc = yc[vec(mask)]
     #clear wx wy rr smax
