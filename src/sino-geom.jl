@@ -621,9 +621,15 @@ sino_geom_rfov(sg::SinoFan) = sg.dso * sin(sg.gamma_max)
 sino_geom_rfov(sg::SinoMoj) = sg.nb/2 * minimum(sg.d_ang) # (ignores offset)
 
 
-function _sino_geom_taufun(sg::SinoParallel, x::AbstractVector, y::AbstractVector)
+function _sino_geom_taufun(sg::SinoPar, x::AbstractVector, y::AbstractVector)
     ar = sg.ar' # row vector, for outer-product
     return (x * cos.(ar) + y * sin.(ar)) / sg.dr # tau
+end
+
+# this one may not be useful but it helps unify tests
+function _sino_geom_taufun(sg::SinoMoj, x::AbstractVector, y::AbstractVector)
+    ar = sg.ar' # row vector, for outer-product
+    return (x * cos.(ar) + y * sin.(ar)) ./ sg.d_moj.(sg.ar)' # tau
 end
 
 function _sino_geom_taufun(sg::SinoFan, x::AbstractVector, y::AbstractVector)
