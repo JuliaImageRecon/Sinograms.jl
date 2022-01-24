@@ -54,21 +54,22 @@ function fbp!(
     image::AxisMatrix{<:Number},
     sino::AxisMatrix{<:Number},
 )
-    sg = sino_geom(:par, sino)
+    sg = sino_geom(sino)
     ig = image_geom(image)
     plan = FBPplan(sg, ig)
     fbp!(image, sino, plan)
 end
 
 
-function sino_geom(how::Symbol, sino::AxisMatrix)
-    sino_geom(how,
+function sino_geom(sino::AxisMatrix ; geo::DataType = SinoPar, kwargs...)
+    geo( ;
         nb = size(sino,1),
         na = size(sino,2),
-        dr = diff(axes(sino)[1][[2,1]])
-        da = diff(axes(sino)[2][[2,1]])
-        orbit_start = axes(sino)[2][1]
-        orbit = axes(sino)[2][1]
+        dr = diff(axes(sino)[1][[2,1]]),
+        da = diff(axes(sino)[2][[2,1]]),
+        orbit_start = axes(sino)[2][1],
+        orbit = axes(sino)[2][1],
+        kwargs...
     )
 end
 
