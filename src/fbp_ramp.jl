@@ -4,7 +4,8 @@ export fbp_ramp
 export ramp_flat
 export ramp_arc
 
-using MIRT: SinoFanFlat, SinoFanArc
+#using MIRT: SinoFanFlat, SinoFanArc # todo cut
+using Sinograms: SinoFanFlat, SinoFanArc
 
 
 """

@@ -2,21 +2,26 @@
 sino-geom.jl
 sinogram geometry definitions for 2D tomographic image reconstruction
 2019-07-01, Jeff Fessler, University of Michigan
-2022-01-22, copied from MIRT.jl here and updated to support Unitful values
+2022-01-22, copied from MIRT.jl and updated to support Unitful values
 =#
 
-using Sinograms: RealU
+# using Sinograms: RealU # todo
+
+import Base: values, ones, zeros
 
 export SinoGeom, SinoParallel, SinoFan
-export sino_geom, sino_geom_par, sino_geom_fan, sino_geom_moj
+#export sino_geom, sino_geom_par, sino_geom_fan, sino_geom_moj
 export SinoPar, SinoMoj, SinoFanArc, SinoFanFlat
-export sino_geom_help
+export rays, downsample, oversample
+export sino_w, sino_s, dims, angles
 
 
 """
     SinoGeom
 
-Abstract type for representing sinogram ray geometries
+Abstract type for representing 2D sinogram ray geometries.
+
+Basic methods todo
 
 Derived values (available by `getproperty`), i.e., `sg.?`
 
@@ -44,6 +49,12 @@ For fan beam:
 * `.gamma`       [nb] gamma sample values [radians]
 * `.gamma_max`   half of fan angle [radians]
 * `.dso`         dsd - dod, Inf for parallel beam
+
+* `dsd dis_src_det` distance from source to detector
+* `dso dis_src_iso` distance from source to isocenter
+* `dod dis_iso_det` distance from isocenter to detector
+* `dfs dis_foc_src` distance from source to detector focal spot
+                    (0 for 3rd gen CT, `Inf` for flat detectors)
 
 Methods
 
@@ -156,6 +167,7 @@ end
 
 """
     SinoMoj : 2D Mojette sinogram geometry
+    where `d` means `dx` (square pixel size), and `strip_width` may be ignored.
 
 ```jldoctest
 julia> SinoMoj()
@@ -201,6 +213,8 @@ SinoMoj{Td,To}(args...) where {Td,To} = SinoMoj(args...)
 Constructor with named keywords.
 * `orbit` and `orbit_start` must both be unitless (degrees) or have same units.
 * `d` and `strip_width` must both be unitless or have the same units.
+* `d` means `dx` (square pixel size)
+* `strip_width` may be ignored (todo).
 
 * `nb::Int = 128` # of radial bins
 * `na::Int = 2 * floor(Int, nb * π/2 / 2)` # of projection angles
@@ -256,25 +270,61 @@ struct SinoFanArc{Td,To} <: SinoFan
 #   dso::Td           # dis_src_iso = dsd-dod, Inf for parallel beam
     dfs::Td           # distance from focal spot to source
 
-    function SinoFanArc( ;
-        nb::Int = 128,
-        na::Int = 2 * floor(Int, nb * π/2 / 2),
-        d::RealU = 1,
-        orbit::RealU = 360,
-        orbit_start::RealU = zero(eltype(orbit)),
-        offset::Real = 0,
-        strip_width::RealU = d,
-        source_offset::RealU = zero(eltype(d)),
-        dsd::RealU = 4 * nb * d,
-        dod::RealU = nb * d,
-        dfs::RealU = zero(eltype(d)),
-    )
-        To = _promoter(orbit, orbit_start)
-        Td = _promoter(d, strip_width, source_offset, dsd, dod, dfs)
+    # constructor with positional arguments requires appropriate matched types
+    function SinoFanArc(
+        nb::Int,
+        na::Int,
+        d::Td,
+        orbit::To,
+        orbit_start::To,
+        offset::Real,
+        strip_width::Td,
+        source_offset::Td,
+        dsd::Td,
+        dod::Td,
+        dfs::Td,
+    ) where {Td <: RealU, To <: RealU}
         return new{Td,To}(nb, na,
-            Td(d), To(orbit), To(orbit_start), Float32(offset), Td(strip_width),
-            Td(source_offset), Td(dsd), Td(dod), Td(dfs))
+            d, orbit, orbit_start, Float32(offset), strip_width,
+            source_offset, dsd, dod, dfs)
     end
+
+end
+
+SinoFanArc{Td,To}(args...) where {Td,To} = SinoFanArc(args...)
+
+"""
+    SinoFanArc( ; nb, na, d=1, orbit=360, orbit_start=0, offset=0, strip_width=d,
+        source_offset = 0, dsd= 4 * nb * d, dod = nb * d, dfs = 0, down=0)
+
+Constructor with named keywords.
+* `orbit` and `orbit_start` must both be unitless (degrees) or have same units.
+* `d`, `strip_width`, `source_offset`, `dsd`, `dod`, `dfs`
+  must all be unitless or have the same units.
+
+* `nb::Int = 128` # of radial bins
+* `na::Int = 2 * floor(Int, nb * π/2 / 2)` # of projection angles
+"""
+function SinoFanArc( ;
+    nb::Int = 128,
+    na::Int = 2 * floor(Int, nb * π/2 / 2),
+    d::RealU = 1,
+    orbit::RealU = 360,
+    orbit_start::RealU = zero(eltype(orbit)),
+    offset::Real = 0,
+    strip_width::RealU = d,
+    source_offset::RealU = zero(eltype(d)),
+    dsd::RealU = 4 * nb * d,
+    dod::RealU = nb * d,
+    dfs::RealU = zero(eltype(d)),
+    down::Int = 1,
+)
+    To = _promoter(orbit, orbit_start)
+    Td = _promoter(d, strip_width, source_offset, dsd, dod, dfs)
+    sg = SinoFanArc(nb, na,
+        Td(d), To(orbit), To(orbit_start), offset, Td(strip_width),
+        Td(source_offset), Td(dsd), Td(dod), Td(dfs))
+    return down == 1 ? sg : downsample(sg, down)
 end
 
 
@@ -311,25 +361,61 @@ struct SinoFanFlat{Td,To} <: SinoFan
 #   dso::Td           # dis_src_iso = dsd-dod, Inf for parallel beam
     dfs::Td           # distance from focal spot to source
 
-    function SinoFanFlat( ;
-        nb::Int = 128,
-        na::Int = 2 * floor(Int, nb * π/2 / 2),
-        d::RealU = 1,
-        orbit::RealU = 360,
-        orbit_start::RealU = zero(eltype(orbit)),
-        offset::Real = 0,
-        strip_width::RealU = d,
-        source_offset::RealU = zero(eltype(d)),
-        dsd::RealU = 4 * nb * d,
-        dod::RealU = nb * d,
-        dfs::RealU = Inf * oneunit(d),
-    )
-        To = _promoter(orbit, orbit_start)
-        Td = _promoter(d, strip_width, source_offset, dsd, dod, dfs)
+    # constructor with positional arguments requires appropriate matched types
+    function SinoFanFlat(
+        nb::Int,
+        na::Int,
+        d::Td,
+        orbit::To,
+        orbit_start::To,
+        offset::Real,
+        strip_width::Td,
+        source_offset::Td,
+        dsd::Td,
+        dod::Td,
+        dfs::Td,
+    ) where {Td <: RealU, To <: RealU}
         return new{Td,To}(nb, na,
-            Td(d), To(orbit), To(orbit_start), Float32(offset), Td(strip_width),
-            Td(source_offset), Td(dsd), Td(dod), Td(dfs))
+            d, orbit, orbit_start, Float32(offset), strip_width,
+            source_offset, dsd, dod, dfs)
     end
+
+end
+
+SinoFanFlat{Td,To}(args...) where {Td,To} = SinoFanFlat(args...)
+
+"""
+    SinoFanFlat( ; nb, na, d=1, orbit=360, orbit_start=0, offset=0, strip_width=d,
+        source_offset = 0, dsd= 4 * nb * d, dod = nb * d, dfs = Inf, down=0)
+
+Constructor with named keywords.
+* `orbit` and `orbit_start` must both be unitless (degrees) or have same units.
+* `d`, `strip_width`, `source_offset`, `dsd`, `dod`, `dfs`
+  must all be unitless or have the same units.
+
+* `nb::Int = 128` # of radial bins
+* `na::Int = 2 * floor(Int, nb * π/2 / 2)` # of projection angles
+"""
+function SinoFanFlat( ;
+    nb::Int = 128,
+    na::Int = 2 * floor(Int, nb * π/2 / 2),
+    d::RealU = 1,
+    orbit::RealU = 360,
+    orbit_start::RealU = zero(eltype(orbit)),
+    offset::Real = 0,
+    strip_width::RealU = d,
+    source_offset::RealU = zero(eltype(d)),
+    dsd::RealU = 4 * nb * d,
+    dod::RealU = nb * d,
+    dfs::RealU = oneunit(d) * Inf,
+    down::Int = 1,
+)
+    To = _promoter(orbit, orbit_start)
+    Td = _promoter(d, strip_width, source_offset, dsd, dod, dfs)
+    sg = SinoFanFlat(nb, na,
+        Td(d), To(orbit), To(orbit_start), offset, Td(strip_width),
+        Td(source_offset), Td(dsd), Td(dod), Td(dfs))
+    return down == 1 ? sg : downsample(sg, down)
 end
 
 
@@ -376,7 +462,6 @@ out
 - `sg::SinoGeom`    initialized structure
 
 See also
-- `sino_geom_help()` help on methods
 - `sino_geom_plot_grids()` show sampling
 
 Jeff Fessler, University of Michigan
@@ -423,42 +508,43 @@ end
 
 """
     sg = downsample(sg, down)
-down-sample (for testing with small problems)
+
+Down-sample sinogram geometry (for testing with small problems).
 """
-function downsample(sg::T, down::Int) where {T <: SinoParallel}
-    return (down == 1) ? sg : T(_downsample(sg, down)...)
+function downsample(sg::S, down::Int) where {S <: SinoParallel}
+    return (down == 1) ? sg : S(_downsample(sg, down)...)
 end
 
-function downsample(sg::SinoFan, down::Int)
-    down == 1 && return sg
-    return SinoFanMaker(sg.dfs)(_downsample(sg, down)...,
-        sg.source_offset, sg.dsd, sg.dod, sg.dfs)
+function downsample(sg::S, down::Int) where {S <: SinoFan}
+    return (down == 1) ? sg :
+        S(_downsample(sg, down)..., sg.source_offset, sg.dsd, sg.dod, sg.dfs)
 end
 
 
-#=
 # common to all
-function _sino_geom_over(sg::SinoGeom, over::Int)
-    return (sg.units,
+function _oversample(sg::SinoGeom, over::Int)
+    return (# sg.units,
         sg.nb * over, sg.na, sg.d / over,
         sg.orbit, sg.orbit_start, sg.offset * over,
         sg.strip_width / over)
 end
 
 """
-    sg = sino_geom_over(sg, over::Int)
-over-sample in "radial" dimension
+    sg = oversample(sg, over::Int)
+
+Over-sample sinogram geometry in "radial" dimension.
 For Mojette sampling, it means that `d = dx/over`.
 """
-function sino_geom_over(sg::T, over::Int) where {T <: SinoParallel}
-    return (over == 1) ? sg : T(_sino_geom_over(sg, over)...)
-end
-function sino_geom_over(sg::SinoFan, over::Int)
-    return (over == 1) ? sg :
-        SinoFanMaker(sg.dfs)(_sino_geom_over(sg, over)...,
-            sg.source_offset, sg.dsd, sg.dod, sg.dfs)
+function oversample(sg::S, over::Int) where {S <: SinoParallel}
+    return (over == 1) ? sg : S(_oversample(sg, over)...)
 end
 
+function oversample(sg::S, over::Int) where {S <: SinoFan}
+    return (over == 1) ? sg :
+        S(_oversample(sg, over)..., sg.source_offset, sg.dsd, sg.dod, sg.dfs)
+end
+
+#=
 
 """
     sg = sino_geom_fan()
@@ -499,100 +585,66 @@ function sino_geom_fan( ;
     return downsample(sg, down)
 end
 
+=#
+
 
 """
-    sg = sino_geom_par( ... )
+    sino_geom_gamma(sg::SinoFan)
+Return gamma (fan angle) values for fan-beam geometry
 """
-function sino_geom_par( ;
-    units::Symbol = :none,
-    nb::Int = 128,
-    na::Int = 2 * floor(Int, nb * π/2 / 2),
-    down::Int = 1,
-    d::Real = 1,
-    orbit::Real = 180, # [degrees]
-    orbit_start::Real = 0,
-    strip_width::Real = d,
-    offset::Real = 0,
-)
-    sg = SinoPar(units,
-        nb, na, d, orbit, orbit_start, offset, strip_width)
-    return downsample(sg, down)
+function sino_geom_gamma(sg::SinoFanArc)
+    sg.dfs == zero(sg.dfs) || throw("dfs != 0?")
+    return sino_s(sg) / sg.dsd # 3rd gen: equiangular
 end
 
-
-"""
-    sg = sino_geom_moj( ... )
-"""
-function sino_geom_moj( ;
-    units::Symbol = :none,
-    nb::Int = 128,
-    na::Int = 2 * floor(Int, nb * π/2 / 2),
-    down::Int = 1,
-    d::Real = 1, # means dx for :moj
-    orbit::Real = 180, # [degrees]
-    orbit_start::Real = 0,
-    strip_width::Real = d, # ignored ?
-    offset::Real = 0,
-)
-    sg = SinoMoj(units,
-        nb, na, d, orbit, orbit_start, offset, strip_width)
-    return downsample(sg, down)
+function sino_geom_gamma(sg::SinoFanFlat)
+    isinf(sg.dfs) || throw("dfs != Inf?")
+    return atan.(sino_s(sg) / sg.dsd) # flat
 end
 
-
-"gamma for general finite dfs (rarely used)"
-function sino_geom_gamma_dfs(sg::SinoFan)
-    dis_foc_det = sg.dfs + sg.dsd
-    alf = sg.s / dis_foc_det
-    atan.(dis_foc_det * sin.(alf), dis_foc_det * cos.(alf) .- sg.dfs)
-    # equivalent to s/dsd when dfs=0
-end
-
-
-"""
-    sino_geom_gamma()
-gamma sample values for :fan
-"""
+# gamma for general finite dfs (rarely if ever used)
 function sino_geom_gamma(sg::SinoFan)
-    return    sg.dfs == 0 ? sg.s / sg.dsd : # 3rd gen: equiangular
-            isinf(sg.dfs) ? atan.(sg.s / sg.dsd) : # flat
-            sino_geom_gamma_dfs(sg) # general
+    dis_foc_det = sg.dfs + sg.dsd
+    α = sino_s(sg) / dis_foc_det # equivalent to s/dsd when dfs=0
+    return atan.(dis_foc_det * sin.(α), dis_foc_det * cos.(α) .- sg.dfs)
 end
 
+sino_geom_gamma(sg::SinoGeom) = nothing # fall back
+
 
 """
-    sino_geom_rfov()
-radial FOV
+    sino_geom_rfov(sg::SinoGeom)
+Radial FOV.
 """
-sino_geom_rfov(sg::SinoPar) = maximum(abs.(sg.r))
+sino_geom_rfov(sg::SinoPar) = maximum(abs, sg.r)
 sino_geom_rfov(sg::SinoFan) = sg.dso * sin(sg.gamma_max)
 sino_geom_rfov(sg::SinoMoj) = sg.nb/2 * minimum(sg.d_ang) # (ignores offset)
 
 
-function _sino_geom_taufun(sg::SinoParallel, x, y)
+function _sino_geom_taufun(sg::SinoParallel, x::AbstractVector, y::AbstractVector)
     ar = sg.ar' # row vector, for outer-product
     return (x * cos.(ar) + y * sin.(ar)) / sg.dr # tau
 end
 
-function _sino_geom_taufun(sg::SinoFan, x, y)
+function _sino_geom_taufun(sg::SinoFan, x::AbstractVector, y::AbstractVector)
     b = sg.ar' # row vector, for outer-product
     xb = x * cos.(b) + y * sin.(b)
     yb = -x * sin.(b) + y * cos.(b)
     tangam = (xb .- sg.source_offset) ./ (sg.dso .- yb) # e,tomo,fan,L,gam
-    if sg.dfs == 0 # arc
+    if iszero(sg.dfs) # arc
         tau = sg.dsd / sg.ds * atan.(tangam)
     elseif isinf(sg.dfs) # flat
         tau = sg.dsd / sg.ds * tangam
-#    else
-#        throw("bad dfs $(sg.dfs)")
+#   else
+#       throw("bad dfs $(sg.dfs)")
     end
     return tau
 end
 
 
 """
-    sino_geom_taufun()
-projected `s/ds`, useful for footprint center and support
+    sino_geom_taufun(sg::SinoGeom, x, y)
+Projected `s/ds`, useful for footprint center and support.
 """
 function sino_geom_taufun(sg::SinoGeom, x, y)
     size(x) != size(y) && throw("bad x,y size")
@@ -602,7 +654,7 @@ end
 
 """
     sino_geom_xds()
-center positions of detectors (for beta = 0)
+Center `x` positions of detectors (for beta = 0).
 """
 sino_geom_xds(sg::SinoPar) = sg.s
 sino_geom_xds(sg::SinoMoj) = sg.s # todo: really should be angle dependent
@@ -612,7 +664,7 @@ sino_geom_xds(sg::SinoFanFlat) = sg.s .+ sg.source_offset
 
 """
     sino_geom_yds()
-center positions of detectors (for beta = 0)
+Center `y` positions of detectors (for beta = 0).
 """
 sino_geom_yds(sg::SinoPar) = zeros(Float32, sg.nb)
 sino_geom_yds(sg::SinoMoj) = zeros(Float32, sg.nb)
@@ -635,6 +687,7 @@ function sino_geom_unitv(
 end
 
 
+#=
 """
     (rg, ϕg) = sino_geom_grid(sg::SinoGeom)
 
@@ -661,57 +714,62 @@ function sino_geom_grid(sg::SinoMoj)
     pos = ((0:(sg.nb-1)) .- wb) * dt' # [nb na]
     return (pos, repeat(phi', sg.nb, 1))
 end
-
 =#
+
 
 """
     show(io::IO, ::MIME"text/plain", sg::SinoGeom)
 """
 function Base.show(io::IO, ::MIME"text/plain", sg::SinoGeom)
     println(io, "$(typeof(sg)) :")
-    for f in propertynames(sg)
+    for f in fieldnames(typeof(sg))
         p = getproperty(sg, f)
         t = typeof(p)
         println(io, " ", f, "::", t, " ", p)
     end
 end
 
-#sino_geom_how(sg::SinoGeom{G}) where {G} = G
 
-#=
+sino_w(sg::SinoGeom) = (sg.nb-1)/2 + sg.offset
+sino_s(sg::SinoGeom) = sg.d * ((0:sg.nb-1) .- sino_w(sg))
+dims(sg::SinoGeom) = (sg.nb, sg.na)
+ones(sg::SinoGeom) = ones(Float32, dims(sg))
+zeros(sg::SinoGeom) = ones(Float32, dims(sg))
+angles(sg::SinoGeom) = (0:sg.na-1)/sg.na * sg.orbit .+ sg.orbit_start
+
+
 # Extended properties
 
 sino_geom_fun0 = Dict([
-    (:help, sg -> sino_geom_help()),
-
     (:dim, sg -> (sg.nb, sg.na)),
-    (:w, sg -> (sg.nb-1)/2 + sg.offset),
+#   (:w, sg -> (sg.nb-1)/2 + sg.offset),
+    (:w, sg -> sino_w(sg)),
     (:ones, sg -> ones(Float32, sg.dim)),
     (:zeros, sg -> zeros(Float32, sg.dim)),
 
     (:dr, sg -> ((sg isa SinoMoj) ? NaN : sg.d)),
     (:ds, sg -> sg.dr),
-    (:r, sg -> sg.d * ((0:sg.nb-1) .- sg.w)),
+    (:r, sg -> sino_s(sg)),
     (:s, sg -> sg.r), # sample locations ('radial')
 
     (:gamma, sg -> sino_geom_gamma(sg)),
-    (:gamma_max, sg -> maximum(abs.(sg.gamma))),
-    (:orbit_short, sg -> 180 + 2 * rad2deg(sg.gamma_max)),
+    (:gamma_max, sg -> maximum(abs, sg.gamma)),
+    (:orbit_short, sg -> 180 + 2 * rad2deg(sg.gamma_max)), # todo units
     (:ad, sg -> (0:sg.na-1)/sg.na * sg.orbit .+ sg.orbit_start),
-    (:ar, sg -> deg2rad.(sg.ad)),
+    (:ar, sg -> to_radians.(sg.ad)),
 
     (:rfov, sg -> sino_geom_rfov(sg)),
     (:xds, sg -> sino_geom_xds(sg)),
     (:yds, sg -> sino_geom_yds(sg)),
     (:dso, sg -> sg.dsd - sg.dod),
-    (:grid, sg -> sino_geom_grid(sg)),
-    (:plot_grid, sg -> ((plot::Function) -> sino_geom_plot_grid(sg, plot))),
+#   (:grid, sg -> sino_geom_grid(sg)),
+#   (:plot_grid, sg -> ((plot::Function) -> sino_geom_plot_grid(sg, plot))),
 
-    (:plot!, sg ->
-        ((plot!::Function ; ig=nothing) -> sino_geom_plot!(sg, plot! ; ig=ig))),
+#   (:plot!, sg ->
+#       ((plot!::Function ; ig=nothing) -> sino_geom_plot!(sg, plot! ; ig=ig))),
     (:shape, sg -> (((x::AbstractArray) -> reshaper(x, sg.dim)))),
     (:taufun, sg -> ((x,y) -> sino_geom_taufun(sg,x,y))),
-    (:unitv, sg -> ((;kwarg...) -> sino_geom_unitv(sg; kwarg...))),
+    (:unitv, sg -> ((; kwarg...) -> sino_geom_unitv(sg; kwarg...))),
 
     # angular dependent d for :moj
     (:d_moj, sg -> (ar -> sg.d * max(abs(cos(ar)), abs(sin(ar))))),
@@ -720,7 +778,7 @@ sino_geom_fun0 = Dict([
     # functions that return new geometry:
 
     (:down, sg -> (down::Int -> downsample(sg, down))),
-    (:over, sg -> (over::Int -> sino_geom_over(sg, over))),
+    (:over, sg -> (over::Int -> oversample(sg, over))),
 
     ])
 
@@ -734,7 +792,6 @@ Base.getproperty(sg::SinoGeom, s::Symbol) =
 Base.propertynames(sg::SinoGeom) =
     (fieldnames(typeof(sg))..., keys(sino_geom_fun0)...)
 
-
 """
     reshaper(x::AbstractArray, dim:Dims)
 Reshape `x` to size `dim` with `:` only if needed
@@ -743,6 +800,7 @@ reshaper(x::AbstractArray, dim::Dims) =
     (length(x) == prod(dim)) ? reshape(x, dim) : reshape(x, dim..., :)
 
 
+#=
 """
     sino_geom_ge1()
 sinogram geometry for GE lightspeed system
@@ -810,30 +868,15 @@ function SinoFan(::Val{:ge1} ;
 end
 
 
+"""
+   (r, ϕ) = rays(sg::SinoGeom)
+
+Radial `r` and angular `ϕ` coordinates of all sinogram elements
+for the given geometry
+"""
 function rays(sg::SinoPar)
-end
-
-# tests, todo
-
-using Test
-
-using Unitful: mm, °
-d = 2mm
-orbit = 180.0°
-#d = 2; orbit = 180
-sg = SinoMoj(; d, orbit)
-sg = SinoFanArc(; d, orbit)
-sg = SinoFanFlat(; d, orbit)
-sg = SinoFan(Val(:ge1))
-
-function _test(geo)
-    @inferred geo(; d, orbit)
-    args = 128, 100, d, orbit, 0*orbit, 0, 2d
-    @inferred geo{Int,Float64}(args...)
-    sg = @inferred geo(args...)
-    downsample(sg, 2)
-end
-
-for geo in (SinoPar, SinoMoj)
-    _test(geo)
+    s = sino_s(sg)
+    ϕ = deg2rad.(angles(sg))
+    i = Iterators.product(s, ϕ)
+    return ([p[1] for p in i], [p[2] for p in i])
 end

@@ -1,11 +1,15 @@
 # runtests.jl
 
-using Test: @test, @testset, detect_ambiguities
 using Sinograms
+using Test: @test, @testset, detect_ambiguities
+
+include("helper.jl")
 
 @testset "Sinograms" begin
-    # todo
+    # todo: more
+
     include("fbp-par.jl")
+    include("sino-geom.jl")
 
     @test length(detect_ambiguities(Sinograms)) == 0
 end

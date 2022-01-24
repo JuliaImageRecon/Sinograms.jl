@@ -2,7 +2,9 @@
 
 export fbp2_sino_weight
 
-using MIRT: SinoFanFlat, SinoFanArc
+#using MIRT: SinoFanFlat, SinoFanArc # todo cut
+#using Sinograms: SinoFanFlat, SinoFanArc
+
 
 """
     sino = fbp2_sino_weight(sg, ig, sino)

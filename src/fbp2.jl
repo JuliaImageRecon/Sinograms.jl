@@ -3,7 +3,8 @@
 export fbp2
 
 using MIRT: ImageGeom # todo ImageGeoms.jl
-using MIRT: SinoGeom, SinoPar, SinoFan, SinoMoj
+#using MIRT: SinoGeom, SinoPar, SinoFan, SinoMoj # todo - cut
+#using Sinograms: SinoGeom, SinoPar, SinoFan, SinoMoj
 
 abstract type FBPplan end
 
