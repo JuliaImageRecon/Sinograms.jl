@@ -108,7 +108,7 @@ function _test_prop(sg)
 
     @test sg.shape(vec(sg.ones)) == sg.ones
     x = (1:4) * oneunit(d)
-    sg.taufun(x, 0*x)
+    sg.taufun(x, 2*x)
     sg.unitv()
     sg.unitv(ib=1, ia=2)
     true
