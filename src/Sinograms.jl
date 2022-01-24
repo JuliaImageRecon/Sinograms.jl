@@ -13,4 +13,6 @@ include("fbp_ramp.jl")
 include("fbp2_window.jl")
 include("fbp2_sino_weight.jl")
 
+include("fbp-par.jl")
+
 end # module
