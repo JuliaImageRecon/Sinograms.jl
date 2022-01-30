@@ -1,6 +1,6 @@
 # fbp2_example.jl
 
-#using Revise
+using Revise
 using Sinograms
 using MIRT: image_geom, sino_geom
 # todo: ImagePhantoms
