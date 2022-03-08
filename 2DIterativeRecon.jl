@@ -1,40 +1,8 @@
-## Author: Rodrigo de Barros Vimieiro
-# Date: October; 2018
-# rodrigo.vimieiro@gmail.com
-# =========================================================================
-#=
-# -------------------------------------------------------------------------
-#                 
-# -------------------------------------------------------------------------
-#     DESCRIPTION:
-# 
-#     Reference: 
-#     - Branchless Distance Driven Projection & Backprojection
-#     Samit Basu & Bruno De Man [2006]
-#     - GPU Acceleration of Branchless Distance Driven Projection & 
-#     Backprojection, Liu et al [2016]
-#     - A GPU Implementation of Distance-Driven Computed Tomography; 
-#     Ryan D. Wagner [2017]
-#     ---------------------------------------------------------------------
-#     Copyright [C] <2018>  <Rodrigo de Barros Vimieiro>
-# 
-#     This program is free software: you can redistribute it and/or modify
-#     it under the terms of the GNU General Public License as published by
-#     the Free Software Foundation; either version 3 of the License; |
-#     (at your option) any later version.
-# 
-#     This program is distributed in the hope that it will be useful
-#     but WITHOUT ANY WARRANTY; without even the implied warranty of
-#     MERCHANTABILITY | FITNESS FOR A PARTICULAR PURPOSE.  See the
-#     GNU General Public License for more details.
-# 
-#     You should have received a copy of the GNU General Public License
-#     along with this program.  If not; see <http://www.gnu.org/licenses/>.
-=#
-# =========================================================================
+## Matlab Author: Rodrigo de Barros Vimieiro
+## Translated by Sonia Minseo Kim
+
 ## 2-D Branchless Distance Driven Code
-using Plots: plot, heatmap
-using PyPlot: pcolormesh
+using Plots: plot
 using ImagePhantoms: shepp_logan, SheppLoganToft
 using ImageGeoms: ImageGeom, axesf
 using MIRTjim: jim, prompt #specify the functions you are using in the packages
@@ -42,12 +10,6 @@ using LazyGrids: ndgrid
 using Dierckx: Spline1D
 
 # Julia is compiling program so you need to restart the program in order to clear the variables 
-
-#=
-global draw = false
-draw = 0
-#draw = false (and set it to true later)
-=#
 
 ## Geometry Definitions
 # Geometry
@@ -205,16 +167,6 @@ for proj=1:size(theta,1)
                 end
             end
         end
-
-        # Get the left coordinate of the first overlap
-        # Try the following lines for a better understanding
-        # # ---------------------------------------------------------------
-        # #   plot(detm,zeros(1,size(detm,2)),"transpose(r),'MarkerSize",6)
-        # #   hold on
-        # #   plot(pixm[1,:],zeros(1,size(pixm,2)),"transpose(b),'MarkerSize",6)
-        # #   hold off
-        # #   legend("Detector Boundaries','Pixel Boundaries")
-        # # ---------------------------------------------------------------
 
         Ppj = integrate1D(img[row,:],deltaPixm)
         Pdk = Spline1D(sort!(rowm), vec(Ppj); k=1)(detm)
@@ -384,17 +336,6 @@ for proj in 1:size(theta,1)
             end
         end
         
-        # Get the left coordinate of the first overlap
-        # Try the following lines for a better understanding
-        # # ---------------------------------------------------------------
-        # #   plot(detm,zeros(1,size(detm,2)),"transpose(r),'MarkerSize",6)
-        # #   hold on
-        # #   plot(pixm[1,:],zeros(1,size(pixm,2)),"transpose(b),'MarkerSize",6)
-        # #   hold off
-        # #   legend("Detector Boundaries','Pixel Boundaries")
-        # # ---------------------------------------------------------------
-        
-        
         Ppj = integrate1D(sinogram[proj,:],deltaDetm) #Ppj is a row vector
         Pdk = Spline1D(sort!(detm), vec(Ppj); k=1)(rowm)
         #itp = LinearInterpolation(vec(detm), Ppj)
@@ -427,7 +368,7 @@ end #endfunc
 ## Integrate function
 function integrate1D(p_v,pixelSize) # return Ppj
 
-    n_pixel = size(p_v,1) #finds the number of columns pf p_v
+    n_pixel = size(p_v,1) #finds the number of rows in p_v
     
     P_x = 0
     Ppj = zeros(1,n_pixel+1)
