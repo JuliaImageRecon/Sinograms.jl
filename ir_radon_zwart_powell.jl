@@ -46,14 +46,7 @@ function ir_radon_zwart_powell(theta, rr)
     return output
     end 
     
-    function BoxSp0(y, N)
-    #output = heaviside(y) .* y.^(N-1);
-    if any(size(y) != size(N)) 
-      throw("Size don't match")
-      end
-      output = (y .>= 0) .* y.^(N .- 1)
-      return output
-    end
+BoxSp0(y, N::Int) = y > 0 ? y^(N-1) : zero(y)
 
       #=function output = BoxSp0(y, N)
       %output = heaviside(y) .* y.^(N-1);
