@@ -1,8 +1,5 @@
-using LazyGrids: ndgrid, ndgrid_array
+using LazyGrids: ndgrid
 using LazyGrids: btime, @timeo # not exported; just for timing tests here
-using BenchmarkTools: @benchmark
-using InteractiveUtils: versioninfo
-using MIRTjim: jim, prompt
 using Test: @test, @testset, @test_throws
 
 @testset "Image reconstruction" begin
@@ -11,6 +8,6 @@ using Test: @test, @testset, @test_throws
     r = LinRange(-1,1,101) * 2
     (tt, rr) = ndgrid(theta, r)
     sino = ir_radon_zwart_powell(tt, rr)
-    #testing if sino is Matrix
+    #testing if sino is a matrix
     @test sino isa Matrix
 end
