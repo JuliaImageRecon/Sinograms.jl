@@ -65,7 +65,8 @@ function ir_radon_zwart_powell(theta, rr)
     function BoxSp1(y, zeta, cond, N)
       good = cond[:,1]
       output = (BoxSp0(y .+ (0.5 .* zeta[:,1]), N) .- BoxSp0(y .- (0.5 .* zeta[:,1]), N)) ./ zeta[:,1]
-      output[.~good] .= BoxSp0(y[.~good], N[.~good])
+      output[.~good] .= BoxSp0.(y[.~good], N[.~good])
+
       return output
     end
 
