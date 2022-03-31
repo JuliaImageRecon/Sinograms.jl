@@ -26,7 +26,7 @@ using MAT
    # 2015-08-10 Jeff Fessler, added self test and parallelized
     # if nargin < 2, ir_usage, return, end
 
-    function ir_radon_zwart_powell(theta, rr)
+function ir_radon_zwart_powell(theta, rr)
     dim = size(theta)
     theta = vec(theta); #converting the matrix theta into a vector with 18281 elements
     
