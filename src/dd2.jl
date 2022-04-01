@@ -11,356 +11,359 @@ using Dierckx: Spline1D
 
 # Julia is compiling program so you need to restart the program in order to clear the variables 
 
-## Geometry Definitions
-# Geometry
-deg = 1
-geo = (DSD = 100000, DSO = 99700, pSize = 1, dSize = 0.5, nPix = 256, nDet = 1024
-        , theta = deg2rad.(0:deg:360-deg), isoX = 0, isoY = 0) #Define tuple
-
-# Make the Phantom Image
-phantomImg = shepp_logan(geo.nPix, SheppLoganToft())
-
 ## Projection Branchless
-function projectionBranchless(phantom,geo ; draw::Bool = false)
+function projectionBranchless(phantom::AbstractMatrix{<:T}, geo ; draw::Bool = false) where {T <: Number}
 
-DSD = geo.DSD      
-DSO = geo.DSO      
-pSize = geo.pSize    
-dSize = geo.dSize    
-nPix = geo.nPix      
-nDet = geo.nDet     
-theta = geo.theta
+    DSD = geo.DSD      
+    DSO = geo.DSO      
+    pSize = geo.pSize    
+    dSize = geo.dSize    
+    nPix = geo.nPix      
+    nDet = geo.nDet     
+    theta = geo.theta # vector of projection view angles in radians
 
-# Detector boundaries
-detX = (-(nDet/2):(nDet/2)) .* dSize
-detY = (-(DSD-DSO)-(dSize/2)) .* ones(nDet+1)
+    # Detector boundaries
+    detX = (-(nDet/2):(nDet/2)) .* dSize
+    detY = (-(DSD-DSO)-(dSize/2)) .* ones(nDet+1)
 
-# Pixel boundaries
-(pixelX,pixelY) = ndgrid(-(nPix/2):(nPix/2), -(nPix/2):(nPix/2))
-pixelX = pixelX .* pSize
-pixelY = reverse(pixelY .- pSize/2, dims = 1)
+    # Pixel boundaries
+    (pixelX,pixelY) = ndgrid(-(nPix/2):(nPix/2), -(nPix/2):(nPix/2))
+    pixelX = pixelX .* pSize
+    pixelY = reverse(pixelY .- pSize/2, dims = 1)
 
-# Tube
-tubeX = 0     
-tubeY = DSO    
+    # Tube
+    tubeX = 0     
+    tubeY = DSO    
 
-# Iso-center
-isoX = geo.isoX
-isoY = geo.isoY
+    # Iso-center
+    isoX = geo.isoX
+    isoY = geo.isoY
 
-sinogram = zeros(size(theta,1),nDet)
+    sinogram = zeros(size(theta,1),nDet)
 
-# For each projection
-for proj=1:size(theta,1)
-    
-    angle = theta[proj]
-       
-    # Tubre rotation
-    rtubeX = ( (tubeX - isoX )*cos(angle) - (tubeY - isoY )*sin(angle) ) + isoX
-    rtubeY = ( (tubeX - isoX )*sin(angle) + (tubeY - isoY )*cos(angle) ) + isoY
+    # For each projection
+    for proj in 1:length(theta)
+        
+        angle = theta[proj]
+        
+        # Tube rotation
+        rtubeX = ( (tubeX - isoX )*cos(angle) - (tubeY - isoY )*sin(angle) ) + isoX
+        rtubeY = ( (tubeX - isoX )*sin(angle) + (tubeY - isoY )*cos(angle) ) + isoY
 
-    # Detector rotation
-    rdetX = ( (detX .- isoX ).*cos(angle) - (detY .- isoY ).*sin(angle) ) .+ isoX
-    rdetY = ( (detX .- isoX ).*sin(angle) + (detY .- isoY ).*cos(angle) ) .+ isoY
-    
-    if (draw == true)
-        drawGeo(rtubeX,rtubeY,rdetX,rdetY)   
-    end
+        # Detector rotation
+        rdetX = ( (detX .- isoX ).*cos(angle) - (detY .- isoY ).*sin(angle) ) .+ isoX
+        rdetY = ( (detX .- isoX ).*sin(angle) + (detY .- isoY ).*cos(angle) ) .+ isoY
+        
+        if (draw == true)
+            drawGeo(rtubeX,rtubeY,rdetX,rdetY)   
+        end
 
-    # Define angle case & which axis it it project boundaries
-    # Case 1 
-    if (((angle>=0)&&(angle<=pi/4))||(angle>=7*pi/4))     
-        axisXCase = true   # Map on X axis()
-        angleCase = 1
-        c1=0
-        c2=1
-    else
+        # Define angle case & which axis it it project boundaries
+        # Case 1 
+        if (((angle>=0)&&(angle<=pi/4))||(angle>=7*pi/4))     
+            axisXCase = true   # Map on X axis()
+            angleCase = 1
+            c1=0
+            c2=1
+        
         # Case 2
-        if ((angle>pi/4) && (angle<3*pi/4))
+        elseif ((angle>pi/4) && (angle<3*pi/4))
             axisXCase = false   # Map on Y axis()
             angleCase = 2
             c1=0
             c2=1
+
+        # Case 3
+        elseif ((angle>=3*pi/4)&&(angle<=5*pi/4))
+            axisXCase = true   # Map on X axis()
+            angleCase = 3
+            c1=0
+            c2=-1
+        
         else
-            # Case 3
-            if ((angle>=3*pi/4)&&(angle<=5*pi/4))
-                axisXCase = true   # Map on X axis()
-                angleCase = 3
-                c1=0
-                c2=-1
+        # Case 4
+            axisXCase = false   # Map on Y axis()
+            angleCase = 4
+            c1=0
+            c2=-1
+        end
+        
+        # Mapping boundaries into a common axis()
+        if (axisXCase)
+            detm = mapp2x.(rtubeX,rtubeY,rdetX,rdetY)
+            pixm = mapp2x.(rtubeX,rtubeY,pixelX,pixelY)
+            img = phantom
+        else
+            detm = mapp2y.(rtubeX,rtubeY,rdetX,rdetY)
+            pixm = reverse(mapp2y.(rtubeX,rtubeY,pixelX,pixelY)', dims = 2)
+            img = reverse(phantom', dims = 2)
+        end
+        
+                
+        center_det = floor(Int, (nDet+1)/2+1)
+        #L1 = zeros(nDet) 
+
+        if (axisXCase) 
+            # X-Ray pixel intersection calculation
+            L = abs(pSize/cos(angle)) # This account for parallel-beam
+            # Correction for fan-beam
+            L1 = @. sqrt((rtubeX-detm[center_det])^2+(rtubeY-0)^2)/sqrt((rtubeX-detm[1:nDet])^2+(rtubeY-0)^2)
+            #=
+            for n=1:nDet
+                L1[n]=sqrt((rtubeX-detm[center_det])^2+(rtubeY-0)^2)/sqrt((rtubeX-detm[n])^2+(rtubeY-0)^2)
+            end
+            =#
+        else
+            # X-Ray pixel intersection calculation
+            L = abs(pSize/sin(angle)) # This account for parallel-beam
+            # Correction for fan-beam
+            L1 = @. sqrt((rtubeX-0)^2+(rtubeY-detm[center_det])^2)/sqrt((rtubeX-0)^2+(rtubeY-detm[1:nDet])^2)
+            #=
+            for n=1:nDet
+                L1[n]=sqrt((rtubeX-0)^2+(rtubeY-detm[center_det])^2)/sqrt((rtubeX-0)^2+(rtubeY-detm[n])^2)
+            end  
+            =#         
+        end     
+        L = L ./ L1
+        
+        pixIstart = 1
+        pixIinc = 1
+        if ((angleCase == 1)||(angleCase == 2))
+            detIstart = 1
+            detIinc = 1
+        else
+            detIstart = nDet+1
+            detIinc = -1
+        end
+
+        
+        deltaDetm = detm[detIstart+detIinc] - detm[detIstart] # Mapped detector length()
+        if (deltaDetm == 0) 
+            throw("deltaDetm is zero!")
+        end
+        deltaPixm = pixm[1,2] - pixm[1,1]   # Mapped pixel length()
+        
+        sinoTmp = zeros(T, nDet) # one "row" of sinogram (column vector)
+        @show size(sinoTmp)
+        
+        # For each image row
+        for row in 1:nPix
+            
+            rowm = pixm[row,:] # Get first mapped row from image.
+            
+            detInd = detIstart
+            pixInd = pixIstart            
+            
+            # Find first detector overlap maped with pixel maped [Case 1]
+            if (detm[detInd]-rowm[pixIstart]<=deltaDetm)
+                while detm[detInd]-rowm[pixIstart]<=deltaDetm            
+                    detInd = detInd + detIinc            
+                end
             else
-            # Case 4
-                axisXCase = false   # Map on Y axis()
-                angleCase = 4
-                c1=0
-                c2=-1
-            end
-        end
-    end
-    
-    # Mapping boundaries into a commum axis()
-    if (axisXCase)
-        detm = mapp2x.(rtubeX,rtubeY,rdetX,rdetY)
-        pixm = mapp2x.(rtubeX,rtubeY,pixelX,pixelY)
-        img = phantom
-    else
-        detm = mapp2y.(rtubeX,rtubeY,rdetX,rdetY)
-        pixm = reverse(mapp2y.(rtubeX,rtubeY,pixelX,pixelY)', dims = 2)
-        img = reverse(phantom', dims = 2)
-    end
-    
-               
-    center_det = floor(Int, (nDet+1)/2+1)
-    L1 = zeros(1, nDet) 
-
-    if (axisXCase) 
-        # X-Ray pixel intersection calculation
-        L = abs(pSize/cos(angle)) # This account for parallel-beam
-        # Correction for fan-beam
-        for n=1:nDet
-            L1[n]=sqrt((rtubeX-detm[center_det])^2+(rtubeY-0)^2)/sqrt((rtubeX-detm[n])^2+(rtubeY-0)^2)
-        end
-    else
-        # X-Ray pixel intersection calculation
-        L = abs(pSize/sin(angle)) # This account for parallel-beam
-        # Correction for fan-beam
-        for n=1:nDet
-            L1[n]=sqrt((rtubeX-0)^2+(rtubeY-detm[center_det])^2)/sqrt((rtubeX-0)^2+(rtubeY-detm[n])^2)
-        end           
-    end     
-    L = L./L1
-    
-    pixIstart = 1
-    pixIinc = 1
-    if ((angleCase == 1)||(angleCase == 2))
-        detIstart = 1
-        detIinc = 1
-    else
-        detIstart = nDet+1
-        detIinc = -1
-    end
-
-    
-    deltaDetm = detm[detIstart+detIinc] - detm[detIstart] # Mapped detector length()
-    deltaPixm = pixm[1,2] - pixm[1,1]   # Mapped pixel length()
-    
-    sinoTmp = zeros(1,nDet)
-    
-    # For each row
-    for row in 1:nPix
-        
-        rowm = pixm[row,:] # Get first mapped row from image.
-        
-        detInd = detIstart
-        pixInd = pixIstart            
-        
-        # Find first detector overlap maped with pixel maped [Case 1]
-        if (detm[detInd]-rowm[pixIstart]<=deltaDetm)
-            while detm[detInd]-rowm[pixIstart]<=deltaDetm            
-                detInd = detInd + detIinc            
-            end
-        else
-        # Find first pixel overlap maped with detector maped [Case 2]           
-            if (detm[detIstart]-rowm[pixInd]>deltaPixm)
-                while detm[detIstart]-rowm[pixInd]>deltaPixm            
-                    pixInd = pixInd + pixIinc            
+            # Find first pixel overlap maped with detector maped [Case 2]           
+                if (detm[detIstart]-rowm[pixInd]>deltaPixm)
+                    while detm[detIstart]-rowm[pixInd]>deltaPixm            
+                        pixInd = pixInd + pixIinc            
+                    end
                 end
             end
-        end
 
-        Ppj = integrate1D(img[row,:],deltaPixm)
-        Pdk = Spline1D(sort!(rowm), vec(Ppj); k=1)(detm)
-        #itp = LinearInterpolation(rowm, Ppj)
-        #Pdk = itp(detm)
+            Ppj = integrate1D(img[row,:],deltaPixm)
+            # @assert !any(isnan, Ppj)
+            Pdk = Spline1D(sort(rowm), vec(Ppj); k=1, bc="zero")(detm)
+            #@assert !any(isnan, Pdk)
+            #sortperm function
+            #itp = LinearInterpolation(rowm, Ppj)
+            #Pdk = itp(detm)
+            
+            while detm[detInd+c2]<rowm[end]
+                sinoTmp[detInd] = sinoTmp[detInd]+(Pdk[detInd+c2]-Pdk[detInd])/deltaDetm
+                detInd = detInd + detIinc
+            end
+            sinoTmp[detInd] = sinoTmp[detInd]+(Ppj[end]-Pdk[detInd])/deltaDetm                   
+            
+        end # Row loop 
         
-        while detm[detInd+c2]<rowm[end]
-            sinoTmp[detInd] = sinoTmp[detInd]+(Pdk[detInd+c2]-Pdk[detInd])/deltaDetm
-            detInd = detInd + detIinc
-        end
-        sinoTmp[detInd] = sinoTmp[detInd]+(Ppj[end]-Pdk[detInd])/deltaDetm                   
-        
-    end # Row loop 
-    
-    sinogram[proj,:] = sinoTmp .* L
+        sinogram[proj,:] = sinoTmp .* L
 
-end # Projection loop
+    end # Projection loop
 
-return sinogram
+    return sinogram
 end #endfunc
 
 
 ## Backprojection Branchless
 function backprojection(sinogram,geo ; draw::Bool = false)
 
-DSD = geo.DSD      
-DSO = geo.DSO      
-pSize = geo.pSize    
-dSize = geo.dSize    
-nPix = geo.nPix       
-nDet = geo.nDet     
-theta = geo.theta 
+    DSD = geo.DSD      
+    DSO = geo.DSO      
+    pSize = geo.pSize    
+    dSize = geo.dSize    
+    nPix = geo.nPix       
+    nDet = geo.nDet     
+    theta = geo.theta 
 
-# Detector boundaries
-detX = (-(nDet/2):(nDet/2)) .* dSize
-detY = (-(DSD-DSO)-(dSize/2)) .* ones(nDet+1)
+    # Detector boundaries
+    detX = (-(nDet/2):(nDet/2)) .* dSize
+    detY = (-(DSD-DSO)-(dSize/2)) .* ones(nDet+1)
 
-# Pixel boundaries
-(pixelX,pixelY) = ndgrid(-(nPix/2):(nPix/2), -(nPix/2):(nPix/2))
-pixelX = pixelX .* pSize
-pixelY = reverse(pixelY .- pSize/2, dims = 1)
+    # Pixel boundaries
+    (pixelX,pixelY) = ndgrid(-(nPix/2):(nPix/2), -(nPix/2):(nPix/2))
+    pixelX = pixelX .* pSize
+    pixelY = reverse(pixelY .- pSize/2, dims = 1)
 
-# Tube
-tubeX = 0     
-tubeY = DSO    
+    # Tube
+    tubeX = 0     
+    tubeY = DSO    
 
-# Iso-center
-isoX = geo.isoX
-isoY = geo.isoY
+    # Iso-center
+    isoX = geo.isoX
+    isoY = geo.isoY
 
-reconImg = zeros(nPix,nPix)
-reconImgTmp = reconImg
+    reconImg = zeros(nPix,nPix)
+    reconImgTmp = reconImg
 
-# For each projection
-for proj in 1:size(theta,1)
-    
-    angle = theta[proj]
-       
-    # Tubre rotation
-    rtubeX = ( (tubeX - isoX )*cos(angle) - (tubeY - isoY )*sin(angle) ) + isoX
-    rtubeY = ( (tubeX - isoX )*sin(angle) + (tubeY - isoY )*cos(angle) ) + isoX
+    # For each projection
+    for proj in 1:size(theta,1)
+        
+        angle = theta[proj]
+        
+        # Tubre rotation
+        rtubeX = ( (tubeX - isoX )*cos(angle) - (tubeY - isoY )*sin(angle) ) + isoX
+        rtubeY = ( (tubeX - isoX )*sin(angle) + (tubeY - isoY )*cos(angle) ) + isoX
 
-    # Detector rotation
-    rdetX = ( (detX .- isoX ).*cos(angle) - (detY .- isoY ).*sin(angle) ) .+ isoX
-    rdetY = ( (detX .- isoX ).*sin(angle) + (detY .- isoY ).*cos(angle) ) .+ isoX
-    
-    if (draw == true)
-        drawGeo(rtubeX,rtubeY,rdetX,rdetY)
-    end    
-    
-    # Define angle case & which axis it it project boundaries
-    # Case 1 
-    if (((angle>=0)&&(angle<=pi/4))||(angle>=7*pi/4))       
-        axisXCase = true   # Map on X axis()
-        angleCase = 1
-        c1=1
-        c2=0
-    else
-        # Case 2
-        if ((angle>pi/4)&&(angle<3*pi/4))
-            axisXCase = false   # Map on Y axis()
-            angleCase = 2
+        # Detector rotation
+        rdetX = ( (detX .- isoX ).*cos(angle) - (detY .- isoY ).*sin(angle) ) .+ isoX
+        rdetY = ( (detX .- isoX ).*sin(angle) + (detY .- isoY ).*cos(angle) ) .+ isoX
+        
+        if (draw == true)
+            drawGeo(rtubeX,rtubeY,rdetX,rdetY)
+        end    
+        
+        # Define angle case & which axis it it project boundaries
+        # Case 1 
+        if (((angle>=0)&&(angle<=pi/4))||(angle>=7*pi/4))       
+            axisXCase = true   # Map on X axis()
+            angleCase = 1
             c1=1
             c2=0
         else
-            # Case 3
-            if (((angle>=3*pi/4)&&(angle<=5*pi/4)))
-                axisXCase = true   # Map on X axis()
-                angleCase = 3
-                c1=0
-                c2=1
-            else
-            # Case 4
+            # Case 2
+            if ((angle>pi/4)&&(angle<3*pi/4))
                 axisXCase = false   # Map on Y axis()
-                angleCase = 4
-                c1=0
-                c2=1
-            end
-        end
-    end
-    
-    # Mapping boundaries into a common axis()
-    if (axisXCase)
-        detm = mapp2x.(rtubeX,rtubeY,rdetX,rdetY)
-        pixm = mapp2x.(rtubeX,rtubeY,pixelX,pixelY)
-    else
-        detm = mapp2y.(rtubeX,rtubeY,rdetX,rdetY)
-        pixm = reverse(mapp2y.(rtubeX,rtubeY,pixelX,pixelY)', dims = 2)
-    end
-    
-               
-    center_det = floor(Int, (nPix+1)/2+1)
-    L1 = zeros(1, nPix) 
-    
-    if (axisXCase) 
-        # X-Ray pixel intersection calculation
-        L = abs(pSize/cos(angle)) # This account for parallel-beam
-        # Correction for fan-beam
-        for n in 1:nPix
-            L1[n]=sqrt((rtubeX-pixm[center_det])^2+(rtubeY-0)^2)/sqrt((rtubeX-pixm[n])^2+(rtubeY-0)^2)
-        end
-    else
-        # X-Ray pixel intersection calculation
-        L = abs(pSize/sin(angle)) # This account for parallel-beam
-        # Correction for fan-beam
-        for n in 1:nPix
-            L1[n]=sqrt((rtubeX-0)^2+(rtubeY-pixm[center_det])^2)/sqrt((rtubeX-0)^2+(rtubeY-pixm[n])^2)
-        end           
-    end     
-    L = L./L1
-    
-    pixIstart = 1
-    pixIinc = 1
-    if ((angleCase == 1)||(angleCase == 2))
-        detIstart = 1
-        detIinc = 1
-    else
-        detIstart = nDet+1
-        detIinc = -1
-    end
-
-    
-    deltaDetm = detm[detIstart+detIinc]- detm[detIstart] # Mapped detector length()
-    deltaPixm = pixm[1,2]- pixm[1,1]   # Mapped pixel length()    
-    
-    # For each row
-    for row in 1:nPix
-        
-        reconTmp = zeros(1,nPix)
-        
-        rowm = pixm[row,:] # Get first mapped row from image.
-        
-        detInd = detIstart
-        pixInd = pixIstart            
-        
-        # Find first detector overlap maped with pixel maped [Case 1]
-        if (detm[detInd]-rowm[pixIstart]<-deltaDetm)
-            while ((detm[detInd]-rowm[pixIstart]<-deltaDetm))            
-                detInd = detInd + detIinc            
-            end
-        else
-        # Find first pixel overlap maped with detector maped [Case 2]           
-            if (detm[detIstart]-rowm[pixInd]>deltaPixm)
-                while (detm[detIstart]-rowm[pixInd]>deltaPixm && pixInd<=nPix)            
-                    pixInd = pixInd + pixIinc           
+                angleCase = 2
+                c1=1
+                c2=0
+            else
+                # Case 3
+                if (((angle>=3*pi/4)&&(angle<=5*pi/4)))
+                    axisXCase = true   # Map on X axis()
+                    angleCase = 3
+                    c1=0
+                    c2=1
+                else
+                # Case 4
+                    axisXCase = false   # Map on Y axis()
+                    angleCase = 4
+                    c1=0
+                    c2=1
                 end
             end
         end
         
-        Ppj = integrate1D(sinogram[proj,:],deltaDetm) #Ppj is a row vector
-        Pdk = Spline1D(sort!(detm), vec(Ppj); k=1)(rowm)
-        #itp = LinearInterpolation(vec(detm), Ppj)
-        #Pdk = itp(rowm)
-        
-        while (pixInd < nPix+1)
-            reconTmp[pixInd] = reconTmp[pixInd]+(Pdk[pixInd+c1]-Pdk[pixInd+c2])/deltaDetm
-            pixInd = pixInd + pixIinc 
+        # Mapping boundaries into a common axis()
+        if (axisXCase)
+            detm = mapp2x.(rtubeX,rtubeY,rdetX,rdetY)
+            pixm = mapp2x.(rtubeX,rtubeY,pixelX,pixelY)
+        else
+            detm = mapp2y.(rtubeX,rtubeY,rdetX,rdetY)
+            pixm = reverse(mapp2y.(rtubeX,rtubeY,pixelX,pixelY)', dims = 2)
         end
-        # reconTmp[pixInd] = reconTmp[pixInd]+(Ppj[end]-Pdk[pixInd])/deltaPixm;   
         
-        reconImgTmp[row,:] = reconTmp .* L
+                
+        center_det = floor(Int, (nPix+1)/2+1)
+        L1 = zeros(1, nPix) 
         
-    end # Row loop 
-    
-    if ((angleCase == 1)||(angleCase == 3))
-        reconImg = reconImg + reconImgTmp 
-    else
-        reconImg = reconImg + reverse(reconImgTmp, dims = 2)'
-    end
-   
-   reconImg = reconImg ./ proj     
-end # Projection loop
+        if (axisXCase) 
+            # X-Ray pixel intersection calculation
+            L = abs(pSize/cos(angle)) # This account for parallel-beam
+            # Correction for fan-beam
+            for n in 1:nPix
+                L1[n]=sqrt((rtubeX-pixm[center_det])^2+(rtubeY-0)^2)/sqrt((rtubeX-pixm[n])^2+(rtubeY-0)^2)
+            end
+        else
+            # X-Ray pixel intersection calculation
+            L = abs(pSize/sin(angle)) # This account for parallel-beam
+            # Correction for fan-beam
+            for n in 1:nPix
+                L1[n]=sqrt((rtubeX-0)^2+(rtubeY-pixm[center_det])^2)/sqrt((rtubeX-0)^2+(rtubeY-pixm[n])^2)
+            end           
+        end     
+        L = L ./ L1
+        
+        pixIstart = 1
+        pixIinc = 1
+        if ((angleCase == 1)||(angleCase == 2))
+            detIstart = 1
+            detIinc = 1
+        else
+            detIstart = nDet+1
+            detIinc = -1
+        end
 
-return reconImg
+        
+        deltaDetm = detm[detIstart+detIinc]- detm[detIstart] # Mapped detector length()
+        deltaPixm = pixm[1,2]- pixm[1,1]   # Mapped pixel length()    
+        
+        # For each row
+        for row in 1:nPix
+            
+            reconTmp = zeros(1,nPix)
+            
+            rowm = pixm[row,:] # Get first mapped row from image.
+            
+            detInd = detIstart
+            pixInd = pixIstart            
+            
+            # Find first detector overlap maped with pixel maped [Case 1]
+            if (detm[detInd]-rowm[pixIstart]<-deltaDetm)
+                while ((detm[detInd]-rowm[pixIstart]<-deltaDetm))            
+                    detInd = detInd + detIinc            
+                end
+            else
+            # Find first pixel overlap maped with detector maped [Case 2]           
+                if (detm[detIstart]-rowm[pixInd]>deltaPixm)
+                    while (detm[detIstart]-rowm[pixInd]>deltaPixm && pixInd<=nPix)            
+                        pixInd = pixInd + pixIinc           
+                    end
+                end
+            end
+            
+            Ppj = integrate1D(sinogram[proj,:],deltaDetm) #Ppj is a row vector
+            Pdk = Spline1D(sort!(detm), vec(Ppj); k=1)(rowm)
+            #itp = LinearInterpolation(vec(detm), Ppj)
+            #Pdk = itp(rowm)
+            
+            while (pixInd < nPix+1)
+                reconTmp[pixInd] = reconTmp[pixInd]+(Pdk[pixInd+c1]-Pdk[pixInd+c2])/deltaDetm
+                pixInd = pixInd + pixIinc 
+            end
+            # reconTmp[pixInd] = reconTmp[pixInd]+(Ppj[end]-Pdk[pixInd])/deltaPixm;   
+            
+            reconImgTmp[row,:] = reconTmp .* L
+            
+        end # Row loop 
+        
+        if ((angleCase == 1)||(angleCase == 3))
+            reconImg = reconImg + reconImgTmp 
+        else
+            reconImg = reconImg + reverse(reconImgTmp, dims = 2)'
+        end
+    
+    reconImg = reconImg ./ proj     
+    end # Projection loop
+
+    return reconImg
 end #endfunc
 
 
@@ -407,15 +410,26 @@ function drawGeo(tubeX,tubeY,detX,detY)
     plot!([detX[1],detX[end]],[detY[1],detY[end]])
 end
 
+## Begin tests
+# Geometry
+deg = 1
+geo = (DSD = 100000, DSO = 99700, pSize = 1, dSize = 0.5, nPix = 256, nDet = 1024
+        , theta = deg2rad.(0:deg:360-deg), isoX = 0, isoY = 0) #Define tuple
+
+# Make the Phantom Image
+phantomImg = shepp_logan(geo.nPix, SheppLoganToft())
+
+phantomImg = 0 * phantomImg; phantomImg[end÷4,end÷4] = 1
 
 @show size(phantomImg)
 jim(phantomImg)
 
-
 # Projection
 sinogramB = projectionBranchless(phantomImg,geo)
 @show size(sinogramB)
-p1 = jim(sinogramB)
+#p1 = jim(1:geo.nDet, geo.theta, sinogramB'; aspect_ratio = :auto)
+p1 = jim(1:geo.nDet, 1:length(geo.theta), sinogramB'; aspect_ratio = :auto)
+#@assert !any(isnan,sinogramB)
 
 #=
 # Back-projection
@@ -426,6 +440,7 @@ p2 = jim(imageB)
 
 jim(p1, p2)
 =#
+
 
 
 
