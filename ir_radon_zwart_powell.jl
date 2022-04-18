@@ -1,24 +1,19 @@
 ## Matlab author: Seongjin Yoon, Univ. of Michigan, Jan 2015
 ## Translated by: Harshit Nanda
 
-### Analytic 2D Radon transform of Zwart-Powell box spline.
+"""
+    output = ir_radon_zwart_powell(theta, rr)
+Analytic 2D Radon transform of Zwart-Powell box spline. To use this 
+you call the theta matrix which represents the Zwart-Powell element
+by the Box-Spline directions and the distance between ray and the point.
 
-#=
-Reference
-[1] A. Entezari, M. Nilchian, and M. Unser, "A box spline calculus
-for the discretization of computed tomography reconstruction problems,"
-IEEE Trans. Med. Imaging, vol. 31, no. 8, pp. 1532–1541, 2012.
-2015-08-10 Jeff Fessler, added self test and parallelized
+in
+- `theta`         ray angle in radian
+- `rr`            distance between the point and the ray (normalized by the pixel size)
 
-## Mathematcatical representation
-
-# theta: ray angle in radian
-# rr: distance between the point and the ray (normalized by the pixel size)
-# output: radon transform of the Zwart-Powell box spline element
-
-=#
-
-# ir_radon_zwart_powell
+out
+- `output`        radon transform of the Zwart-Powell box spline element
+"""
 function ir_radon_zwart_powell(theta, rr)
     dim = size(theta)
     theta = vec(theta)    
