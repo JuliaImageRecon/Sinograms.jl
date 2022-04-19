@@ -1,6 +1,9 @@
 ## Matlab author: Seongjin Yoon, Univ. of Michigan, Jan 2015
 ## Translated by: Harshit Nanda
 
+
+export ir_radon_zwart_powell
+
 """
     output = ir_radon_zwart_powell(theta, rr)
 Analytic 2D Radon transform of Zwart-Powell box spline. To use this 
