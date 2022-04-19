@@ -1,33 +1,28 @@
-using LazyGrids: ndgrid
 using Sinograms: zwart_powell
 using Test: @test, @testset, @test_throws, @inferred
 
 @testset "zwart_powell" begin
-
-    theta = LinRange(0, π, 181)
     r = LinRange(-1, 1, 101) * 2
+    ϕ = LinRange(0, π, 181)
 
-    # Allocating arrays using ndgrid
-    (tt, rr) = ndgrid(theta, r)
-    sino = @inferred zwart_powell(tt, rr)
-
-    # testing if a matrix is produced
+    myfun(r, ϕ) = zwart_powell.(r, ϕ')
+    sino = @inferred myfun(r, ϕ)
     @test sino isa Matrix
-
-    @test zwart_powell([0], [0])[1] == 0.75
-    @test zwart_powell([π/4], [0])[1] ≈ 1/√2
-end
+    @test zwart_powell(0, 0) == 0.75
+    @test zwart_powell(0, π/4) ≈ 1/√2
 
 #=
     using Plots
+    using MIRTjim: jim
+    p1 = jim(r, ϕ, sino)
 
-    theta = (0:3)/3 * π
-    r = LinRange(-1, 1, 101) * 2
-    (tt, rr) = ndgrid(theta, r)
-    sino = @inferred zwart_powell(tt, rr)
+    ϕ = (0:3)/3 * π
+    sino = zwart_powell.(r, ϕ')
 
-    p = plot()
-	for (i,θ) in enumerate(theta)
-        plot!(r, sino[i,:], label="θ=$θ")
+    p2 = plot()
+	for (i,θ) in enumerate(ϕ)
+        plot!(r, sino[:,i], label="ϕ=$θ")
     end
+    plot(p1, p2)
 =#
+end

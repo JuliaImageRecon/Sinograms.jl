@@ -1,7 +1,7 @@
 [deps]
 #LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 #OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
-LazyGrids = "7031d0ef-c40d-4431-b2f8-61a8d2f650db"
+#LazyGrids = "7031d0ef-c40d-4431-b2f8-61a8d2f650db"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
