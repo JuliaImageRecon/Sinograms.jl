@@ -11,7 +11,7 @@ MIRT = "7035ae7a-3787-11e9-139a-5545ed3dc201"
 
 [compat]
 FFTW = "1.4.5"
-ImageGeoms = "0.4.0"
-LazyGrids = "0.2.0"
+ImageGeoms = "0.4, 0.5"
+LazyGrids = "0.2, 0.3"
 MIRT = "0.15.0"
 julia = "1.6"
