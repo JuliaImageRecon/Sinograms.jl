@@ -22,7 +22,13 @@ function cbct_back(proj, cg, ig)
     orbit = cg.orbit
     orbit_start = cg.orbit_start
     source_zs = zeros(na) #for some reason in matlab this array is all zeros
-    mask = ig.mask
+    if isa(ig, im_geom2)
+        mask = ig.mask
+    elseif isa(ig, ImageGeom)
+        mask = ig.mask_or
+    else
+        error("Mask Not implemented yet")
+    end
     nz = convert(Int64, ig.nz)
     dx = ig.dx
     dy = ig.dy

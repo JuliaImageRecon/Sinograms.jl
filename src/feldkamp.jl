@@ -3,7 +3,10 @@ using HDF5
 include("fdk_filter.jl")
 include("cbct_back.jl")
 
-struct ct_geom
+export ct_geom2
+export im_geom2
+#the following two structs are only necessary when testing with the mat files
+struct ct_geom2
 	type
 	ns
 	nt
@@ -27,7 +30,7 @@ struct ct_geom
 	dfs
 end
 
-struct im_geom
+struct im_geom2
 	nx
 	ny
 	nz
@@ -100,31 +103,43 @@ function feldkamp_do(proj, cg, ig, ds, dt, offset_s, offset_t, offset_source, ds
 end
 
 function feldkamp(cg, ig, proj)
-	return feldkamp_do(proj, cg, ig, cg.ds, cg.dt, cg.offset_s, cg.offset_t, 0, cg.dsd, cg.dso, cg.dfs, cg.orbit, cg.orbit_start, ig.mask, ig.nz, ig.dx, ig.dy, ig.dz, [ig.offset_x, ig.offset_y, ig.offset_z], 1, "ramp", 1, 0, 0, 0)
+	if isa(cg, ct_geom2)
+		#using the mat file code, so all the variables are already available
+		return feldkamp_do(proj, cg, ig, cg.ds, cg.dt, cg.offset_s, cg.offset_t, 0, cg.dsd, cg.dso, cg.dfs, cg.orbit, cg.orbit_start, ig.mask, ig.nz, ig.dx, ig.dy, ig.dz, [ig.offset_x, ig.offset_y, ig.offset_z], 1, "ramp", 1, 0, 0, 0)
+	elseif isa(cg, CtFanArc)
+		println(size(ig.mask_or))
+		return feldkamp_do(proj, cg, ig, cg.ds, cg.dt, cg.offset_s, cg.offset_t, 0, cg.dsd, cg.dso, Inf, cg.orbit, cg.orbit_start, ig.mask, ig.nz, ig.dx, ig.dy, ig.dz, [ig.offset_x, ig.offset_y, ig.offset_z], 1, "ramp", 1, 0, 0, 0)
+	elseif isa(cg, CtFanFlat)
+		return feldkamp_do(proj, cg, ig, cg.ds, cg.dt, cg.offset_s, cg.offset_t, 0, cg.dsd, cg.dso, 0, cg.orbit, cg.orbit_start, ig.mask, ig.nz, ig.dx, ig.dy, ig.dz, [ig.offset_x, ig.offset_y, ig.offset_z], 1, "ramp", 1, 0, 0, 0)
+	else
+		error("Feldkamp not implemented for this case")
+	end
+	return 0
 end
 
-test = 1
+test = 0
 if test == 1
-
-	# dfs = 0
-	# ds = 16
-	# dsd = 949
-	# dso = 541
-	# dt = 16
-	# offset_s = 0.25
-	# offset_t = 0
-	# w1cyl = 1
-	# proj = ones(6,4,2)
-	# proj[3,2,1] = 5
-	# proj[4,3,2] = 7
-	# window = "ramp"
-	#test each function
-	#print(fdk_filter(proj, window, dsd, dfs, ds))
-	#k = feldkamp_weight1(proj, ds, dt, offset_s, offset_t, dsd, dso, dfs, w1cyl)
-
+	#=
+	dfs = 0
+	ds = 16
+	dsd = 949
+	dso = 541
+	dt = 16
+	offset_s = 0.25
+	offset_t = 0
+	w1cyl = 1
+	proj = ones(6,4,2)
+	proj[3,2,1] = 5
+	proj[4,3,2] = 7
+	window = "ramp"
+	test each function
+	print(fdk_filter(proj, window, dsd, dfs, ds))
+	k = feldkamp_weight1(proj, ds, dt, offset_s, offset_t, dsd, dso, dfs, w1cyl)
+=#
 	#k = fdk_filter(proj, window, dsd, dfs, ds)
 	#file = matopen("fdkexampledata.mat")
 	#file = matopen("/Users/jasonhu/Documents/julia_files/feldkamp/testfile.mat")
+
 	vars = matread("/Users/jasonhu/Documents/julia_files/feldkamp/fdkexampledata.mat")
 	cg1 = vars["cg"]
 	ig1 = vars["ig"]
@@ -135,12 +150,12 @@ if test == 1
 	proj = vars["proj"]
 
 	#construct a ct_geom object with properties of cg for matlab
-	cg = ct_geom(a["type"], a["ns"], a["nt"], a["na"], a["down"], a["nframe"], a["frame"], a["orbit_start"], a["pitch"], a["source_z0"], a["units"], a["user_source_zs"], a["orbit"], a["ds"], a["dt"], a["offset_s"], a["offset_t"], a["dsd"], a["dso"], a["dod"], a["dfs"])
-	ig = im_geom(b["nx"], b["ny"], b["nz"], b["dx"], b["dy"], b["dz"], b["offset_x"], b["offset_y"], b["offset_z"], b["offsets"], b["fov"], b["zfov"], b["down"], vars["maskor"], b["is3"], b["dim"])
+	cg = ct_geom2(a["type"], a["ns"], a["nt"], a["na"], a["down"], a["nframe"], a["frame"], a["orbit_start"], a["pitch"], a["source_z0"], a["units"], a["user_source_zs"], a["orbit"], a["ds"], a["dt"], a["offset_s"], a["offset_t"], a["dsd"], a["dso"], a["dod"], a["dfs"])
+	ig = im_geom2(b["nx"], b["ny"], b["nz"], b["dx"], b["dy"], b["dz"], b["offset_x"], b["offset_y"], b["offset_z"], b["offsets"], b["fov"], b["zfov"], b["down"], vars["maskor"], b["is3"], b["dim"])
 
 	xfdk, junk = feldkamp(cg, ig, proj)
 
-	error = xfdk - xtrue
-	println(minimum(error))
-	println(maximum(error))
+	errorvector = xfdk - xtrue
+	println(minimum(errorvector))
+	println(maximum(errorvector))
 end
