@@ -1,5 +1,6 @@
 using Sinograms: bdd_2d
 using Test: @test, @testset, @inferred
+using JLD: load
 
 @testset "bdd_2d" begin
     deg = 1
@@ -9,6 +10,9 @@ using Test: @test, @testset, @inferred
     sinogramB = projection(phantomImg',geo)
     imageB = backprojection(sinogramB,geo)
 
+    sinogramB_correct = load("sinomat.jld")["sinomat"]
+    imageB_correct = load("imagemat.jld")["imagemat"]
+
     sino = @inferred projection(phantomImg',geo)
     @test sino isa Matrix
     @test size(sinogramB) == (360, 1024)
@@ -16,13 +20,8 @@ using Test: @test, @testset, @inferred
     @test image isa Matrix
     @test size(imageB) == (256, 256)
 
-    @test sinogramB[1,1] == 0.0
-    @test sinogramB[200,400] == 46.580197553727686
-    @test sinogramB[192,341] == 61.34138815209777
-
-    @test imageB[1,1] == 31.0730328125125
-    @test imageB[100,13] == 45.6778292877918
-    @test imageB[254,203] == 39.02675898771454
+    @test sinogramB == sinogramB_correct
+    @test imageB == imageB_correct
 
     #=
     using MIRTjim: jim
