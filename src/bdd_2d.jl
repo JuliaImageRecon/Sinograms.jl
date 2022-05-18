@@ -2,7 +2,7 @@
 ## Translated by Sonia Minseo Kim
 
 ## 2-D Branchless Distance Driven Code
-using Plots: plot
+# using Plots: plot
 using ImagePhantoms: shepp_logan, SheppLoganToft
 using LazyGrids: ndgrid 
 using Dierckx: Spline1D
