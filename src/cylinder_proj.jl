@@ -4,12 +4,12 @@ include("outer_sum.jl")
 using MIRT
 export cylinder_proj
 
-function meshgrid(x,y)
-    #basically the equivalent of ndgrid in matlab
-    X = [i for i in x, j in 1:length(y)]
-    Y = [j for i in 1:length(x), j in y]
-    return X,Y
-end
+# function meshgrid(x,y)
+#     #basically the equivalent of ndgrid in matlab
+#     X = [i for i in x, j in 1:length(y)]
+#     Y = [j for i in 1:length(x), j in y]
+#     return X,Y
+# end
 
 #Note: apparently this doesn't work for all angles
 function cylinder_proj(cg::CtGeom, params, oversample = 1)
@@ -32,7 +32,7 @@ out
 	proj	[ns nt na]	projection views
 
 Translated from cylinder_proj.m in MIRT
-Copyright 2022-5-11, Jason Hu, University of Michigan
+Copyright 2022-5-11, Jason Hu and Jeff Fessler, University of Michigan
 =#
 
     if isa(cg, CtFanPar)
@@ -71,7 +71,7 @@ end
 function ir_cylinder_proj_work(params, ss, tt, beta, source_zs, dso, dod, dfs, oversample)
     ns = length(ss)
     nt = length(tt)
-    sss, ttt = meshgrid(ss, tt)
+    sss, ttt = ndgrid(ss, tt)
 
     if isinf(dso)
         uu = sss

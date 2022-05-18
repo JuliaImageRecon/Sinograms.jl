@@ -16,6 +16,7 @@ out
     proj    [ns nt na]
 
 Translated from fdk_filter.m in MIRT
+Copyright 2022-5-18, Jason Hu and Jeff Fessler, University of Michigan
 =#
     if type == "flat"
         h, nn = fbp_ramp("flat", n, ds)

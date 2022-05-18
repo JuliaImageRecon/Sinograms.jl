@@ -49,12 +49,12 @@ struct im_geom2
 	dim
 end
 
-function meshgrid(x,y)
-    #basically the equivalent of ndgrid in matlab
-    X = [i for i in x, j in 1:length(y)]
-    Y = [j for i in 1:length(x), j in y]
-    return X,Y
-end
+# function meshgrid(x,y)
+#     #basically the equivalent of ndgrid in matlab
+#     X = [i for i in x, j in 1:length(y)]
+#     Y = [j for i in 1:length(x), j in y]
+#     return X,Y
+# end
 
 #line 103 of feldkamp.m
 function feldkamp_weight1(proj, ds, dt, offset_s, offset_t, dsd, dso, dfs, w1cyl)
@@ -62,7 +62,7 @@ function feldkamp_weight1(proj, ds, dt, offset_s, offset_t, dsd, dso, dfs, w1cyl
     ss = ([-(ns-1)/2:(ns-1)/2;].-offset_s).*ds
     tt = ([-(nt-1)/2:(nt-1)/2;].-offset_t).*dt
 
-    ss, tt = meshgrid(ss, tt)
+    ss, tt = ndgrid(ss, tt)
     if isinf(dfs) #flat
         if w1cyl == 1
             ww1 = dso ./ sqrt.(ss.^2 + tt.^2 .+ dsd^2)
@@ -120,7 +120,7 @@ out
 References: Feldkamp, Davis, Kress, JOSA-A, 1(6):612-9, June 1984.
 Translated from feldkamp.m in MIRT
 
-Copyright 2022-5-11 Jason Hu, University of Michigan
+Copyright 2022-5-11 Jason Hu and Jeff Fessler, University of Michigan
 =#
 	if isa(cg, ct_geom2)
 		#using the mat file code, so all the variables are already available

@@ -1,7 +1,7 @@
 #=
 ct_geom.jl
 CT geometry for 3D image reconstruction
-2022-05-11, Jason Hu, translated from ct_geom.m
+2022-05-11, Jason Hu, Jeff Fessler translated from ct_geom.m in MIRT
 =#
 using PyPlot
 using MIRT

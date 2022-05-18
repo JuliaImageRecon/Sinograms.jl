@@ -1,12 +1,13 @@
 #test
 using FFTW
-function meshgrid(x,y)
-    #basically the equivalent of ndgrid in matlab
-    #also same as ndgrid for MIRT, but with return values swapped
-    X = [i for i in x, j in 1:length(y)]
-    Y = [j for i in 1:length(x), j in y]
-    return X,Y
-end
+export cbct_back
+# function meshgrid(x,y)
+#     #basically the equivalent of ndgrid in matlab
+#     #also same as ndgrid for MIRT, but with return values swapped
+#     X = [i for i in x, j in 1:length(y)]
+#     Y = [j for i in 1:length(x), j in y]
+#     return X,Y
+# end
 
 function cbct_back(proj, cg, ig)
 #=
@@ -21,7 +22,7 @@ out
     img   [nx ny nz]     back projection result
 
 Translated from cbct_back.m in MIRT
-Copyright 2022-5-11 Jason Hu, University of Michigan
+Copyright 2022-5-18 Jason Hu and Jeff Fessler, University of Michigan
 =#
     #line 143 of cbct_back.m
     ns = convert(Int64, cg.ns)
@@ -59,7 +60,7 @@ Copyright 2022-5-11 Jason Hu, University of Michigan
     wy = (ny-1)/2 + offset_xyz[2];
     wz = (nz-1)/2 + offset_xyz[3];
 
-    xc, yc = meshgrid(([0:nx-1;] .- wx) * dx, ([0:ny-1;] .- wy) * dy)
+    xc, yc = ndgrid(([0:nx-1;] .- wx) * dx, ([0:ny-1;] .- wy) * dy)
     zc = ([0:nz-1;] .- wz) * dz
 
     xc = xc[mask]

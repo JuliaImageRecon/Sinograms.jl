@@ -11,7 +11,7 @@ out
 	polar		polar angle (radians)
 
 Translated from ir_coord_cb_flat_to_par.m in MIRT
-2022-05-12, Jason Hu, University of Michigan
+2022-05-12, Jason Hu, Jeff Fessler University of Michigan
 =#
     Ds = dso
     Dd = dod

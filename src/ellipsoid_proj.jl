@@ -4,14 +4,33 @@ include("outer_sum.jl")
 using MIRT
 export ellipsoid_proj
 
-function meshgrid(x,y)
-    #basically the equivalent of ndgrid in matlab
-    X = [i for i in x, j in 1:length(y)]
-    Y = [j for i in 1:length(x), j in y]
-    return X,Y
-end
+# function meshgrid(x,y)
+#     #basically the equivalent of ndgrid in matlab
+#     X = [i for i in x, j in 1:length(y)]
+#     Y = [j for i in 1:length(x), j in y]
+#     return X,Y
+# end
 
 function ellipsoid_proj(cg::CtGeom, params, oversample = 1)
+#=
+Compute set of 2d line-integral projection views of ellipsoid(s).
+Works for both parallel-beam and cone-beam geometry.
+
+in
+	cg			ct_geom()
+	params [ne 9]		ellipsoid parameters:
+			[x_center y_center z_center  x_radius y_radius z_radius
+				xy_angle_degrees z_angle_degrees  amplitude]
+options
+	oversample		over-sampling factor for emulating "strips"
+				(to account for finite detector size)
+
+out
+	proj	[ns nt na]	projection views
+
+Translated from ellipsoid_proj.m in MIRT
+Copyright 2022-05-18, Jason Hu and Jeff Fessler, University of Michigan
+=#
 	if isa(cg, CtFanPar)
 		return ellipsoid_proj_do(params, cg.s, cg.t, cg.ar, cg.source_zs, Inf, cg.dod, 0, oversample)
 	elseif isa(cg, CtFanArc)
@@ -44,7 +63,7 @@ function ellipsoid_proj_do(params, ss, tt, beta, source_zs, dso, dod, dfs, overs
 
     ns = length(ss)
     nt = length(tt)
-    sss, ttt = meshgrid(ss, tt)
+    sss, ttt = ndgrid(ss, tt)
 
     if isinf(dso)
         uu = sss
