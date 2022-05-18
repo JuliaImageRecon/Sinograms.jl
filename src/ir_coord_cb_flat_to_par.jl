@@ -1,4 +1,18 @@
 function ir_coord_cb_flat_to_par(ss, tt, dso, dod)
+#=
+convert from cone-beam flat panel to parallel-beam coordinates.
+ss and tt must have same size; dso and dsd are scalars
+in
+    ss,tt       s and t coordinates of sampling points
+    dso,dsd     distances for the geometry
+out
+	uu,vv		transaxial and axial parallel-beam detector coordinates
+	azim		transaxial or azimuthal angle (radians)
+	polar		polar angle (radians)
+
+Translated from ir_coord_cb_flat_to_par.m in MIRT
+2022-05-12, Jason Hu, University of Michigan
+=#
     Ds = dso
     Dd = dod
     Dc = Ds + Dd

@@ -13,7 +13,27 @@ end
 
 #Note: apparently this doesn't work for all angles
 function cylinder_proj(cg::CtGeom, params, oversample = 1)
-    #corresponds to cylinder_proj.m
+#=
+Compute set of 2d line-integral projection views of (elliptical) cylinders.
+Works for these 3D geometries:
+	parallel beam
+	flat-detector cone-beam
+	arc-detector cone-beam (3rd generator CT)
+
+in
+	cg					CtGeom
+	params [ne 8]		elliptical cylinder parameters:
+			[centx, centy, centz, radx, rady, zlength, angle_degrees, amplitude]
+
+options
+	oversample			oversampling factor for emulating "strips"
+
+out
+	proj	[ns nt na]	projection views
+
+Translated from cylinder_proj.m in MIRT
+Copyright 2022-5-11, Jason Hu, University of Michigan
+=#
 
     if isa(cg, CtFanPar)
         return ir_cylinder_proj_do(params, cg.s, cg.t, cg.ar, cg.source_zs, Inf, cg.dod, 0, oversample)

@@ -2,8 +2,9 @@ include("ct_geom.jl")
 include("cylinder_proj.jl")
 include("ellipsoid_proj.jl")
 using MIRT
-using Plots
-using PlotlyJS
+using MIRTjim
+#using Plots
+#using PlotlyJS
 include("feldkamp.jl")
 down = 4
 fover = 2
@@ -38,6 +39,8 @@ tmp = ellipse_im(ig2, reshape(cyl[inds], (1,6)) ; oversample = fover)
 #in line 48 of feldkamp_example.m, tmp is all zeros and has two additional parameters
 tmp = repeat(tmp, inner = (1,1,1), outer = (1,1,ig3.nz))
 xtrue = tmp + ellipsoid_im(ig3, ell ; oversample = fover)
+#jim(xtrue)
+#prompt()
 #plot(PlotlyJS.heatmap(z=xtrue[:,:,24]))
 #Plots.heatmap(xtrue[:,:,24])
 

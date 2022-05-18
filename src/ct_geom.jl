@@ -4,6 +4,7 @@ CT geometry for 3D image reconstruction
 2022-05-11, Jason Hu, translated from ct_geom.m
 =#
 using PyPlot
+using MIRT
 
 export CtGeom
 export CtFanPar, CtFan, CtFanArc, CtFanFlat

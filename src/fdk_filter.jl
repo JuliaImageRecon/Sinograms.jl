@@ -1,7 +1,22 @@
 using FFTW
 using Images
 include("fbp_ramp.jl")
+include("ir_hann_periodic.jl")
+
 function fdk_fan_filter(type, n, ds, dsd, window)
+#=
+step 2 of FDK cone-beam CT reconstruction
+filter the zero padded projections
+
+in
+    proj    [ns nt na]
+    window  [npad]
+
+out
+    proj    [ns nt na]
+
+Translated from fdk_filter.m in MIRT
+=#
     if type == "flat"
         h, nn = fbp_ramp("flat", n, ds)
     else
@@ -12,9 +27,9 @@ function fdk_fan_filter(type, n, ds, dsd, window)
     if window == "ramp"
         window = ones(n)
     elseif window == "hann"
-        window = ones(n) #fix this later
+        window = ir_hann_periodic(n)
     else
-        window = ones(n) #fix this later
+        window = fftshift(fbp2_window(n,window))
     end
 
     H = H .* fftshift(window)

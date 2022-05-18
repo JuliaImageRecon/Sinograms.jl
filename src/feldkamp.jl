@@ -1,5 +1,5 @@
-using MAT
-using HDF5
+#using MAT
+#using HDF5
 include("fdk_filter.jl")
 include("cbct_back.jl")
 
@@ -103,6 +103,25 @@ function feldkamp_do(proj, cg, ig, ds, dt, offset_s, offset_t, offset_source, ds
 end
 
 function feldkamp(cg, ig, proj)
+#=
+FBP reconstion of cone-beam tomography data collected with
+a circular source trajectory.
+See feldkamp_example.jl for an example.
+
+in
+	cg 					CtGeom
+	ig					ImageGeom
+	proj	[ns nt na]
+
+out
+	img     [nx ny nz]	reconstructed image
+	proj_out [ns nt na]	filtered projections (for debugging)
+
+References: Feldkamp, Davis, Kress, JOSA-A, 1(6):612-9, June 1984.
+Translated from feldkamp.m in MIRT
+
+Copyright 2022-5-11 Jason Hu, University of Michigan
+=#
 	if isa(cg, ct_geom2)
 		#using the mat file code, so all the variables are already available
 		return feldkamp_do(proj, cg, ig, cg.ds, cg.dt, cg.offset_s, cg.offset_t, 0, cg.dsd, cg.dso, cg.dfs, cg.orbit, cg.orbit_start, ig.mask, ig.nz, ig.dx, ig.dy, ig.dz, [ig.offset_x, ig.offset_y, ig.offset_z], 1, "ramp", 1, 0, 0, 0)
