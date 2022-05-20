@@ -20,6 +20,9 @@ function my_hamming(n, cutoff)
 end
 
 function sscanf(thing::String)
+    arr = split(thing, " ")
+    intarr = parse.(Float32, arr)
+    return intarr
     error("not done yet")
     return 0
 end
