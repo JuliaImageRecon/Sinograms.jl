@@ -1,13 +1,21 @@
 ## Matlab Author: Rodrigo de Barros Vimieiro
-## Translated by Sonia Minseo Kim
+## Translated by Sonia Minseo Kim in 2022
 
 ## 2-D Branchless Distance Driven Code
+
+export bdd_2d
+
 # using Plots: plot
 using ImagePhantoms: shepp_logan, SheppLoganToft
 using LazyGrids: ndgrid 
 using Dierckx: Spline1D
 
 ## Projection
+"""
+    projection(phantom::AbstractMatrix{<:T}, geo)
+Generates a sinogram using the forward projection algorithm,
+for a phantom image and a tuple of geometry definitions 
+"""
 function projection(phantom::AbstractMatrix{<:T}, geo ; draw::Bool = false) where {T <: Number}
 
     DSD = geo.DSD
@@ -51,7 +59,7 @@ function projection(phantom::AbstractMatrix{<:T}, geo ; draw::Bool = false) wher
         rdetY = ( (detX .- isoX ).*sin(angle) + (detY .- isoY ).*cos(angle) ) .+ isoY
         
         if (draw == true)
-            drawGeo(rtubeX,rtubeY,rdetX,rdetY)   
+            # drawGeo(rtubeX,rtubeY,rdetX,rdetY)   
         end
 
         # Define angle case & which axis it project boundaries
@@ -169,7 +177,13 @@ function projection(phantom::AbstractMatrix{<:T}, geo ; draw::Bool = false) wher
 end # endfunc
 
 
+
 ## Backprojection 
+"""
+    backprojection(sinogram::AbstractMatrix{<:T}, geo)
+Generates a reconstructed image using the back projection algorithm,
+for a sinogram and a tuple of geometry definitions 
+"""
 function backprojection(sinogram::AbstractMatrix{<:T},geo ; draw::Bool = false) where {T <: Number}
 
     DSD = geo.DSD      
@@ -214,7 +228,7 @@ function backprojection(sinogram::AbstractMatrix{<:T},geo ; draw::Bool = false) 
         rdetY = ( (detX .- isoX )*sin(angle) + (detY .- isoY )*cos(angle) ) .+ isoX
         
         if (draw == true)
-            drawGeo(rtubeX,rtubeY,rdetX,rdetY)
+            # drawGeo(rtubeX,rtubeY,rdetX,rdetY)
         end    
         
         # Define angle case & which axis it project boundaries
@@ -340,6 +354,11 @@ end # endfunc
 
 
 ## Integrate function
+"""
+    integrate1D(p_v::Vector, pixelSize)
+Calculates the integral image set,
+for a given column vector and a pixel size 
+"""
 function integrate1D(p_v::Vector,pixelSize)
 
     n_pixel = length(p_v)
@@ -360,14 +379,22 @@ function integrate1D(p_v::Vector,pixelSize)
 end
 
 ## Map Y
-# Function that map detector | pixel boundaries onto Y axis()
+"""
+    mapp2y(x1,y1,x2,y2)
+Maps detector or pixel boundaries onto y-axis,
+for tube and detector rotation angles and detector/pixel boundaries
+"""
 function mapp2y(x1,y1,x2,y2)
     y = y1-x1*(y1-y2)/(x1-x2)
     return y
 end
 
 ## Map X
-# Function that map detector | pixel boundaries onto X axis()
+"""
+    mapp2x(x1,y1,x2,y2)
+Maps detector or pixel boundaries onto x-axis,
+for tube and detector rotation angles and detector/pixel boundaries
+"""
 function mapp2x(x1,y1,x2,y2)
     x = -(y1)*(x1-x2)/(y1-y2)+x1
     return x
@@ -375,7 +402,9 @@ end
 
 ## Draw 2D
 # Function to draw geometry
+#=
 function drawGeo(tubeX,tubeY,detX,detY)
     plot(tubeX,tubeY,markershape = :asterisk)
     plot!([detX[1],detX[end]],[detY[1],detY[end]])
 end
+=#
