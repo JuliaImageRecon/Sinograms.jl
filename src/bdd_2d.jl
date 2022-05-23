@@ -378,7 +378,7 @@ function integrate1D(p_v::Vector,pixelSize)
 
 end
 
-## Map Y
+
 """
     mapp2y(x1,y1,x2,y2)
 Maps detector or pixel boundaries onto y-axis,
@@ -389,7 +389,7 @@ function mapp2y(x1,y1,x2,y2)
     return y
 end
 
-## Map X
+
 """
     mapp2x(x1,y1,x2,y2)
 Maps detector or pixel boundaries onto x-axis,
