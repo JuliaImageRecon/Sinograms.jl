@@ -1,6 +1,6 @@
 using Sinograms: bdd_2d
 using Test: @test, @testset, @inferred
-using JLD: load
+# using JLD: load
 
 @testset "bdd_2d" begin
     deg = 1
