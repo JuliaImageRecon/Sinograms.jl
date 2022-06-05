@@ -1,16 +1,6 @@
-#test
 using FFTW
 export cbct_back
-# function meshgrid(x,y)
-#     #basically the equivalent of ndgrid in matlab
-#     #also same as ndgrid for MIRT, but with return values swapped
-#     X = [i for i in x, j in 1:length(y)]
-#     Y = [j for i in 1:length(x), j in y]
-#     return X,Y
-# end
-
-function cbct_back(proj, cg, ig)
-#=
+"""
 cone-beam backprojector for feldkamp.jl
 
 in
@@ -23,7 +13,8 @@ out
 
 Translated from cbct_back.m in MIRT
 Copyright 2022-5-18 Jason Hu and Jeff Fessler, University of Michigan
-=#
+"""
+function cbct_back(proj, cg, ig)
     #line 143 of cbct_back.m
     ns = convert(Int64, cg.ns)
     nt = convert(Int64, cg.nt)

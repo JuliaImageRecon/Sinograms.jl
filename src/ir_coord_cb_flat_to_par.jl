@@ -1,5 +1,4 @@
-function ir_coord_cb_flat_to_par(ss, tt, dso, dod)
-#=
+"""
 convert from cone-beam flat panel to parallel-beam coordinates.
 ss and tt must have same size; dso and dsd are scalars
 in
@@ -12,7 +11,8 @@ out
 
 Translated from ir_coord_cb_flat_to_par.m in MIRT
 2022-05-12, Jason Hu, Jeff Fessler University of Michigan
-=#
+"""
+function ir_coord_cb_flat_to_par(ss, tt, dso, dod)
     Ds = dso
     Dd = dod
     Dc = Ds + Dd

@@ -1,18 +1,9 @@
 include("ir_coord_cb_arc_to_par.jl")
 include("ir_coord_cb_flat_to_par.jl")
-include("outer_sum.jl")
 using MIRT
 export ellipsoid_proj
 
-# function meshgrid(x,y)
-#     #basically the equivalent of ndgrid in matlab
-#     X = [i for i in x, j in 1:length(y)]
-#     Y = [j for i in 1:length(x), j in y]
-#     return X,Y
-# end
-
-function ellipsoid_proj(cg::CtGeom, params, oversample = 1)
-#=
+"""
 Compute set of 2d line-integral projection views of ellipsoid(s).
 Works for both parallel-beam and cone-beam geometry.
 
@@ -30,7 +21,8 @@ out
 
 Translated from ellipsoid_proj.m in MIRT
 Copyright 2022-05-18, Jason Hu and Jeff Fessler, University of Michigan
-=#
+"""
+function ellipsoid_proj(cg::CtGeom, params, oversample = 1)
 	if isa(cg, CtFanPar)
 		return ellipsoid_proj_do(params, cg.s, cg.t, cg.ar, cg.source_zs, Inf, cg.dod, 0, oversample)
 	elseif isa(cg, CtFanArc)
@@ -55,8 +47,8 @@ function ellipsoid_proj_do(params, ss, tt, beta, source_zs, dso, dod, dfs, overs
 			error("Uniform spacing required for oversampling")
 		end
         No = oversample
-        ss = outer_sum([-(No-1):2:(No-1);] / (2*No)*ds, ss[:])
-        tt = outer_sum([-(No-1):2:(No-1);] / (2*No)*dt, tt[:])
+        ss = [-(No-1):2:(No-1);] / (2*No)*ds .+ ss[:]'
+        tt = [-(No-1):2:(No-1);] / (2*No)*dt .+ tt[:]'
         proj = ellipsoid_proj_do(params, ss[:], tt[:], beta, source_zs, dso, dod, dfs, 1)
         return downsample3(proj, (No, No, 1))
     end

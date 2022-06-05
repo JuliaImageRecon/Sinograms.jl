@@ -1,19 +1,10 @@
 include("ir_coord_cb_arc_to_par.jl")
 include("ir_coord_cb_flat_to_par.jl")
-include("outer_sum.jl")
 using MIRT
 export cylinder_proj
 
-# function meshgrid(x,y)
-#     #basically the equivalent of ndgrid in matlab
-#     X = [i for i in x, j in 1:length(y)]
-#     Y = [j for i in 1:length(x), j in y]
-#     return X,Y
-# end
-
 #Note: apparently this doesn't work for all angles
-function cylinder_proj(cg::CtGeom, params, oversample = 1)
-#=
+"""
 Compute set of 2d line-integral projection views of (elliptical) cylinders.
 Works for these 3D geometries:
 	parallel beam
@@ -33,8 +24,8 @@ out
 
 Translated from cylinder_proj.m in MIRT
 Copyright 2022-5-11, Jason Hu and Jeff Fessler, University of Michigan
-=#
-
+"""
+function cylinder_proj(cg::CtGeom, params, oversample = 1)
     if isa(cg, CtFanPar)
         return ir_cylinder_proj_do(params, cg.s, cg.t, cg.ar, cg.source_zs, Inf, cg.dod, 0, oversample)
     elseif isa(cg, CtFanArc)
@@ -59,8 +50,8 @@ function ir_cylinder_proj_do(params, ss, tt, beta, source_zs, dso, dod, dfs, ove
 			error("Uniform spacing required for oversampling")
 		end
         No = oversample
-        ss = outer_sum([-(No-1):2:(No-1);] / (2*No)*ds, ss[:])
-        tt = outer_sum([-(No-1):2:(No-1);] / (2*No)*dt, tt[:])
+        ss = [-(No-1):2:(No-1);] / (2*No)*ds .+ ss[:]'
+        tt = [-(No-1):2:(No-1);] / (2*No)*dt .+ tt[:]'
         proj = ir_cylinder_proj_work(params, ss[:], tt[:], beta, source_zs, dso, dod, dfs, 1)
         return downsample3(proj, (No, No, 1))
     else
@@ -164,7 +155,3 @@ function ir_swap(i0, i1, swap)
     o1[swap] = i0[swap]
     return o0, o1
 end
-
-# xx = [1 2 3]
-# yy = [1;2;3]
-# print(outer_sum(xx,yy'))

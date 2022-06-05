@@ -49,13 +49,6 @@ struct im_geom2
 	dim
 end
 
-# function meshgrid(x,y)
-#     #basically the equivalent of ndgrid in matlab
-#     X = [i for i in x, j in 1:length(y)]
-#     Y = [j for i in 1:length(x), j in y]
-#     return X,Y
-# end
-
 #line 103 of feldkamp.m
 function feldkamp_weight1(proj, ds, dt, offset_s, offset_t, dsd, dso, dfs, w1cyl)
     (ns,nt,na) = size(proj)
@@ -102,8 +95,7 @@ function feldkamp_do(proj, cg, ig, ds, dt, offset_s, offset_t, offset_source, ds
 	return img, proj
 end
 
-function feldkamp(cg, ig, proj)
-#=
+"""
 FBP reconstion of cone-beam tomography data collected with
 a circular source trajectory.
 See feldkamp_example.jl for an example.
@@ -121,7 +113,8 @@ References: Feldkamp, Davis, Kress, JOSA-A, 1(6):612-9, June 1984.
 Translated from feldkamp.m in MIRT
 
 Copyright 2022-5-11 Jason Hu and Jeff Fessler, University of Michigan
-=#
+"""
+function feldkamp(cg, ig, proj)
 	if isa(cg, ct_geom2)
 		#using the mat file code, so all the variables are already available
 		return feldkamp_do(proj, cg, ig, cg.ds, cg.dt, cg.offset_s, cg.offset_t, 0, cg.dsd, cg.dso, cg.dfs, cg.orbit, cg.orbit_start, ig.mask, ig.nz, ig.dx, ig.dy, ig.dz, [ig.offset_x, ig.offset_y, ig.offset_z], 1, "ramp", 1, 0, 0, 0)

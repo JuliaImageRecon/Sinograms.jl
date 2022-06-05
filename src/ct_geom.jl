@@ -115,12 +115,12 @@ function ct_geom_help( ; io::IO = isinteractive() ? stdout : devnull )
     ")
 end
 
-#=
+"""
 Constructor for CtGeom
 Create the CT geometry that describes the sampling characteristics of a
 CT scan using the parallel, fan beam arc, or flat fan beam geometry
 Use sino_geom() instead for the 2D version
-=#
+"""
 function ct_geom(how::Symbol ; kwarg...)
     #line 177 of sino_geom.jl? ge1 type
     if how === :par
