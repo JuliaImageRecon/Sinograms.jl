@@ -359,12 +359,12 @@ end # endfunc
 Calculates the integral image set,
 for a given column vector and a pixel size 
 """
-function integrate1D(p_v::Vector,pixelSize)
+function integrate1D(p_v::Vector{T}, pixelSize) where {T <: Number}
 
     n_pixel = length(p_v)
     
     P_x = 0
-    Ppj = zeros(n_pixel+1)
+    Ppj = zeros(T, n_pixel+1)
     
     for pj in 1:n_pixel
 
