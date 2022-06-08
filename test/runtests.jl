@@ -7,6 +7,6 @@ using Sinograms
     # todo
     include("fbp-par.jl")
     include("bdd_2d.jl")
-    
+    include("zwart_powell.jl")
     @test length(detect_ambiguities(Sinograms)) == 0
 end

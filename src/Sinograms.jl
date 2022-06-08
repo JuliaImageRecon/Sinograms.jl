@@ -16,5 +16,6 @@ include("fbp2_sino_weight.jl")
 include("fbp-par.jl")
 
 include("bdd_2d.jl")
+include("zwart_powell.jl")
 
 end # module
