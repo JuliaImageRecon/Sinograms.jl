@@ -5,7 +5,7 @@ using Test: @test, @testset, @inferred
 
 @testset "bdd_2d" begin
     deg = 1
-    geo = (DSD = 100000, DSO = 99700, pSize = 1, dSize = 0.5, nPix = 256, nDet = 1024,
+    geo = (DSD = 1000, DSO = 500, pSize = 1, dSize = 0.5, nPix = 256, nDet = 1024,
           theta = deg2rad.(0:deg:360-deg), isoX = 0, isoY = 0)
     phantomImg = shepp_logan(geo.nPix, SheppLoganToft())
     sinogramB = projection(phantomImg',geo)
