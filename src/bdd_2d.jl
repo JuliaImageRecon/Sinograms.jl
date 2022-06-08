@@ -41,7 +41,7 @@ function projection(phantom::AbstractMatrix{<:T}, geo ; draw::Bool = false) wher
     isoX = geo.isoX
     isoY = geo.isoY
 
-    sinogram = zeros(length(theta),nDet)
+    sinogram = zeros(T, length(theta), nDet)
 
     # For each projection
     for proj in 1:length(theta)
@@ -209,7 +209,7 @@ function backprojection(sinogram::AbstractMatrix{<:T},geo ; draw::Bool = false) 
     isoX = geo.isoX
     isoY = geo.isoY
 
-    reconImg = zeros(nPix,nPix)
+    reconImg = zeros(T, nPix, nPix)
     reconImgTmp = reconImg
 
     # For each projection
@@ -344,7 +344,7 @@ function backprojection(sinogram::AbstractMatrix{<:T},geo ; draw::Bool = false) 
            
     end # Projection loop
     
-    reconImg = reconImg / length(theta) 
+    reconImg /= length(theta) 
     return reconImg
 
 end # endfunc
@@ -365,15 +365,11 @@ function integrate1D(p_v::Vector{T}, pixelSize) where {T <: Number}
     Ppj = zeros(T, n_pixel+1)
     
     for pj in 1:n_pixel
-
        P_x += p_v[pj] * pixelSize
-       
        Ppj[pj+1] = P_x
-       
     end
 
     return Ppj
-
 end
 
 
@@ -383,8 +379,7 @@ Maps detector or pixel boundaries onto y-axis,
 for tube and detector rotation angles and detector/pixel boundaries
 """
 function mapp2y(x1,y1,x2,y2)
-    y = y1-x1*(y1-y2)/(x1-x2)
-    return y
+    return y1 - x1*(y1-y2)/(x1-x2)
 end
 
 
@@ -394,8 +389,7 @@ Maps detector or pixel boundaries onto x-axis,
 for tube and detector rotation angles and detector/pixel boundaries
 """
 function mapp2x(x1,y1,x2,y2)
-    x = -(y1)*(x1-x2)/(y1-y2)+x1
-    return x
+    return -y1*(x1-x2)/(y1-y2) + x1
 end
 
 ## Draw 2D
