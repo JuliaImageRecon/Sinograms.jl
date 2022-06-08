@@ -56,9 +56,11 @@ function projection(phantom::AbstractMatrix{<:T}, geo ; draw::Bool = false) wher
         rdetX = ( (detX .- isoX ).*cos(angle) - (detY .- isoY ).*sin(angle) ) .+ isoX
         rdetY = ( (detX .- isoX ).*sin(angle) + (detY .- isoY ).*cos(angle) ) .+ isoY
         
+        #=
         if (draw == true)
-            # drawGeo(rtubeX,rtubeY,rdetX,rdetY)   
+            drawGeo(rtubeX,rtubeY,rdetX,rdetY)   
         end
+        =#
 
         # Define angle case & which axis it project boundaries
         # Case 1 
@@ -225,9 +227,11 @@ function backprojection(sinogram::AbstractMatrix{<:T},geo ; draw::Bool = false) 
         rdetX = ( (detX .- isoX )*cos(angle) - (detY .- isoY )*sin(angle) ) .+ isoX
         rdetY = ( (detX .- isoX )*sin(angle) + (detY .- isoY )*cos(angle) ) .+ isoX
         
+        #=
         if (draw == true)
-            # drawGeo(rtubeX,rtubeY,rdetX,rdetY)
-        end    
+            drawGeo(rtubeX,rtubeY,rdetX,rdetY)
+        end
+        =#    
         
         # Define angle case & which axis it project boundaries
         # Case 1 
