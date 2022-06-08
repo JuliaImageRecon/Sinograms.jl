@@ -1,4 +1,5 @@
-using Sinograms: bdd_2d
+using Sinograms: projection, backprojection
+using ImagePhantoms: shepp_logan, SheppLoganToft
 using Test: @test, @testset, @inferred
 # using JLD: load
 
