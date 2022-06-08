@@ -5,8 +5,6 @@
 
 export bdd_2d
 
-# using Plots: plot
-using ImagePhantoms: shepp_logan, SheppLoganToft
 using LazyGrids: ndgrid 
 using Dierckx: Spline1D
 
