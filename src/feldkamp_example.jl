@@ -8,7 +8,7 @@ using MIRTjim
 include("feldkamp.jl")
 down = 4
 fover = 2
-cg = ct_geom(:arc ; ns = 256, nt = 240, na = 288, ds = 4, dt = 4, down = down, offset_s = 0.25, offset_t = 0, dsd = 949, dod = 408)
+cg = ct_geom(:arc ; ns = 256, nt = 240, na = 288, ds = 4, dt = 4, down = down, offset_s = 0.25, offset_t = 0, dsd = 949.075, dod = 408.075)
 #println("Value of rmax ")
 #println(cg.rmax)
 

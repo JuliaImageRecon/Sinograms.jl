@@ -20,19 +20,19 @@ mutable struct CtFanPar <: CtFan
     ns::Int                   #
     nt::Int
     na::Int
-    orbit::Float32
-    orbit_start::Float32
-    ds::Float32
-    dt::Float32
-    offset_s::Float32
-    offset_t::Float32
-    dsd::Float32
-    #dso::Float32 value is infinite
-    dod::Float32
-    down::Float32
-    pitch::Float32
+    orbit::Float64
+    orbit_start::Float64
+    ds::Float64
+    dt::Float64
+    offset_s::Float64
+    offset_t::Float64
+    dsd::Float64
+    #dso::Float64 value is infinite
+    dod::Float64
+    down::Float64
+    pitch::Float64
     user_source_zs
-    source_z0::Float32
+    source_z0::Float64
 end
 
 #case st.dfs==0 arc for matlab
@@ -41,19 +41,19 @@ mutable struct CtFanArc <: CtFan
     ns::Int
     nt::Int
     na::Int
-    orbit::Float32
-    orbit_start::Float32
-    ds::Float32
-    dt::Float32
-    offset_s::Float32
-    offset_t::Float32
-    dsd::Float32
-    #dso::Float32
-    dod::Float32
-    down::Float32
-    pitch::Float32
+    orbit::Float64
+    orbit_start::Float64
+    ds::Float64
+    dt::Float64
+    offset_s::Float64
+    offset_t::Float64
+    dsd::Float64
+    #dso::Float64
+    dod::Float64
+    down::Float64
+    pitch::Float64
     user_source_zs
-    source_z0::Float32
+    source_z0::Float64
     #not included: down, pitch, dfs, nframe, frame, source_z0, user_source_zs
 end
 
@@ -63,19 +63,19 @@ mutable struct CtFanFlat <: CtFan
     ns::Int
     nt::Int
     na::Int
-    orbit::Float32
-    orbit_start::Float32
-    ds::Float32
-    dt::Float32
-    offset_s::Float32
-    offset_t::Float32
-    dsd::Float32
-    #dso::Float32
-    dod::Float32
-    down::Float32
-    pitch::Float32
+    orbit::Float64
+    orbit_start::Float64
+    ds::Float64
+    dt::Float64
+    offset_s::Float64
+    offset_t::Float64
+    dsd::Float64
+    #dso::Float64
+    dod::Float64
+    down::Float64
+    pitch::Float64
     user_source_zs
-    source_z0::Float32
+    source_z0::Float64
 end
 
 #help function
@@ -129,6 +129,8 @@ function ct_geom(how::Symbol ; kwarg...)
         sg = ct_geom_flat( ; kwarg...)
     elseif how === :arc
         sg = ct_geom_arc( ; kwarg...)
+    elseif how === :ge1
+        sg = ct_geom_ge1( ; kwarg...)
     else
         throw("unknown ct type $how")
     end
@@ -157,15 +159,18 @@ function ct_geom_flat( ;
     dt::Real = 1,
     offset_s::Real = 0,
     offset_t::Real = 0,
-    dsd::Int = 4*ns,
-    dod::Int = 0,
+    dsd::Float64 = 4.0*ns,
+    dod::Float64 = 0.0,
     down::Int = 1,
-    pitch::Int = 0,
+    pitch::Float64 = 0.0,
     user_source_zs = [],
     source_z0::Real = 0
     )
     st = CtFanFlat(units, ns, nt, na, orbit, orbit_start, ds, dt, offset_s, offset_t, dsd, dod, down, pitch, user_source_zs, source_z0)
-    return st.downsample(down) # need to downsample this later
+    if down != 1
+        return st.downsample(down)
+    end
+    return st # need to downsample this later
 end
 
 function ct_geom_arc( ;
@@ -179,10 +184,10 @@ function ct_geom_arc( ;
     dt::Real = 1,
     offset_s::Real = 0,
     offset_t::Real = 0,
-    dsd::Int = 4*ns,
-    dod::Int = 0,
+    dsd::Float64 = 4.0*ns,
+    dod::Float64 = 0.0,
     down::Int = 1,
-    pitch::Int = 0,
+    pitch::Float64 = 0.0,
     user_source_zs = [],
     source_z0::Real = 0
     )
@@ -547,8 +552,8 @@ ct_geom_fun0 = Dict([
     (:dim, st -> (st.ns, st.nt, st.na)),
     (:ws, st -> (st.ns-1)/2 + st.offset_s),
     (:wt, st -> (st.nt-1)/2 + st.offset_t),
-    (:ones, st -> ones(Float32, st.dim)),
-    (:zeros, st -> zeros(Float32, st.dim)),
+    (:ones, st -> ones(Float64, st.dim)),
+    (:zeros, st -> zeros(Float64, st.dim)),
 
     (:s, st -> st.ds * ([0:st.ns-1;] .- st.ws)),
     (:t, st -> st.dt * ([0:st.nt-1;] .- st.wt)),
@@ -590,8 +595,8 @@ Base.propertynames(st::CtGeom) =
 
 # CT geometry for GE lightspeed system
 # These numbers are published in IEEE T-MI Oct. 2006, p.1272-1283 wang:06:pwl
-function ct_geom_ge1( ; kwarg...)
-    error("ge1 not implemented yet")
-    st = ct_geom(:arc ; ns = 888, nt = 1, na = 984, ds = 1.0239, dt = 1.0964, offset_s = 1.25, dsd = 949, dso = 541)
+function ct_geom_ge1( ;
+    na::Int = 1)
+    st = ct_geom(:arc ; ns = 888, nt = 64, na = 984, ds = 1.0239, dt = 1.0964, offset_s = 1.25, dsd = 949.075, dod = 408.075)
     return st
 end
