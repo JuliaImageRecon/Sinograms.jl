@@ -10,12 +10,12 @@ const RealU = Number # Real or Unitful
 include("sino-geom.jl")
 
 include("fbp2.jl")
-include("fbp2_sino_filter.jl")
 include("fbp2_back.jl")
 include("fbp2_back_fan.jl")
-include("fbp_ramp.jl")
+include("fbp-ramp.jl")
 include("fbp2_window.jl")
-include("fbp2_sino_weight.jl")
+include("fbp-sino-filter.jl")
+include("fbp-sino-weight.jl")
 
 include("fbp-par.jl")
 include("zwart_powell.jl")

@@ -2,9 +2,8 @@
 
 export fbp2
 
-using MIRT: ImageGeom # todo ImageGeoms.jl
-#using MIRT: SinoGeom, SinoPar, SinoFan, SinoMoj # todo - cut
-#using Sinograms: SinoGeom, SinoPar, SinoFan, SinoMoj
+using ImageGeoms: ImageGeom
+using Sinograms: SinoGeom, SinoPar, SinoFan, SinoMoj
 
 abstract type FBPplan end
 
@@ -189,10 +188,10 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
     if plan.sg isa SinoPar
         sino = sino .* plan.parker_weight
 
-        sino,_,_,_ = fbp2_sino_filter(plan.sg, sino, ds = plan.sg.dr, window = plan.window)
+        sino,_,_,_ = fbp_sino_filter(plan.sg, sino, window = plan.window)
 
-        #image = fbp2_back(plan.sg, plan.ig, sino, do_r_mask=true)
-        image = fbp2_back(plan.sg, plan.ig, sino)
+        #image = fbp_back(plan.sg, plan.ig, sino, do_r_mask=true)
+        image = fbp_back(plan.sg, plan.ig, sino)
 
     elseif plan.sg isa SinoFan
 
@@ -200,14 +199,13 @@ function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
 
         dfs != 0 && ~isinf(dfs) && throw("only arc or flat fan done")
 
-        sino = fbp2_sino_weight(plan.sg, sino) #todo
+        sino .*= fbp_sino_weight(plan.sg)
 
-        sino,_,_,_ = fbp2_sino_filter(
+        sino,_,_,_ = fbp_sino_filter(
             plan.sg, sino,
-            ds = plan.sg.ds, dsd = plan.sg.dsd,
             window = plan.window,
         )
-        image = fbp2_back(plan.sg, plan.ig, sino)
+        image = fbp_back(plan.sg, plan.ig, sino)
 
     elseif plan.sg isa SinoMoj #TODO (incomplete)
 
