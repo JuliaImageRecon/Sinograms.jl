@@ -1,12 +1,14 @@
-# fbp2_sino_filter.jl
+# fbp-sino-filter.jl
 
-export fbp2_sino_filter
+export fbp_sino_filter
 
 using FFTW
+#using Sinograms: SinoGeom, fbp_ramp, fbp2_window
+
 
 """
-    sino, Hk, hh, nn = fbp2_sino_filter(how, sino;
-    ds=1, dsd=0, extra=0, npad=0, decon1=1, window=:none)
+    sino, Hk, hh, nn = fbp_sino_filter(sg::SinoGeom, sino ;
+        extra=0, npad=0, decon1=1, window=:none)
 
 Apply ramp-like filters to sinogram(s) for 2D FBP image reconstruction.
 Both parallel-beam and fan-beam tomographic geometries are supported.
@@ -14,70 +16,76 @@ This approach of sampling the band-limited ramp avoids the aliasing that
 would be caused by sampling the ramp directly in the frequency domain.
 
 in
-- `how::Symbol`
-  `:arc` (3rd generation CT) or `:flat` (for parallel too)
+- `sg::SinoGeom`
 - `sino::AbstractArray{<:Number}` : `[nb (L)]` sinograms
 
 options
-- `ds::RealU` : sample spacing (in distance units, e.g., cm) (default: 1)
-- `dsd::RealU` : source-to-detector distance, for `:arc` case only. (default: Inf)
 - `extra::Int` : # of extra sinogram radial samples to keep (default: 0)
 - `npad::Int` : # of padded samples. (default: 0, means next power of 2)
 - `decon1::Int` : deconvolve effect of linear interpolator? (default: 1)
 - `window::Symbol` : default: `:none`
 
 out
-- `sino::AbstractArray{<:Number}`       filtered sinogram rows
-- `Hk::AbstractVector{<:Number}`        apodized ramp filter frequency response
-- `hn::AbstractVector{<:Number}`        samples of band-limited ramp filter
-- `nn::AbstractVector{<:Number}`        [-np/2,...,np/2-1] vector for convenience
+- `sino::AbstractArray`   filtered sinogram rows
+- `Hk::Vector{<:Number}`  apodized ramp filter frequency response
+- `hn::Vector{<:Number}`  samples of band-limited ramp filter
+- `nn::AbstractVector`    `[-np/2,...,np/2-1]` vector for convenience
 
 """
-function fbp2_sino_filter(
+function fbp_sino_filter(
     sg::SinoGeom,
-    sino::AbstractMatrix{<:Number};
-    ds::RealU = 1,
-    dsd::RealU = Inf,
+    sino::AbstractArray{<:Number};
     extra::Int = 0,
-    npad::Int = 0,
+    npad::Int = nextpow(2, sg.nb + 1),
     decon1::Int = 1,
-    window::Symbol = :none
+    window::Symbol = :none,
 )
+@show sg.nb npad
 
-    nb, na = size(sino)
-    if npad == 0
-        npad = 2^ceil(Int64, log2(2*nb-1)) # padded size
-    end
+    ds = sg.d
 
-    sino = [sino; zeros(npad-nb,na)] # padded sinogram
-    hn, nn = fbp_ramp(sg, npad, ds, dsd)
+    sg.nb == size(sino,1) || throw("sinogram nb mismatch")
+    sg.na == size(sino,2) || throw("sinogram na mismatch")
+    nb = sb.nb
+    na = sg.na
+#   if npad == 0
+#       npad = 2^ceil(Int64, log2(2*nb-1)) # padded size
+#   end
+
+    nb + extra > npad && throw("nb=$nb + extra=$extra > npad=$npad")
+
+    dim = size(sino)
+    dim[2] = npad
+    sino = cat(dims=2, sino, zeros(dim .- size(sino)))
+#   sino = [sino; zeros(npad-nb,na)] # padded sinogram
+    hn, nn = fbp_ramp(sg, npad)
 
     reale = (x) -> (@assert x ≈ real(x); real(x))
     Hk = fft(fftshift(hn))
     Hk = reale(Hk)
 
-    Hk = Hk .* fbp2_window(npad, window)
+    Hk .*= fbp2_window(npad, window)
     Hk = ds * Hk # differential for discrete-space convolution vs integral
 
     #= linear interpolation is like blur with a triangular response,
     so we can compensate for this approximately in frequency domain =#
     if decon1 != 0
-        Hk = Hk ./ fftshift(sinc.(nn / npad).^2)
+        Hk ./= fftshift(sinc.(nn / npad).^2)
     end
 
-    sino = reale(ifft(fft(sino, 1) .* repeat(Hk, 1, na), 1)) # apply filter
-    #NOTE: was fft(sino, [], 1) and ifft(..., [], 1) in matlab
+    sino = ifft(fft(sino, 1) .* Hk, 1) # apply filter to each sinogram row
+    sino = reale(sino) # todo: only if real data
     #NOTE: still assertion error for reale
     # todo: definitely use broadcast or map here.  should be no need to repeat
     # trick: possibly keep extra column(s) for zeros!
+    sino = reshape(sino, npad, :)
     sino = sino[1:(nb+extra),:]
-    sino[(nb+1):(nb+extra),:] .= 0
-    sino = reshape(sino, nb, na)
+    sino[(nb+1):(nb+extra),:] .= zero(eltype(sino))
+    sino = reshape(sino, nb, na, dim[3:end]...)
 
     return sino, Hk, hn, nn
 end
 
-function fbp2_sino_filter(how::Symbol, sino::AbstractArray{<:Number}; kwargs...)
-    return mapslices(sino -> fbp2_sino_filter(how, sino; kwargs...), sino, [1,2])
-end
-
+#function fbp2_sino_filter(how::Symbol, sino::AbstractArray{<:Number}; kwargs...)
+#    return mapslices(sino -> fbp2_sino_filter(how, sino; kwargs...), sino, [1,2])
+#end
