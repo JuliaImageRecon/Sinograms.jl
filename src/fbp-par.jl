@@ -3,7 +3,7 @@ fbp-par.jl
 Simple interfaces to parallel-beam FBP for user convenience
 =#
 
-using MIRT: image_geom # todo
+using ImageGeoms: ImageGeom
 #using Sinograms: fbp2, RealU, SinoPar
 
 export fbp, fbp!
@@ -46,7 +46,7 @@ Writes result into `image` matrix.
 * `orbit` : angular range in degrees; default 180
 * `orbit_start` : angular range in degrees; default 0
 
-# Options for `image_geom`
+# Options for `ImageGeom`
 * `dx`, `dy`, `offset_x`, `offset_y`
 
 # Options
@@ -70,7 +70,7 @@ function fbp!(
     nb, na = size(sino)
     nx, ny = size(image)
     sg = SinoPar( ; nb, na, d = dr, orbit, orbit_start)
-    ig = image_geom(; nx, ny, dx, dy, offset_x, offset_y)
+    ig = ImageGeom(; dims=(nx, ny), deltas=(dx, dy), offsets=(offset_x, offset_y))
 #   plan = FBPplan(sg, ig)
     plan = fbp2(sg, ig) # todo FBPplan ??
 #   fbp2!(image, sino, plan) # todo
