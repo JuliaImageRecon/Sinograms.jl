@@ -10,6 +10,7 @@ include("helper.jl")
 
     include("fbp-par.jl")
     include("sino-geom.jl")
+    include("zwart_powell.jl")
 
     @test length(detect_ambiguities(Sinograms)) == 0
 end

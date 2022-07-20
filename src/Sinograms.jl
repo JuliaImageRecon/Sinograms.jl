@@ -18,6 +18,7 @@ include("fbp2_window.jl")
 include("fbp2_sino_weight.jl")
 
 include("fbp-par.jl")
+include("zwart_powell.jl")
 
 
 """
@@ -31,5 +32,6 @@ function __init__()
     @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" include("sino-plot.jl")
     @require Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d" include("units.jl")
 end
+
 
 end # module
