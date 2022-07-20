@@ -658,7 +658,7 @@ end
 
 
 """
-    sino_geom_xds()
+    sino_geom_xds(sg::SinoGeom)
 Center `x` positions of detectors (for beta = 0).
 """
 sino_geom_xds(sg::SinoPar) = sg.s
@@ -668,7 +668,7 @@ sino_geom_xds(sg::SinoFanFlat) = sg.s .+ sg.source_offset
 
 
 """
-    sino_geom_yds()
+    sino_geom_yds(sg::SinoGeom)
 Center `y` positions of detectors (for beta = 0).
 """
 sino_geom_yds(sg::SinoPar{Td}) where Td = zeros(Td, sg.nb)
@@ -882,12 +882,32 @@ end
 """
    (r, ϕ) = rays(sg::SinoGeom)
 
-Radial `r` and angular `ϕ` coordinates of all sinogram elements
+Radial `r` and angular `ϕ` coordinates (in radians)
+of all sinogram elements
 for the given geometry.
 """
 function rays(sg::SinoPar)
     s = sino_s(sg)
-    ϕ = deg2rad.(angles(sg))
+    ϕ = sg.ar # deg2rad.(angles(sg))
     i = Iterators.product(s, ϕ)
     return ([p[1] for p in i], [p[2] for p in i])
+end
+
+function rays(sg::SinoMoj)
+    s = sino_s(sg)
+    ϕ = sg.ar
+    cϕ = @. abs(cos(ϕ))
+    sϕ = @. abs(sin(ϕ))
+    r = s * max.(cϕ, sϕ)';
+    ϕ = repeat(ϕ', sg.nb, 1)
+    return r, ϕ
+end
+
+function rays(sg::SinoFan)
+    s = sino_s(sg)
+    β = sg.ar
+    γ = sino_geom_gamma(sg)
+    r = repeat(sg.dso * sin.(γ), 1, sg.na)
+    ϕ = γ .+ β'
+    return r, ϕ
 end
