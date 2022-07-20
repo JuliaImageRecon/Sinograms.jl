@@ -12,7 +12,7 @@ using FFTW
 
 Apply ramp-like filters to sinogram(s) for 2D FBP image reconstruction.
 Both parallel-beam and fan-beam tomographic geometries are supported.
-This approach of sampling the band-limited ramp avoids the aliasing that
+This code samples the band-limited ramp to avoid the aliasing that
 would be caused by sampling the ramp directly in the frequency domain.
 
 in
@@ -20,16 +20,16 @@ in
 - `sino::AbstractArray{<:Number}` : `[nb (L)]` sinograms
 
 options
-- `extra::Int` : # of extra sinogram radial samples to keep (default: 0)
-- `npad::Int` : # of padded samples. (default: 0, means next power of 2)
-- `decon1::Int` : deconvolve effect of linear interpolator? (default: 1)
-- `window::Symbol` : default: `:none`
+- `extra::Int` # of extra sinogram radial samples to keep (default: 0)
+- `npad::Int` # of padded samples. (default: next power of 2)
+- `decon1::Bool` deconvolve effect of linear interpolator? (default: true)
+- `window::Symbol` apodizer; default: `:none`
 
 out
-- `sino::AbstractArray`   filtered sinogram rows
-- `Hk::Vector{<:Number}`  apodized ramp filter frequency response
-- `hn::Vector{<:Number}`  samples of band-limited ramp filter
-- `nn::AbstractVector`    `[-np/2,...,np/2-1]` vector for convenience
+- `sino::AbstractArray` sinogram with filtered rows
+- `Hk::Vector` apodized ramp filter frequency response
+- `hn::Vector` samples of band-limited ramp filter
+- `nn::AbstractVector` `-(npad/2):(npad/2-1)` vector for convenience
 
 """
 function fbp_sino_filter(
@@ -37,26 +37,29 @@ function fbp_sino_filter(
     sino::AbstractArray{<:Number};
     extra::Int = 0,
     npad::Int = nextpow(2, sg.nb + 1),
-    decon1::Int = 1,
+    decon1::Bool = true,
     window::Symbol = :none,
 )
 @show sg.nb npad
 
     ds = sg.d
 
-    sg.nb == size(sino,1) || throw("sinogram nb mismatch")
-    sg.na == size(sino,2) || throw("sinogram na mismatch")
-    nb = sb.nb
+    nb = sg.nb
     na = sg.na
+    nb == size(sino,1) || throw("sinogram nb mismatch")
+    na == size(sino,2) || throw("sinogram na mismatch")
 #   if npad == 0
 #       npad = 2^ceil(Int64, log2(2*nb-1)) # padded size
 #   end
-
     nb + extra > npad && throw("nb=$nb + extra=$extra > npad=$npad")
 
-    dim = size(sino)
-    dim[2] = npad
-    sino = cat(dims=2, sino, zeros(dim .- size(sino)))
+    dimpadding = collect(size(sino))
+    dimpadding[1] = npad - dimpadding[1]
+#   tmp = dim - collect(size(sino))
+@show dimpadding
+    tmp = zeros(eltype(sino), dimpadding...)
+    sino = cat(dims=1, sino, tmp)
+@show size(sino)
 #   sino = [sino; zeros(npad-nb,na)] # padded sinogram
     hn, nn = fbp_ramp(sg, npad)
 
@@ -67,25 +70,29 @@ function fbp_sino_filter(
     Hk .*= fbp2_window(npad, window)
     Hk = ds * Hk # differential for discrete-space convolution vs integral
 
-    #= linear interpolation is like blur with a triangular response,
-    so we can compensate for this approximately in frequency domain =#
+    # Linear interpolation is like blur with a triangular response,
+    # so we can compensate for this approximately in frequency domain.
     if decon1 != 0
         Hk ./= fftshift(sinc.(nn / npad).^2)
     end
 
+    is_real = isreal(sino)
     sino = ifft(fft(sino, 1) .* Hk, 1) # apply filter to each sinogram row
-    sino = reale(sino) # todo: only if real data
-    #NOTE: still assertion error for reale
-    # todo: definitely use broadcast or map here.  should be no need to repeat
+    if is_real
+        sino = reale(sino)
+    end
+
     # trick: possibly keep extra column(s) for zeros!
-    sino = reshape(sino, npad, :)
+    sino = reshape(sino, npad, :) # (npad,…)
     sino = sino[1:(nb+extra),:]
     sino[(nb+1):(nb+extra),:] .= zero(eltype(sino))
-    sino = reshape(sino, nb, na, dim[3:end]...)
+    sino = reshape(sino, nb, na, dimpadding[3:end]...) # for >2D sinogram array
 
     return sino, Hk, hn, nn
 end
 
-#function fbp2_sino_filter(how::Symbol, sino::AbstractArray{<:Number}; kwargs...)
-#    return mapslices(sino -> fbp2_sino_filter(how, sino; kwargs...), sino, [1,2])
-#end
+#=
+function fbp_sino_filter(how::Symbol, sino::AbstractArray{<:Number}; kwargs...)
+    return mapslices(sino -> fbp2_sino_filter(how, sino; kwargs...), sino, [1,2])
+end
+=#
