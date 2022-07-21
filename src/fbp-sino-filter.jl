@@ -3,12 +3,12 @@
 export fbp_sino_filter
 
 using FFTW
-#using Sinograms: SinoGeom, fbp_ramp, fbp2_window
+#using Sinograms: SinoGeom, fbp_ramp, fbp_window
 
 
 """
     sino, Hk, hh, nn = fbp_sino_filter(sg::SinoGeom, sino ;
-        extra=0, npad=0, decon1=1, window=:none)
+        extra=0, npad=0, decon1=1, window=Window())
 
 Apply ramp-like filters to sinogram(s) for 2D FBP image reconstruction.
 Both parallel-beam and fan-beam tomographic geometries are supported.
@@ -23,7 +23,7 @@ options
 - `extra::Int` # of extra sinogram radial samples to keep (default: 0)
 - `npad::Int` # of padded samples. (default: next power of 2)
 - `decon1::Bool` deconvolve effect of linear interpolator? (default: true)
-- `window::Symbol` apodizer; default: `:none`
+- `window::Window` apodizer; default: `Window()`
 
 out
 - `sino::AbstractArray` sinogram with filtered rows
@@ -38,36 +38,27 @@ function fbp_sino_filter(
     extra::Int = 0,
     npad::Int = nextpow(2, sg.nb + 1),
     decon1::Bool = true,
-    window::Symbol = :none,
+    window::Window = Window(),
 )
-@show sg.nb npad
 
     ds = sg.d
-
     nb = sg.nb
     na = sg.na
     nb == size(sino,1) || throw("sinogram nb mismatch")
     na == size(sino,2) || throw("sinogram na mismatch")
-#   if npad == 0
-#       npad = 2^ceil(Int64, log2(2*nb-1)) # padded size
-#   end
     nb + extra > npad && throw("nb=$nb + extra=$extra > npad=$npad")
 
     dimpadding = collect(size(sino))
     dimpadding[1] = npad - dimpadding[1]
-#   tmp = dim - collect(size(sino))
-@show dimpadding
     tmp = zeros(eltype(sino), dimpadding...)
-    sino = cat(dims=1, sino, tmp)
-@show size(sino)
-#   sino = [sino; zeros(npad-nb,na)] # padded sinogram
+    sino = cat(dims=1, sino, tmp) # padded sinogram
     hn, nn = fbp_ramp(sg, npad)
 
     reale = (x) -> (@assert x ≈ real(x); real(x))
-    Hk = fft(fftshift(hn))
+    Hk = fft(fftshift(hn)) # todo: units?
     Hk = reale(Hk)
 
-    Hk .*= fbp2_window(npad, window)
+    Hk .*= fbp_window(window, npad)
     Hk = ds * Hk # differential for discrete-space convolution vs integral
 
     # Linear interpolation is like blur with a triangular response,
@@ -77,7 +68,8 @@ function fbp_sino_filter(
     end
 
     is_real = isreal(sino)
-    sino = ifft(fft(sino, 1) .* Hk, 1) # apply filter to each sinogram row
+    unit = oneunit(sino[1]) # handle units
+    sino = unit * ifft(fft(sino/unit, 1) .* Hk, 1) # apply filter to each sinogram row
     if is_real
         sino = reale(sino)
     end
@@ -93,6 +85,6 @@ end
 
 #=
 function fbp_sino_filter(how::Symbol, sino::AbstractArray{<:Number}; kwargs...)
-    return mapslices(sino -> fbp2_sino_filter(how, sino; kwargs...), sino, [1,2])
+    return mapslices(sino -> fbp_sino_filter(how, sino; kwargs...), sino, [1,2])
 end
 =#
