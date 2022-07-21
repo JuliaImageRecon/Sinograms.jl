@@ -9,7 +9,7 @@ include("helper.jl")
     # todo: more
 
     include("sino-geom.jl")
-    include("fbp-window.jl")
+    include("fbp/window.jl")
     include("fbp-plan.jl")
     include("fbp-par.jl")
     include("zwart_powell.jl")

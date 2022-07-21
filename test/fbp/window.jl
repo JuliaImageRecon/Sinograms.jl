@@ -1,4 +1,4 @@
-# test/fbp-window.jl
+# test/fbp/window.jl
 
 using Sinograms: fbp_window, Window
 using Sinograms: NoWindow, Boxcar, Hamming, Hann, WindowVect

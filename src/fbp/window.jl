@@ -1,4 +1,5 @@
-# fbp-window.jl
+# fbp/window.jl
+# Windows for apodizing the ramp filter.
 
 export fbp_window, Window
 export NoWindow, Boxcar, Hamming, Hann, WindowVect

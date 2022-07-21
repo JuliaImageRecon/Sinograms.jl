@@ -9,7 +9,7 @@ const RealU = Number # Real or Unitful
 
 include("sino-geom.jl")
 
-include("fbp-window.jl")
+include("fbp/window.jl")
 include("fbp2.jl")
 include("fbp2_back.jl")
 include("fbp2_back_fan.jl")
