@@ -6,6 +6,12 @@ using FFTW
 #using Sinograms: SinoGeom, fbp_ramp, fbp_window
 
 
+function _reale(x)
+    (x ≈ real(x)) || @warn("x not real $(maximum(abs, x-real(x))/maximum(abs,x))")
+    return real(x)
+end
+
+
 """
     sino, Hk, hh, nn = fbp_sino_filter(sg::SinoGeom, sino ;
         extra=0, npad=0, decon1=1, window=Window())
@@ -54,10 +60,9 @@ function fbp_sino_filter(
     sino = cat(dims=1, sino, tmp) # padded sinogram
     hn, nn = fbp_ramp(sg, npad)
 
-    reale = (x) -> (@assert x ≈ real(x); real(x))
     unit = oneunit(hn[1]) # handle units
     Hk = unit * fft(fftshift(hn / unit))
-    Hk = reale(Hk)
+    Hk = _reale(Hk)
 
     Hk .*= fbp_window(window, npad)
     Hk = ds * Hk # differential for discrete-space convolution vs integral
@@ -72,7 +77,7 @@ function fbp_sino_filter(
     unit = oneunit(sino[1]) # handle units
     sino = unit * ifft(fft(sino/unit, 1) .* Hk, 1) # apply filter to each sinogram row
     if is_real
-        sino = reale(sino)
+        sino = _reale(sino)
     end
 
     # trick: possibly keep extra column(s) for zeros!
