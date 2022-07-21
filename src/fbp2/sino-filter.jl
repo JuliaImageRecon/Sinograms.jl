@@ -1,4 +1,4 @@
-# fbp-sino-filter.jl
+# fbp2/sino-filter.jl
 
 export fbp_sino_filter
 
@@ -55,7 +55,8 @@ function fbp_sino_filter(
     hn, nn = fbp_ramp(sg, npad)
 
     reale = (x) -> (@assert x ≈ real(x); real(x))
-    Hk = fft(fftshift(hn)) # todo: units?
+    unit = oneunit(hn[1]) # handle units
+    Hk = unit * fft(fftshift(hn / unit))
     Hk = reale(Hk)
 
     Hk .*= fbp_window(window, npad)
