@@ -8,8 +8,10 @@ include("helper.jl")
 @testset "Sinograms" begin
     # todo: more
 
-    include("fbp-par.jl")
     include("sino-geom.jl")
+    include("fbp-window.jl")
+    include("fbp-plan.jl")
+    include("fbp-par.jl")
     include("zwart_powell.jl")
 
     @test length(detect_ambiguities(Sinograms)) == 0
