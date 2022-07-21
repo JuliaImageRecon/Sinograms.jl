@@ -1,4 +1,4 @@
-# fbp-ramp.jl
+# fbp2/ramp.jl
 
 export fbp_ramp, ramp_flat, ramp_arc
 
@@ -26,20 +26,26 @@ fbp_ramp(sg::SinoFanArc, N::Int) = ramp_arc(N, sg.d, sg.dsd)
 
 
 function _ramp_arc(n::Int, ds::RealU, dsd::RealU)
-    return n == 0 ? 0.25 / abs2(ds) :
+    R = promote_type(eltype(ds), eltype(dsd), eltype(1f0 * oneunit(ds))) # at least Float32
+    R = eltype(1 / oneunit(R)^2)
+    h = n == 0 ? 0.25 / abs2(ds) :
         isodd(n) ? -1 / abs2(π * dsd * sin(n * ds / dsd)) :
         zero(1 / abs2(ds))
+    return R(h)
 end
 
 
 function _ramp_flat(n::Int, ds::RealU)
-    return n == 0 ? 0.25 / abs2(ds) :
+    R = promote_type(eltype(ds), eltype(1f0 * oneunit(ds))) # at least Float32
+    R = eltype(1 / oneunit(R)^2)
+    h = n == 0 ? 0.25 / abs2(ds) :
         isodd(n) ? -1 / abs2(π * n * ds) :
         zero(1 / abs2(ds))
+    return R(h)
 end
 
 
-function ramp_arc(N::Int, ds::RealU, dsd::RealU ; T::DataType = Float32)
+function ramp_arc(N::Int, ds::RealU, dsd::RealU)
     isodd(N) && throw("N must be even")
 
     if N/2 * ds / dsd > 0.9 * π/2
@@ -53,7 +59,7 @@ function ramp_arc(N::Int, ds::RealU, dsd::RealU ; T::DataType = Float32)
 end
 
 
-function ramp_flat(N::Int, ds::RealU ; T::DataType=Float32)
+function ramp_flat(N::Int, ds::RealU)
     isodd(N) && throw("N must be even")
     n = -(N÷2):(N÷2-1)
     h = _ramp_flat.(n, ds)
