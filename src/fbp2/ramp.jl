@@ -48,10 +48,9 @@ end
 function ramp_arc(N::Int, ds::RealU, dsd::RealU)
     isodd(N) && throw("N must be even")
 
-    if N/2 * ds / dsd > 0.9 * π/2
+    (N/2 * ds / dsd > 0.9 * π/2) &&
         throw("angle is $(rad2deg(N/2 * ds / dsd)) degrees: too large;
         physically impossible arc geometry")
-    end
 
     n = -(N÷2):(N÷2-1)
     h = _ramp_arc.(n, ds, dsd)
