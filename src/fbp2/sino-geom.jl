@@ -1,11 +1,11 @@
 #=
-sino-geom.jl
+fbp2/sino-geom.jl
 sinogram geometry definitions for 2D tomographic image reconstruction
 2019-07-01, Jeff Fessler, University of Michigan
 2022-01-22, copied from MIRT.jl and updated to support Unitful values
 =#
 
-# using Sinograms: RealU # todo
+# using Sinograms: RealU
 
 import Base: values, ones, zeros
 
@@ -604,12 +604,14 @@ function sino_geom_gamma(sg::SinoFanFlat)
     return atan.(sino_s(sg) / sg.dsd) # flat
 end
 
+#=
 # gamma for general finite dfs (rarely if ever used)
 function sino_geom_gamma(sg::SinoFan)
     dis_foc_det = sg.dfs + sg.dsd
     α = sino_s(sg) / dis_foc_det # equivalent to s/dsd when dfs=0
     return atan.(dis_foc_det * sin.(α), dis_foc_det * cos.(α) .- sg.dfs)
 end
+=#
 
 sino_geom_gamma(sg::SinoGeom) = nothing # fall back
 

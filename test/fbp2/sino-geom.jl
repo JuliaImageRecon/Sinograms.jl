@@ -1,5 +1,5 @@
 #=
-sino-geom.jl
+test/fbp2/sino-geom.jl
 =#
 
 include("helper.jl")
@@ -8,7 +8,7 @@ using Sinograms: RealU
 using Sinograms: SinoGeom, SinoParallel, SinoFan
 using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat
 #using Sinograms #: sino_geom, sino_geom_par, sino_geom_fan, sino_geom_moj
-#using Sinograms #: values, ones, zeros
+using Sinograms: ones, zeros, angles, rays, downsample, oversample # values
 #import Sinograms: sino_geom_gamma
 # todo
 
@@ -47,6 +47,8 @@ orbit = 180.0°
     for geo in (SinoPar, SinoMoj, SinoFanArc, SinoFanFlat)
         @test _test(geo)
     end
+
+    @test SinoFan(Val(:ge1) ; orbit=:short) isa SinoFanArc
 end
 
 
@@ -87,6 +89,14 @@ function _test_prop(sg)
     sg.xds
     sg.yds
 
+    show(isinteractive() ? stdout : devnull, sg)
+    show(isinteractive() ? stdout : devnull, MIME("text/plain"), sg)
+    @test ones(sg) isa AbstractMatrix{Float32}
+    @test zeros(sg) isa AbstractMatrix{Float32}
+    @test angles(sg) isa AbstractVector
+    @test rays(sg) isa Tuple
+    @test propertynames(sg) isa NTuple
+
     if sg isa SinoParallel
         @test isnothing(sg.gamma)
     end
@@ -94,11 +104,11 @@ function _test_prop(sg)
     if sg isa SinoFan
         @test sg.gamma isa AbstractVector
         sg.gamma_max
+        @test sg.orbit_short isa Real
         sg.dsd
         sg.dfs
         sg.dso
 #       sg.dod
-#       sg.orbit_short
     end
 
     if sg isa SinoMoj
@@ -121,6 +131,7 @@ for geo in sg_list
     @test _test_prop(sg)
 end
 
+
 #=
     sg.grid
     sg.plot_grid(plot)
@@ -138,9 +149,6 @@ for ii = 1:nsg
 @test_throws String sino_geom(:badhow)
 @test_throws String sino_geom(:ge1 ; dfs=-1)
 @test_throws String sino_geom(:ge1 ; units=:bad)
-
-show(isinteractive() ? stdout : devnull, sg)
-show(isinteractive() ? stdout : devnull, MIME("text/plain"), sg)
 
 pg = sino_geom_plot_grids(plot)
 ps = sino_geom_show()
