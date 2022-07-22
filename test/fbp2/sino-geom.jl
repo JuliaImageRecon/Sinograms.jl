@@ -2,7 +2,7 @@
 test/fbp2/sino-geom.jl
 =#
 
-include("helper.jl")
+include("../helper.jl")
 
 using Sinograms: RealU
 using Sinograms: SinoGeom, SinoParallel, SinoFan
