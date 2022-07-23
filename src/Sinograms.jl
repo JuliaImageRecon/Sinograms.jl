@@ -10,6 +10,7 @@ const RealU = Number # Real or Unitful
 include("fbp/window.jl")
 
 include("fbp2/sino-geom.jl")
+include("fbp2/parker.jl")
 include("fbp2/ramp.jl")
 include("fbp2/sino-filter.jl")
 

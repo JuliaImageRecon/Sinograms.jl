@@ -1,12 +1,13 @@
 # fbp2.jl
 
-export fbp2
+export plan_fbp, fbp, FBPplan
 
 using ImageGeoms: ImageGeom
-using Sinograms: SinoGeom, SinoPar, SinoFan, SinoMoj
+# using Sinograms: SinoGeom, SinoPar, SinoFan, SinoMoj, parker_weight, _reale
 
 abstract type FBPplan end
 
+#=
 struct Moj{Th,Tg}
     H::Th
     G::Tg
@@ -14,14 +15,14 @@ end
 
 Moj() = Moj{AbstractMatrix{<:Real},AbstractMatrix{<:Real}}(zeros(Real,1,1),zeros(Real,1,1))
 #Moj(a,b) = Moj{AbstractMatrix{<:Real},AbstractMatrix{<:Real}}(zeros(Real,1,1),zeros(Real,1,1)) # todo method overwritten warning
+=#
 
 
-#struct NormalPlan{S, I, W, P} <: FBPplan
 struct NormalPlan{
     S <: SinoGeom,
     I <: ImageGeom,
     W <: Window,
-    P <: AbstractMatrix{<:Real},
+    P <: AbstractVector{<:Real},
 } <: FBPplan
     sg::S
     ig::I
@@ -43,18 +44,19 @@ struct NormalPlan{
 end
 
 
+#=
 struct DfPlan <: FBPplan
     sg::SinoGeom
     ig::ImageGeom
     window::Window
-    parallel_beam_parker_weight::AbstractMatrix{<:Real}
+    parker_weight::AbstractMatrix{<:Real}
 end
 
 struct MojPlan <: FBPplan
     sg::SinoGeom
     ig::ImageGeom
     window::Window
-    parallel_beam_parker_weight::AbstractMatrix{<:Real}
+    parker_weight::AbstractMatrix{<:Real}
     moj::Moj
 end
 
@@ -62,43 +64,43 @@ struct TabPlan <: FBPplan
     sg::SinoGeom
     ig::ImageGeom
     window::Window
-    parallel_beam_parker_weight::AbstractMatrix{<:Real}
+    parker_weight::AbstractMatrix{<:Real}
 end
-
-reale = (x) -> (@assert x ≈ real(x); real(x))
-
+=#
 
 
 """
-    plan = fbp2(sg, ig; how=:normal, window=Window())
+    plan = plan_fbp(sg, ig; how=:normal, window=Window())
 
-FBP 2D tomographic image reconstruction for parallel-beam or fan-beam cases,
+Plan FBP 2D tomographic image reconstruction
+for parallel-beam & fan-beam cases,
 with either flat or arc detector for fan-beam case.
 
 To use this, you first call it with the sinogram and image geometry.
-The routine returns the initialized "plan". Thereafter, to
-to perform FBP reconstruction, you call this routine with the plan
+The routine returns the initialized "plan".
+Thereafter, to to perform FBP reconstruction,
+call `fbp` with the plan
 (perhaps numerous times for the same geometry).
 
 
-in
+# in
 - `sg::SinoGeom`
 - `ig::ImageGeom`
 
-options
+# options
 - `how::Symbol`             how to reconstruct
     * `:normal`             default
     * `:mojette`            use mojette rebinning and Gtomo2_table
 - `window::Window` e.g. `Window(Hamming(0.5))`; default `Window()`
 -`T::DataType`              type of sino elements (default: `Float32`)
 
-out
+# out
 - `plan::FBPplan`            initialized plan
 
 """
-function fbp2(
+function plan_fbp(
     sg::SinoGeom,
-    ig::ImageGeom;
+    ig::ImageGeom ;
     how::Symbol = :normal,
     window::Window = Window(),
     T::DataType = Float32,
@@ -106,15 +108,15 @@ function fbp2(
 )
 
     if how === :normal
-        plan = fbp_setup_normal(sg, ig, window, T)
+        plan = plan_fbp_normal(sg, ig ; window, T)
 #   elseif how === :dsc
-#       plan = fbp_setup_dsc(sg, ig, how, window)
+#       plan = plan_fbp_dsc(sg, ig, how, window)
 #   elseif how === :df
-#       plan = fbp_setup_df(sg, ig, how, window)
+#       plan = plan_fbp_df(sg, ig, how, window)
 #   elseif how === :mojette
-#       plan = fbp_setup_moj(sg, ig, how, window)
+#       plan = plan_fbp_moj(sg, ig, how, window)
 #   elseif how === :table
-#       plan = fbp_setup_tab(sg, ig, how, window)
+#       plan = plan_fbp_tab(sg, ig, how, window)
     else
         throw("unknown type: $how")
     end
@@ -122,62 +124,24 @@ function fbp2(
     return plan
 end
 
-function fbp2_par_parker_wt(sg::SinoGeom)
-    orbit = abs(sg.orbit)
-    na = sg.na
-    nb = sg.nb
-    ad = abs(sg.ad - sg.orbit_start)
 
-    if orbit < 180
-        @warn("orbit $orbit < 180")
-        return sg.ones
-    end
-
-    orbit > 360 && throw("only 180 ≤ orbit ≤ 360 supported for Parker weighting")
-    extra = orbit - 180 # extra beyond 180
-
-    wt = ones(T,na)
-
-    ii = ad .< extra
-    wt[ii] = abs2.(sin(ad[ii] ./ extra .* pi ./ 2))
-    ii = ad .>= 180
-    wt[ii] = abs2.(sin((orbit .- ad[ii]) ./ extra .* pi ./ 2))
-    wt *= orbit / 180 # trick because of the back-projector normalization
-    return repeat(wt, nb, 1) # [nb na] sinogram sized
-end
-
-
-function fbp_setup_normal(
-    sg::SinoPar,
-    ig::ImageGeom,
-    window::Window,
-    T::DataType,
+function plan_fbp_normal(
+    sg::SinoGeom,
+    ig::ImageGeom ;
+    window::Window = Window(),
+    T::DataType = Float32,
 )
-    weight = ones(T, sg.nb, sg.na)
-    if abs(sg.orbit) != 180 && abs(sg.orbit) != 360
-        weight = fbp2_par_parker_wt(sg)
-    end
+    weight = parker_weight(sg)
+
     return NormalPlan(sg, ig, window, weight)
 end
 
 
-function fbp_setup_normal(
-    sg::SinoFan,
-    ig::ImageGeom,
-    window::Window,
-    T::DataType,
-)
-    weight = ones(T, sg.nb, sg.na)
-    sg.orbit != 360 && @warn("short-scan fan-beam Parker weighting not done")
-    return NormalPlan(sg, ig, window, weight)
-end
-
-
-function fbp_setup_normal(
+function plan_fbp_normal(
     sg::SinoMoj,
-    ig::ImageGeom,
-    window::Window,
-    T::DataType,
+    ig::ImageGeom ;
+    window::Window = Window(),
+    T::DataType = Float32,
 )
     weight = ones(T, sg.nb, sg.na)
     if sg.dx == abs(ig.dx)
@@ -195,10 +159,11 @@ end
 
 
 """
-    image, sino_filt = fbp2(plan, sino)
+    image, sino_filt = fbp(plan, sino)
+    image, sino_filt = fbp(sg::SinoGeom, ig::ImageGeom, sino, parker_weight, window)
 
 Filtered back-projection (FBP) reconstruction,
-returning image and filtered sinogram
+returning image and filtered sinogram.
 
 in
 - `plan::FBPplan`
@@ -209,57 +174,69 @@ out
 - `sino_filt::Matrix{<:Number}`   filtered sinogram(s)
 
 """
-function fbp2(plan::NormalPlan, sino::AbstractMatrix{<:Number})
+function fbp(
+    plan::NormalPlan{<:SinoGeom},
+    sino::AbstractMatrix{<:Number},
+)
+    return fbp(plan.sg, plan.ig, sino, plan.parker_weight, plan.window)
+end
 
-    plan.sg.dim != size(sino) && throw("bad sino size")
 
-    if plan.sg isa SinoPar
-        sino .*= plan.parker_weight
+function fbp(
+    sg::SinoGeom,
+    ig::ImageGeom,
+    sino::AbstractMatrix{<:Number},
+    parker_weight::AbstractVector{<:Number} = ones(size(sino,2)),
+    window::Window = Window(),
+)
+    sg.dim != size(sino) && throw("bad sino size")
 
-        sino,_,_,_ = fbp_sino_filter(plan.sg, sino, window = plan.window)
+    sino_filt = sino .* parker_weight'
+    sino_filt,_,_,_ = fbp_sino_filter(sg, sino_filt ; window)
 
-        #image = fbp_back(plan.sg, plan.ig, sino, do_r_mask=true)
-        image = fbp_back(plan.sg, plan.ig, sino)
+    #image = fbp_back(sg, ig, sino_filt, do_r_mask=true)
+    image = fbp_back(sg, ig, sino_filt)
+    return image, sino_filt
+end
 
-    elseif plan.sg isa SinoFan
 
-        dfs = plan.sg.dfs
+#=
+function fbp(
+    plan::NormalPlan{<:SinoFan},
+    sino::AbstractMatrix{<:Number},
+)
 
-        dfs != 0 && ~isinf(dfs) && throw("only arc or flat fan done")
+    dfs = plan.sg.dfs
+    dfs != 0 && ~isinf(dfs) && throw("only arc or flat fan done")
+=#
 
-        sino .*= fbp_sino_weight(plan.sg)
+#=
+function fbp(
+    plan::NormalPlan{<:SinoMoj}, # todo
+    sino::AbstractMatrix{<:Number},
+)
 
-        sino,_,_,_ = fbp_sino_filter(
-            plan.sg, sino,
-            window = plan.window,
-        )
-        image = fbp_back(plan.sg, plan.ig, sino)
+    sino = fbp2_apply_sino_filter_moj(sino, plan.moj.H)
 
-    elseif plan.sg isa SinoMoj #TODO (incomplete)
-
-        sino = fbp2_apply_sino_filter_moj(sino, plan.moj.H)
-
-        if plan.sg.dx == abs(plan.ig.dx)
-            image = plan.moj.G' * sino # backproject
-            image = image * (pi / plan.sg.na) # account for "dphi" in integral
-        else # revert to conventional pixel driven
-            ig = plan.ig
-            sg = plan.sg
-            arg1 = [uint8(ig.mask), ig.dx, ig.dy, ig.offset_x, sign(ig.dy) * ig.offset_y] # trick: old backproject
-            arg2 = [sg.d(1:sg.na), sg.offset, sg.orbit, sg.orbit_start]
-# todo      image = jf_mex("back2", arg1[:], arg2[:], int32(arg.nthread), single(sino))
-            image = image .* plan.ig.mask
-        end
-
-    else
-        throw("not done")
+    if plan.sg.dx == abs(plan.ig.dx)
+        image = plan.moj.G' * sino # backproject
+        image = image * (pi / plan.sg.na) # account for "dphi" in integral
+    else # revert to conventional pixel driven
+        ig = plan.ig
+        sg = plan.sg
+        arg1 = [uint8(ig.mask), ig.dx, ig.dy, ig.offset_x, sign(ig.dy) * ig.offset_y] # trick: old backproject
+        arg2 = [sg.d(1:sg.na), sg.offset, sg.orbit, sg.orbit_start]
+# todo  image = jf_mex("back2", arg1[:], arg2[:], int32(arg.nthread), single(sino))
+        image = image .* plan.ig.mask
     end
 
     return image, sino
 end
+=#
 
 
 # fbp2_recon_moj
+#=
 function fpb2(plan::MojPlan, sino::AbstractMatrix{<:Number})
     moj = plan.moj
     # bin sinogram to mojette sampling, whether it is fan or parallel
@@ -268,6 +245,7 @@ function fpb2(plan::MojPlan, sino::AbstractMatrix{<:Number})
     image = moj.G' * msino # backproject
     return image * (π / size(sino,2)) # account for "dphi" in integral
 end
+=#
 
 # todo: needs broadcasts?
 function fbp_make_sino_filter_moj(nb, na, dx, orbit, orbit_start, window)
@@ -288,7 +266,7 @@ function fbp_make_sino_filter_moj(nb, na, dx, orbit, orbit_start, window)
         h = u0^2 .* (2 .* sinc.(2*u0*r) - sinc.(u0*r).^2)
         h = h .* repeat(dr, [npad 1]) # extra dr for discrete-space convolution
    #    clf, plot(r, h, '.'), keyboard
-        return reale(fft(fftshift(h,1), 1))
+        return _reale(fft(fftshift(h,1), 1))
    #    H = fbp_apodize(H, nb, window)
         !isempty(window) && throw("window not done yet due to dr")
     end
@@ -299,6 +277,6 @@ function fbp2_apply_sino_filter_moj(sino, H)
     nb = size(sino,1)
     npad = 2^ceil(log2(2*nb-1)) # padded size
     sinopad = [sino; zeros(npad-nb,size(sino,2))] # padded sinogram
-    sino = ifft(reale(fft(sinopad, 1) .* H), 1)
+    sino = _reale(ifft(fft(sinopad, 1) .* H), 1)
     sino = sino[1:nb,:]
 end
