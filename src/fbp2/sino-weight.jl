@@ -1,4 +1,4 @@
-# fbp-sino-weight.jl
+# fbp2/sino-weight.jl
 
 export fbp_sino_weight
 
