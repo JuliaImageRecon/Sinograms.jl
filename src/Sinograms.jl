@@ -18,7 +18,6 @@ include("fbp2/sino-weight.jl")
 include("fbp2.jl")
 include("fbp2_back.jl")
 include("fbp2_back_fan.jl")
-include("fbp-sino-weight.jl")
 
 include("fbp-par.jl")
 include("zwart_powell.jl")
