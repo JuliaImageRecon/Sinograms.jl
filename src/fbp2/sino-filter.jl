@@ -1,14 +1,62 @@
 # fbp2/sino-filter.jl
 
-export fbp_sino_filter
+export fbp_filter, fbp_sino_filter
 
 using FFTW
-#using Sinograms: SinoGeom, fbp_ramp, fbp_window
+#using Sinograms: SinoGeom, SinoPar, Window, fbp_ramp, fbp_window
 
 
 function _reale(x)
     (x ≈ real(x)) || @warn("x not real $(maximum(abs, x-real(x))/maximum(abs,x))")
     return real(x)
+end
+
+
+"""
+    Hk = fbp_filter(sg::SinoGeom ;
+        npad=0, ds::RealU = sg.d, decon1::Bool=true, window=Window())
+
+Compute frequency response of ramp-like filter
+used for 2D FBP image reconstruction.
+Both parallel-beam and fan-beam tomographic geometries are supported.
+This code samples the band-limited ramp to avoid the aliasing that
+would be caused by sampling the ramp directly in the frequency domain.
+
+in
+- `sg::SinoGeom`
+
+options
+- `npad::Int` # of padded samples. (default: next power of 2)
+- `decon1::Bool` deconvolve effect of linear interpolator? (default: true)
+- `window::Window` apodizer; default: `Window()`
+
+out
+- `Hk::Vector` apodized ramp filter frequency response
+"""
+function fbp_filter(
+    sg::SinoGeom = SinoPar() ;
+    npad::Int = nextpow(2, sg.nb + 1),
+    ds::T = sg.d,
+    decon1::Bool = true,
+    window::Window = Window(),
+) where {T <: RealU}
+
+    U = eltype(1 / oneunit(T))
+    hn, nn = fbp_ramp(sg, npad)
+
+    unit = oneunit(hn[1]) # handle units
+    Hk = unit * fft(fftshift(hn / unit))
+    Hk = _reale(Hk)
+
+    Hk .*= fbp_window(window, npad)
+    Hk = ds * Hk # differential for discrete-space convolution vs integral
+
+    # Linear interpolation is like blur with a triangular response,
+    # so we can compensate for this approximately in frequency domain.
+    if decon1 != 0
+        Hk ./= fftshift(sinc.(nn / npad).^2)
+    end
+    return Hk::Vector{U}
 end
 
 

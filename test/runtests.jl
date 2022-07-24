@@ -12,6 +12,7 @@ include("fbp/window.jl")
 include("fbp2/sino-geom.jl")
 include("fbp2/parker.jl")
 include("fbp2/ramp.jl")
+include("fbp2/filter.jl")
 
 include("fbp-plan.jl")
 include("fbp-par.jl")
