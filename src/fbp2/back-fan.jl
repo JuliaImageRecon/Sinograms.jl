@@ -9,15 +9,19 @@ using ImageGeoms: ImageGeom, embed
 
 # fan-beam case
 function fbp_back(
-    sg::SinoFan,
+    sg::SinoFan{Td, To},
     ig::ImageGeom,
-    sino::AbstractMatrix{<:Number} ;
+    sino::AbstractMatrix{Ts} ;
     ia_skip::Int = 1,
-)
+) where {Td, To, Ts <: Number}
 
     sg.dim == size(sino) || throw("sino size")
 
     is_arc = sg.dfs == 0 ? true : isinf(sg.dfs) ? false : throw("bad dfs")
+
+    # type inference help:
+    Toffset = Float32 # eltype(sg.offset)
+    T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
 
     return fbp_back_fan(
         sino, sg.ar,
@@ -27,31 +31,31 @@ function fbp_back(
         sg.rfov,
         ndgrid(axes(ig)...)...,
         ig.mask, ia_skip,
-    )
+    )::Matrix{T}
 end
 
 
 function fbp_back_fan(
-    sino::AbstractMatrix{<:Number},
-    betas::AbstractVector,
+    sino::AbstractMatrix{Ts},
+    betas::AbstractVector{To},
     dsd::RealU,
     dso::RealU,
     dfs::RealU,
     source_offset::RealU,
     is_arc::Bool,
-    ds::RealU,
-    offset::Real,
+    ds::Td,
+    offset::Toffset,
     rfov::RealU,
-    xc,
-    yc,
+    xc::AbstractArray{Td},
+    yc::AbstractArray{Td},
     mask::AbstractMatrix{Bool},
     ia_skip::Int,
-)
+) where {Td <: RealU, Toffset <: Real, Ts <: Number, To <: RealU}
 
     nb, na = size(sino)
 
     # trick: extra zero column saves linear interpolation indexing within loop!
-    sino = cat(dims=1, sino, zeros(eltype(sino), 1, size(sino,2)))
+    sino = cat(dims=1, sino, zeros(Ts, 1, size(sino,2)))
 
 #=
     if do_r_mask
@@ -63,10 +67,11 @@ function fbp_back_fan(
     xc = xc[vec(mask)] # [np] pixels within mask
     yc = yc[vec(mask)]
 
-    wb = (nb+1)/2 + offset
+    wb = Toffset((nb+1)/2 + offset)
 
     img = 0
 
+    warned = false
     for ia in 1:ia_skip:na
 
         beta = betas[ia]
@@ -96,11 +101,16 @@ function fbp_back_fan(
         il = floor.(Int, bb) # left bin
         ir = 1 .+ il # right bin
 
-        # deal with truncated sinograms
+        # handle truncated sinograms using the extra column of zeros
         ig = (il .≥ 1) .& (ir .≤ nb)
-        il[.!ig] .= nb+1
-        ir[.!ig] .= nb+1
-   #    if any(il < 1 | il >= nb), error 'bug', end
+        if !all(ig)
+            if !warned
+                @warn("image exceeds system FOV; modify ig.mask?")
+                warned = true
+            end
+            il[.!ig] .= nb+1
+            ir[.!ig] .= nb+1
+        end
 
         wr = bb - il # left weight
         wl = 1 .- wr # right weight
@@ -109,5 +119,6 @@ function fbp_back_fan(
     end
 
     img .*= (π * ia_skip / na)
-    return embed(img, mask)
+    T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
+    return embed(img, mask)::Matrix{T}
 end
