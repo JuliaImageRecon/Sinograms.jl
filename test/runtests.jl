@@ -17,6 +17,7 @@ include("fbp2/filter.jl")
 include("fbp-plan.jl")
 include("fbp-par.jl")
 include("fbp-fan.jl")
+include("sino-plot.jl")
 include("zwart_powell.jl")
 
 @testset "Sinograms" begin
