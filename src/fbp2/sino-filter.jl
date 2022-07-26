@@ -62,6 +62,79 @@ end
 
 
 """
+    sino = fbp_sino_filter(sg::SinoGeom, sino, filter ; extra=0)
+
+Apply ramp-like filters to sinogram(s) for 2D FBP image reconstruction.
+Both parallel-beam and fan-beam tomographic geometries are supported. todo?
+
+in
+- `sg::SinoGeom`
+- `sino::AbstractArray{<:Number}` `[nb (L)]` sinograms
+- `filter::AbstractVector` `(npad ≥ nb)` apodized ramp filter frequency response
+
+options
+- `extra::Int` # of extra sinogram radial samples to keep (default: 0)
+- `npad::Int` # of padded samples. (default: next power of 2)
+
+out
+- `sino::AbstractArray` sinogram with filtered rows
+"""
+function fbp_sino_filter(
+    sino::AbstractArray{Ts, N},
+    filter::AbstractVector{Tf} ;
+    extra::Int = 0,
+) where {N, Ts <: Number, Tf <: Number}
+
+    npad = length(filter)
+    nb = size(sino,1)
+    nb + extra > npad && throw("nb=$nb + extra=$extra > npad=$npad")
+
+    dimpadding = collect(size(sino))
+    dimpadding[1] = npad - dimpadding[1]
+    tmp = zeros(Ts, dimpadding...)
+    sino = cat(dims=1, sino, tmp) # padded sinogram
+
+    is_real = isreal(sino)
+
+    # handle fft with units
+    unit_s = oneunit(Ts)
+    unit_f = oneunit(Tf)
+    # apply filter to each sinogram row
+    sino = (unit_s * unit_f) * ifft(fft(sino/unit_s, 1) .* (filter/unit_f), 1)
+
+    if is_real
+        sino = _reale(sino)
+    end
+
+    # trick: possibly keep extra column(s) for zeros!
+    sino = reshape(sino, npad, :) # (npad,…)
+    sino = sino[1:(nb+extra), :]
+    sino[(nb+1):(nb+extra), :] .= zero(eltype(sino))
+    sino = reshape(sino, nb, :, dimpadding[3:end]...) # for >2D sinogram array
+
+    U = eltype(unit_s * unit_f)
+    return sino::Array{U, N}
+end
+
+
+#=
+function fbp_sino_filter(
+    aa::AbstractArray{Ts,N},
+    filter::AbstractVector{Tf} ;
+    kwargs...,
+) where {N, Ts <: Number, Tf <: Number}
+    fun(sino) = fbp_sino_filter(sino, filter; kwargs...)
+    unit_s = oneunit(Ts)
+    unit_f = oneunit(Tf)
+    U = eltype(unit_s * unit_f)
+    out = mapslices(fun, aa, dims=[1,2])
+    return out::Array{U,N}
+end
+=#
+
+
+#= old version with window
+"""
     sino, Hk, hh, nn = fbp_sino_filter(sg::SinoGeom, sino ;
         extra=0, npad=0, decon1=1, window=Window())
 
@@ -137,6 +210,7 @@ function fbp_sino_filter(
 
     return sino, Hk, hn, nn
 end
+=#
 
 #=
 function fbp_sino_filter(how::Symbol, sino::AbstractArray{<:Number}; kwargs...)
