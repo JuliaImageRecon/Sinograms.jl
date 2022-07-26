@@ -194,6 +194,16 @@ function fbp(
 end
 
 
+# 3D stack of sinograms
+function fbp(
+    plan::NormalPlan{<:SinoGeom},
+    aa::AbstractArray{<:Number},
+)
+    fun(sino2) = fbp(plan, sino2)[1] # discard sino_filt!
+    return mapslices(fun, aa, dims = [1,2])
+end
+
+
 # FBP for geometries that do not need angle-dependent filters (all but Moj)
 function fbp(
     sg::SinoGeom,

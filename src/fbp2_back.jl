@@ -70,10 +70,10 @@ function fbp_back(
         # linear interpolation:
         il = floor.(Int64, rr) # left bin
 
-        if !do_r_mask
+#       if !do_r_mask
             il = min.(il, nb+1)
             il = max.(il, 1)
-        end
+#       end
         # (any(<(1), il) || any(≥(nb), il)) && throw("il bug")
 
         wr = rr - il # left weight
@@ -94,13 +94,7 @@ function fbp_back(
     ia_skip::Int = 1,
 )
 
-    if sg.dfs == 0
-        is_arc=true
-    elseif isinf(sg.dfs)
-        is_arc=false
-    else
-        throw("bad dsf")
-    end
+    is_arc = sg.dfs == 0 ? true : isinf(sg.dfs) ? false : throw("bad dfs")
 
     return fbp_back_fan(
         sino, sg.orbit, sg.orbit_start,
@@ -213,7 +207,9 @@ function fbp_back_fan(
 end
 
 
+#=
 # 3d array support
 function fbp_back(sg::SinoGeom, ig::ImageGeom, sino::AbstractArray{<:Number}; kwargs...)
-    return mapslices(sino -> fbp_back(sg, ig, sino; kwargs...), sino, [1,2])
+    return mapslices(sino -> fbp_back(sg, ig, sino; kwargs...), sino, dims=[1,2])
 end
+=#
