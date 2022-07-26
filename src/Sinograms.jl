@@ -14,10 +14,12 @@ include("fbp2/parker.jl")
 include("fbp2/ramp.jl")
 include("fbp2/sino-filter.jl")
 include("fbp2/sino-weight.jl")
+include("fbp2/back-par.jl")
+include("fbp2/back-fan.jl")
 
 include("fbp2.jl")
-include("fbp2_back.jl")
-include("fbp2_back_fan.jl")
+#include("fbp2_back.jl")
+#include("fbp2_back_fan.jl")
 
 include("fbp-par.jl")
 
