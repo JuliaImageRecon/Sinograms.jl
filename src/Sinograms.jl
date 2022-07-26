@@ -25,9 +25,19 @@ include("zwart_powell.jl")
 
 """
     to_radians(angle::Real)
+    to_radians(angles::AbstractArray{<:Real})
 If no Unitful package loaded, assume `angle` is in degrees and convert to radians.
 """
-to_radians(angle::Real) = deg2rad(angle)
+#to_radians(angle::T) where {T <: AbstractFloat} = T(deg2rad(angle))
+#to_radians(angle::Real) = deg2rad(Float32(angle))
+to_radians(aa::AbstractArray{T}) where {T <: AbstractFloat} = aa * T(deg2rad(1))
+to_radians(aa::AbstractArray{T}) where {T <: Real} = aa * deg2rad(1f0) # Float32
+
+
+# working precision should be at least Float32 (see also units.jl)
+#_worktype(::T) where {T <: AbstractFloat} = T
+#_worktype(::T) where {T <: Real} = Float32
+
 
 # support Plots iff user has loaded that package
 function __init__()
