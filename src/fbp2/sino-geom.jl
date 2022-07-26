@@ -355,15 +355,15 @@ julia> SinoFanFlat()
 SinoFanFlat{Float64, Float32} :
  nb::Int64 128
  na::Int64 200
- d::Float64 1.0
+ d::Float32 1.0
  orbit::Float32 360.0
  orbit_start::Float32 0.0
  offset::Float32 0.0
- strip_width::Float64 1.0
- source_offset::Float64 0.0
- dsd::Float64 512.0
- dod::Float64 128.0
- dfs::Float64 Inf
+ strip_width::Float32 1.0
+ source_offset::Float32 0.0
+ dsd::Float32 512.0
+ dod::Float32 128.0
+ dfs::Float32 Inf
 ```
 """
 struct SinoFanFlat{Td,To} <: SinoFan{Td,To}
