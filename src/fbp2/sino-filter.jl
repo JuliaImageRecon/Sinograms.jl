@@ -34,17 +34,17 @@ out
 - `Hk::Vector` apodized ramp filter frequency response
 """
 function fbp_filter(
-    sg::SinoGeom = SinoPar() ;
+    sg::SinoGeom{Td} = SinoPar() ;
     npad::Int = nextpow(2, sg.nb + 1),
-    ds::T = sg.d,
+    ds::Td = sg.d,
     decon1::Bool = true,
     window::Window = Window(),
-) where {T <: RealU}
+) where {Td <: RealU}
 
-    U = eltype(1 / oneunit(T))
+#   U = eltype(1 / oneunit(Td))
     hn, nn = fbp_ramp(sg, npad)
 
-    unit = oneunit(hn[1]) # handle units
+    unit = oneunit(eltype(hn)) # handle units
     Hk = unit * fft(fftshift(hn / unit))
     Hk = _reale(Hk)
 
@@ -53,10 +53,11 @@ function fbp_filter(
 
     # Linear interpolation is like blur with a triangular response,
     # so we can compensate for this approximately in frequency domain.
-    if decon1 != 0
+    if decon1
         Hk ./= fftshift(sinc.(nn / npad).^2)
     end
-    return Hk::Vector{U}
+
+    return Hk#::Vector{U}
 end
 
 
@@ -108,7 +109,7 @@ function fbp_sino_filter(
     sino = cat(dims=1, sino, tmp) # padded sinogram
     hn, nn = fbp_ramp(sg, npad)
 
-    unit = oneunit(hn[1]) # handle units
+    unit = oneunit(eltype(hn)) # handle units
     Hk = unit * fft(fftshift(hn / unit))
     Hk = _reale(Hk)
 
@@ -122,7 +123,7 @@ function fbp_sino_filter(
     end
 
     is_real = isreal(sino)
-    unit = oneunit(sino[1]) # handle units
+    unit = oneunit(eltype(sino)) # handle units
     sino = unit * ifft(fft(sino/unit, 1) .* Hk, 1) # apply filter to each sinogram row
     if is_real
         sino = _reale(sino)
