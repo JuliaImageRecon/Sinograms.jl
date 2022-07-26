@@ -1,6 +1,4 @@
-#=
-sino-plot.jl
-=#
+# test/fbp2/sino-plot.jl
 
 # include("helper.jl")
 

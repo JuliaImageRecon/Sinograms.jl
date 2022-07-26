@@ -113,7 +113,7 @@ function plan_fbp(
     weight = parker_weight(sg)
     filter = fbp_filter(sg ; npad, window, decon1)
 
-    if how === :normal
+#   if how === :normal
         return NormalPlan(sg, ig, filter, weight)
 #       plan = plan_fbp_normal(sg, ig, filter)
 #       plan = plan_fbp_normal(sg, ig, npad, window, filter ; T)
@@ -125,9 +125,9 @@ function plan_fbp(
 #       plan = plan_fbp_moj(sg, ig, how, window)
 #   elseif how === :table
 #       plan = plan_fbp_tab(sg, ig, how, window)
-    else
-        throw("unknown type: $how")
-    end
+#   else
+#       throw("unknown type: $how")
+#   end
 
 #   return plan
 end
@@ -150,6 +150,7 @@ end
 =#
 
 
+#=
 function plan_fbp_normal(
     sg::SinoMoj,
     ig::ImageGeom ;
@@ -169,6 +170,7 @@ function plan_fbp_normal(
     plan.moj.H = fbp2_make_sino_filter_moj(sg.nb, sg.na, sg.dx, sg.orbit, sg.orbit_start, window)
     return NormalPlan{SinoMoj}(sg, ig, window, weight, moj)
 end
+=#
 
 
 """
@@ -278,6 +280,7 @@ function fpb2(plan::MojPlan, sino::AbstractMatrix{<:Number})
 end
 =#
 
+#=
 # todo: needs broadcasts?
 function fbp_make_sino_filter_moj(nb, na, dx, orbit, orbit_start, window)
     ang = deg2rad(orbit_start .+ (0:na-1)./na .* orbit)
@@ -311,3 +314,4 @@ function fbp2_apply_sino_filter_moj(sino, H)
     sino = _reale(ifft(fft(sinopad, 1) .* H), 1)
     sino = sino[1:nb,:]
 end
+=#

@@ -46,7 +46,7 @@ function parker_weight(sg::SinoFan; T::DataType = Float32)::Vector{T}
         return wt
     end
     throw("todo: short-scan fan-beam Parker weighting not done")
-    return wt
+#   return wt
 end
 
 

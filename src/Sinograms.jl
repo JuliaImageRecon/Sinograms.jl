@@ -20,7 +20,8 @@ include("fbp2_back.jl")
 include("fbp2_back_fan.jl")
 
 include("fbp-par.jl")
-include("zwart_powell.jl")
+
+include("sys2/zwart_powell.jl")
 
 
 """
@@ -41,7 +42,7 @@ to_radians(aa::AbstractArray{T}) where {T <: AbstractFloat} = aa * T(deg2rad(1))
 
 # support Plots iff user has loaded that package
 function __init__()
-    @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" include("sino-plot.jl")
+    @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" include("fbp2/sino-plot.jl")
     @require Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d" include("units.jl")
 end
 
