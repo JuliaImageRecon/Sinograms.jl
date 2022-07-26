@@ -28,7 +28,7 @@ function fbp_back(
     ig::ImageGeom,
     sino::AbstractMatrix{<:Number};
     ia_skip::Int = 1,
-    do_r_mask::Bool = false
+#   do_r_mask::Bool = false
 )
 
     sg.dim == size(sino) || throw("sino size")
@@ -40,11 +40,13 @@ function fbp_back(
 
     xc, yc = ndgrid(axes(ig)...)
     mask = ig.mask
+#=
     if do_r_mask
         rr = @. sqrt(abs2(xc) + abs2(yc)) # (nx,ny)
         rmax = ((sg.nb - 1) / 2 - abs(sg.offset)) * sg.d
         mask = mask .& (rr .< rmax)
     end
+=#
     xc = xc[vec(mask)] # [np] pixels within mask
     yc = yc[vec(mask)]
 

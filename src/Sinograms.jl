@@ -31,7 +31,7 @@ If no Unitful package loaded, assume `angle` is in degrees and convert to radian
 #to_radians(angle::T) where {T <: AbstractFloat} = T(deg2rad(angle))
 #to_radians(angle::Real) = deg2rad(Float32(angle))
 to_radians(aa::AbstractArray{T}) where {T <: AbstractFloat} = aa * T(deg2rad(1))
-to_radians(aa::AbstractArray{T}) where {T <: Real} = aa * deg2rad(1f0) # Float32
+#to_radians(aa::AbstractArray{T}) where {T <: Real} = aa * deg2rad(1f0) # Float32
 
 
 # working precision should be at least Float32 (see also units.jl)

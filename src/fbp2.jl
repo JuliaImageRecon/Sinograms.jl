@@ -85,7 +85,7 @@ call `fbp` with the plan
 
 # in
 - `sg::SinoGeom`
-- `ig::ImageGeom`
+- `ig::ImageGeom` # only reconstruct pixels within `ig.mask`.
 
 # options
 - `how::Symbol`  how to reconstruct
@@ -208,7 +208,7 @@ function fbp(
     sino_filt = sino .* parker_weight'
     sino_filt = fbp_sino_filter(sino_filt, filter) # todo: extra?
 
-    image = fbp_back(sg, ig, sino_filt) # todo: do_r_mask?
+    image = fbp_back(sg, ig, sino_filt)
     return image, sino_filt
 end
 
