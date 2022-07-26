@@ -3,7 +3,7 @@ fbp-par.jl
 Simple interfaces to parallel-beam FBP for user convenience
 =#
 
-using ImageGeoms: ImageGeom
+using ImageGeoms: ImageGeom, circle
 #using Sinograms: plan_fbp, fbp, RealU, SinoPar
 
 export fbp, fbp!
@@ -48,6 +48,7 @@ Writes result into `image` matrix.
 
 # Options for `ImageGeom`
 * `dx`, `dy`, `deltas`, `offset_x`, `offset_y`, `offsets`
+* `rmax` maximum radius for mask
 
 # Options
 * `kwargs` : passed to `plan_fbp`
@@ -67,12 +68,15 @@ function fbp!(
     offset_x::Real = 0,
     offset_y::Real = 0,
     offsets = (offset_x, offset_y),
+    rmax::RealU = zero(dr),
     kwargs...
 )
     nb, na = size(sino)
     nx, ny = size(image)
     sg = SinoPar( ; nb, na, d = dr, orbit, orbit_start)
     ig = ImageGeom(; dims=(nx, ny), deltas, offsets)
+    mask = circle(ig ; r = (rmax == zero(dr)) ? sg.rfov : rmax)
+    ig = ImageGeom(ig.dims, ig.deltas, ig.offsets, mask)
     plan = plan_fbp(sg, ig ; kwargs...)
 #   fbp!(image, sino, plan) # todo
     tmp, _ = fbp(plan, sino)
