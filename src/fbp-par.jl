@@ -4,7 +4,7 @@ Simple interfaces to parallel-beam FBP for user convenience
 =#
 
 using ImageGeoms: ImageGeom
-#using Sinograms: fbp2, RealU, SinoPar
+#using Sinograms: plan_fbp, fbp, RealU, SinoPar
 
 export fbp, fbp!
 
@@ -18,18 +18,18 @@ Returns an image of size `[nx × ny]`.
 # Options
 * `nx` : default `nr`
 * `ny` : default `nx`
-* `kwargs` : passed to `fbp2`
+* `kwargs` : passed to `fbp!`
 """
 function fbp(
-    sino::AbstractMatrix{T} ;
+    sino::AbstractMatrix{Ts} ;
     nx::Int = size(sino, 1),
     ny::Int = nx,
     kwargs...
-) where {T <: Number}
-    image = zeros(promote_type(T, Float32), nx, ny)
+) where {Ts <: Number}
+    U = promote_type(Ts, eltype(1f0 * oneunit(Ts)))
+    image = zeros(U, nx, ny)
     fbp!(image, sino; kwargs...)
 end
-
 
 
 """
@@ -47,10 +47,10 @@ Writes result into `image` matrix.
 * `orbit_start` : angular range in degrees; default 0
 
 # Options for `ImageGeom`
-* `dx`, `dy`, `offset_x`, `offset_y`
+* `dx`, `dy`, `deltas`, `offset_x`, `offset_y`, `offsets`
 
 # Options
-* `kwargs` : passed to `fbp2`
+* `kwargs` : passed to `plan_fbp`
 
 # Output
 * `image::AbstractMatrix` is mutated
@@ -63,18 +63,19 @@ function fbp!(
     orbit_start::RealU = zero(orbit),
     dx::RealU = dr,
     dy::RealU = dx,
+    deltas = (dx, dy),
     offset_x::Real = 0,
     offset_y::Real = 0,
+    offsets = (offset_x, offset_y),
     kwargs...
 )
     nb, na = size(sino)
     nx, ny = size(image)
     sg = SinoPar( ; nb, na, d = dr, orbit, orbit_start)
-    ig = ImageGeom(; dims=(nx, ny), deltas=(dx, dy), offsets=(offset_x, offset_y))
-#   plan = FBPplan(sg, ig)
-    plan = fbp2(sg, ig) # todo FBPplan ??
-#   fbp2!(image, sino, plan) # todo
-    tmp, _ = fbp2(plan, sino)
+    ig = ImageGeom(; dims=(nx, ny), deltas, offsets)
+    plan = plan_fbp(sg, ig ; kwargs...)
+#   fbp!(image, sino, plan) # todo
+    tmp, _ = fbp(plan, sino)
     copyto!(image, tmp)
     return image
 end

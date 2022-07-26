@@ -21,12 +21,12 @@ Moj() = Moj{AbstractMatrix{<:Real},AbstractMatrix{<:Real}}(zeros(Real,1,1),zeros
 struct NormalPlan{
     S <: SinoGeom,
     I <: ImageGeom,
-    W <: Window,
+    H <: AbstractVector{<:RealU},
     P <: AbstractVector{<:Real},
 } <: FBPplan
     sg::S
     ig::I
-    window::W
+    filter::H # frequency response Hk of apodized ramp filter, length npad
     parker_weight::P
 #   moj::Moj # todo
 
@@ -88,10 +88,11 @@ call `fbp` with the plan
 - `ig::ImageGeom`
 
 # options
-- `how::Symbol`             how to reconstruct
-    * `:normal`             default
-    * `:mojette`            use mojette rebinning and Gtomo2_table
+- `how::Symbol`  how to reconstruct
+    * `:normal`  default
+    * `:mojette` use mojette rebinning and Gtomo2_table
 - `window::Window` e.g. `Window(Hamming(0.5))`; default `Window()`
+= `npad::Int` # of radial bins after padding; default `nextpow(2, sg.nb + 1)`
 -`T::DataType`              type of sino elements (default: `Float32`)
 
 # out
@@ -99,16 +100,23 @@ call `fbp` with the plan
 
 """
 function plan_fbp(
-    sg::SinoGeom,
-    ig::ImageGeom ;
+    sg::SinoGeom = SinoPar(),
+    ig::ImageGeom = ImageGeom() ;
     how::Symbol = :normal,
     window::Window = Window(),
+    npad::Int = nextpow(2, sg.nb + 1),
+    decon1::Bool = true,
     T::DataType = Float32,
 #   nthread::Int = Threads.nthreads()
 )
 
+    weight = parker_weight(sg)
+    filter = fbp_filter(sg ; npad, window, decon1)
+
     if how === :normal
-        plan = plan_fbp_normal(sg, ig ; window, T)
+        return NormalPlan(sg, ig, filter, weight)
+#       plan = plan_fbp_normal(sg, ig, filter)
+#       plan = plan_fbp_normal(sg, ig, npad, window, filter ; T)
 #   elseif how === :dsc
 #       plan = plan_fbp_dsc(sg, ig, how, window)
 #   elseif how === :df
@@ -121,20 +129,25 @@ function plan_fbp(
         throw("unknown type: $how")
     end
 
-    return plan
+#   return plan
 end
 
 
+#=
 function plan_fbp_normal(
     sg::SinoGeom,
-    ig::ImageGeom ;
-    window::Window = Window(),
-    T::DataType = Float32,
+    ig::ImageGeom,
+#   npad::Int,
+#   window::Window,
+    filter::AbstractVector{<:RealU},
+#   T::DataType = Float32,
 )
     weight = parker_weight(sg)
 
-    return NormalPlan(sg, ig, window, weight)
+#   return NormalPlan(sg, ig, window, weight, filter, npad)
+    return NormalPlan(sg, ig, weight, filter)
 end
+=#
 
 
 function plan_fbp_normal(
@@ -160,7 +173,6 @@ end
 
 """
     image, sino_filt = fbp(plan, sino)
-    image, sino_filt = fbp(sg::SinoGeom, ig::ImageGeom, sino, parker_weight, window)
 
 Filtered back-projection (FBP) reconstruction,
 returning image and filtered sinogram.
@@ -178,24 +190,25 @@ function fbp(
     plan::NormalPlan{<:SinoGeom},
     sino::AbstractMatrix{<:Number},
 )
-    return fbp(plan.sg, plan.ig, sino, plan.parker_weight, plan.window)
+    return fbp(plan.sg, plan.ig, sino, plan.filter, plan.parker_weight)
 end
 
 
+# FBP for geometries that do not need angle-dependent filters (all but Moj)
 function fbp(
     sg::SinoGeom,
     ig::ImageGeom,
     sino::AbstractMatrix{<:Number},
+    filter::AbstractVector{<:Number},
     parker_weight::AbstractVector{<:Number} = ones(size(sino,2)),
-    window::Window = Window(),
 )
     sg.dim != size(sino) && throw("bad sino size")
+    length(parker_weight) == sg.na || throw("bad parker size")
 
     sino_filt = sino .* parker_weight'
-    sino_filt,_,_,_ = fbp_sino_filter(sg, sino_filt ; window)
+    sino_filt = fbp_sino_filter(sino_filt, filter) # todo: extra?
 
-    #image = fbp_back(sg, ig, sino_filt, do_r_mask=true)
-    image = fbp_back(sg, ig, sino_filt)
+    image = fbp_back(sg, ig, sino_filt) # todo: do_r_mask?
     return image, sino_filt
 end
 
