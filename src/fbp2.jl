@@ -193,6 +193,14 @@ function fbp(
     return fbp(plan.sg, plan.ig, sino, plan.filter, plan.parker_weight)
 end
 
+function fbp(
+    plan::NormalPlan{<:SinoFan},
+    sino::AbstractMatrix{<:Number},
+)
+    sino = sino .* fbp_sino_weight(plan.sg) # fan-beam weighting
+    return fbp(plan.sg, plan.ig, sino, plan.filter, plan.parker_weight)
+end
+
 
 # 3D stack of sinograms
 function fbp(
