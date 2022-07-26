@@ -16,18 +16,43 @@ in
 - `N::Int` : # of samples (must be even)
 
 out
-- `h::Vector{<:Number}` : samples of band-limited ramp filter
+- `h::Vector{<:RealU}` : samples of band-limited ramp filter
 - `n::UnitRange{Int64}` : -(N÷2):(N÷2-1)
-
 """
-fbp_ramp(sg::SinoPar, N::Int) = ramp_flat(N, sg.d)
-fbp_ramp(sg::SinoFanFlat, N::Int) = ramp_flat(N, sg.d)
-fbp_ramp(sg::SinoFanArc, N::Int) = ramp_arc(N, sg.d, sg.dsd)
+function fbp_ramp(sg::SinoPar{Td}, N::Int) where Td
+    R = _ramp_type(Td)
+    T = Tuple{Vector{R}, UnitRange{Int64}}
+    return ramp_flat(N, sg.d)::T
+end
 
+# for Mojette, `dr` varies with projection angle
+function fbp_ramp(sg::SinoMoj{Td}, N::Int ; dr::Td = sg.d) where Td
+    R = _ramp_type(Td)
+    T = Tuple{Vector{R}, UnitRange{Int64}}
+    return ramp_flat(N, dr)::T
+end
+
+function fbp_ramp(sg::SinoFanFlat{Td}, N::Int) where Td
+    R = _ramp_type(Td)
+    T = Tuple{Vector{R}, UnitRange{Int64}}
+    return ramp_flat(N, sg.d)::T
+end
+
+function fbp_ramp(sg::SinoFanArc{Td}, N::Int) where Td
+    R = _ramp_type(Td)
+    T = Tuple{Vector{R}, UnitRange{Int64}}
+   return ramp_arc(N, sg.d, sg.dsd)::T
+end
+
+function _ramp_type(arg...)
+    R = promote_type(arg...)
+    R = promote_type(R, eltype(1f0 * oneunit(R))) # at least Float32
+    R = eltype(1 / oneunit(R)^2)
+    return R
+end
 
 function _ramp_arc(n::Int, ds::RealU, dsd::RealU)
-    R = promote_type(eltype(ds), eltype(dsd), eltype(1f0 * oneunit(ds))) # at least Float32
-    R = eltype(1 / oneunit(R)^2)
+    R = _ramp_type(eltype(ds), eltype(dsd))
     h = n == 0 ? 0.25 / abs2(ds) :
         isodd(n) ? -1 / abs2(π * dsd * sin(n * ds / dsd)) :
         zero(1 / abs2(ds))
@@ -36,8 +61,7 @@ end
 
 
 function _ramp_flat(n::Int, ds::RealU)
-    R = promote_type(eltype(ds), eltype(1f0 * oneunit(ds))) # at least Float32
-    R = eltype(1 / oneunit(R)^2)
+    R = _ramp_type(eltype(ds))
     h = n == 0 ? 0.25 / abs2(ds) :
         isodd(n) ? -1 / abs2(π * n * ds) :
         zero(1 / abs2(ds))
