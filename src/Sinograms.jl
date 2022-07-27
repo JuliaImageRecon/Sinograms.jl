@@ -34,6 +34,7 @@ If no Unitful package loaded, assume `angle` is in degrees and convert to radian
 #to_radians(angle::Real) = deg2rad(Float32(angle))
 to_radians(aa::AbstractArray{T}) where {T <: AbstractFloat} = aa * T(deg2rad(1))
 #to_radians(aa::AbstractArray{T}) where {T <: Real} = aa * deg2rad(1f0) # Float32
+_unit_precision(x::T) where {T <: Number} = T
 
 
 # support Plots iff user has loaded that package
