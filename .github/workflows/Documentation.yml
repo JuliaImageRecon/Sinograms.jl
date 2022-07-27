@@ -2,7 +2,11 @@ name: Documentation
 
 on:
   pull_request:
+    paths-ignore:
+      - 'README.md'
   push:
+    paths-ignore:
+      - 'README.md'
     branches:
       - 'main'
       - 'release-'
@@ -10,18 +14,13 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        julia-version: ["1"]
-        julia-arch: [x86]
-        os: [ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
         with:
-          version: ${{ matrix.julia-version }}
-      - name: Cache artifacts
+          version: '1'
+      - name: CacheArtifacts
         uses: actions/cache@v1
         env:
           cache-name: cache-artifacts
@@ -32,13 +31,17 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
-      - name: Install dependencies
+      - name: InstallDependencies
         run: |
           julia --project=docs/ -e '
-          using Pkg
-          Pkg.develop(PackageSpec(path=pwd()))
-          Pkg.instantiate()'
+            ENV["JULIA_PKG_SERVER"] = ""
+            using Pkg
+            Pkg.develop(PackageSpec(path=pwd()))
+            Pkg.instantiate()'
       - name: BuildAndDeploy
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+# https://juliadocs.github.io/Documenter.jl/stable/man/hosting/#Authentication:-GITHUB_TOKEN
+#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ssh: ${{ secrets.DOCUMENTER_KEY }}
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
         run: julia --project=docs/ docs/make.jl
