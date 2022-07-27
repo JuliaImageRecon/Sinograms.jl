@@ -22,7 +22,7 @@ using Test: @test, @testset, @test_throws, @inferred
     sino = zwart_powell.(r, ϕ')
 
     p2 = plot()
-	for (i,θ) in enumerate(ϕ)
+    for (i,θ) in enumerate(ϕ)
         plot!(r, sino[:,i], label="ϕ=$θ")
     end
     plot(p1, p2)

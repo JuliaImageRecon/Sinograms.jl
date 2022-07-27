@@ -15,3 +15,5 @@ Convert `Unitful` quantity to radians.
 #    aa * ((one(Float32)*rad) / oneunit(eltype(aa)))
 to_radians(aa::AbstractArray{<: Unitful.Quantity{T}}) where {T <: AbstractFloat} =
     aa * ((one(T)*rad) / oneunit(eltype(aa)))
+
+_unit_precision(x::Unitful.Quantity{T}) where {T <: Number} = "Unit{$T}"

@@ -766,7 +766,7 @@ function Base.show(io::IO, ::MIME"text/plain", sg::SinoGeom)
     println(io, "$(typeof(sg)) :")
     for f in fieldnames(typeof(sg))
         p = getproperty(sg, f)
-        t = typeof(p)
+        t = (p isa Number) ? _unit_precision(p) : typeof(p)
         println(io, " ", f, "::", t, " ", p)
     end
 end
