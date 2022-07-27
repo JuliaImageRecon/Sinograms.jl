@@ -8,12 +8,12 @@ using LazyGrids: ndgrid_array
 
 # setup matlab to use MIRT
 if !@isdefined(irtdir)
-	ENV["MATLAB_ROOT"] = "/Applications/freeware/matlab"
+    ENV["MATLAB_ROOT"] = "/Applications/freeware/matlab"
 
-	irtdir = "/Users/fessler/src/matlab/alg"
-	tmp = "addpath('$irtdir')"
-	eval_string(tmp)
-	mat"setup"
+    irtdir = "/Users/fessler/src/matlab/alg"
+    tmp = "addpath('$irtdir')"
+    eval_string(tmp)
+    mat"setup"
 end
 
 
