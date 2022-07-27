@@ -173,6 +173,9 @@ except that `dfs=Inf`.
 
 sg = SinoFanFlat( ; nb=64, na=30,
     d=20mm, offset=0.25, dsd=900mm, dod=400mm)
+
+
+# Here is its sampling plot
 sino_plot_rays(sg; ylims=(-50,400), yticks=(0:180:360), widen=true,
     title="Fan-beam for flat detector")
 
