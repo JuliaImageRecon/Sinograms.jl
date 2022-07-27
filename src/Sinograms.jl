@@ -7,6 +7,7 @@ using Requires: @require
 
 const RealU = Number # Real or Unitful
 
+include("fbp/reale.jl")
 include("fbp/window.jl")
 
 include("fbp2/sino-geom.jl")

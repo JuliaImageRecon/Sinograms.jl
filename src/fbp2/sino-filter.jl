@@ -3,13 +3,7 @@
 export fbp_filter, fbp_sino_filter
 
 using FFTW
-#using Sinograms: SinoGeom, SinoPar, Window, fbp_ramp, fbp_window
-
-
-function _reale(x)
-    (x ≈ real(x)) || @warn("x not real $(maximum(abs, x-real(x))/maximum(abs,x))")
-    return real(x)
-end
+#using Sinograms: SinoGeom, SinoPar, Window, fbp_ramp, fbp_window, _reale
 
 
 """
