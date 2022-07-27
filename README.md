@@ -12,17 +12,21 @@ https://github.com/JeffFessler/Sinograms.jl
 [![code-style][code-blue-img]][code-blue-url]
 <img src="docs/src/assets/logo.png" alt="logo" width="150"/>
 
-Associated with the
-[Michigan Image Reconstruction Toolbox (MIRT)](https://github.com/JeffFessler/MIRT.jl)
+Associated with
+[JuliaImageRecon](https://github.com/JuliaImageRecon)
+and the
+[Michigan Image Reconstruction Toolbox (MIRT)](https://github.com/JeffFessler/MIRT.jl).
 
-Currently under development.
+See the examples under the blue "docs" badges above.
 
-Tested with Julia ≥ 1.6.
+Tested with Julia ≥ 1.7.
 
 
 ### Related packages in Julia
 
 * https://github.com/JuliaImages/ImageReconstruction.jl (`radon`, `iradon`)
+* https://github.com/JeffFessler/SPECTrecon.jl
+
 
 ### Related packages in other languages
 

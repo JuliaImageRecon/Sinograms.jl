@@ -1,6 +1,7 @@
 execute = isempty(ARGS) || ARGS[1] == "run"
 
-using Sinograms
+org, reps = :JeffFessler, :Sinograms
+eval(:(using $reps))
 using Documenter
 using Literate
 
@@ -13,7 +14,7 @@ lit = joinpath(@__DIR__, "lit")
 src = joinpath(@__DIR__, "src")
 gen = joinpath(@__DIR__, "src/generated")
 
-base = "JeffFessler/Sinograms.jl"
+base = "$org/$reps.jl"
 repo_root_url =
     "https://github.com/$base/blob/main/docs/lit/examples"
 nbviewer_root_url =
@@ -22,7 +23,8 @@ binder_root_url =
     "https://mybinder.org/v2/gh/$base/gh-pages?filepath=dev/generated/examples"
 
 
-DocMeta.setdocmeta!(Sinograms, :DocTestSetup, :(using Sinograms); recursive=true)
+repo = eval(:($reps))
+DocMeta.setdocmeta!(repo, :DocTestSetup, :(using $reps); recursive=true)
 
 for (root, _, files) in walkdir(lit), file in files
     splitext(file)[2] == ".jl" || continue # process .jl files only
@@ -45,14 +47,14 @@ isci = get(ENV, "CI", nothing) == "true"
 format = Documenter.HTML(;
     prettyurls = isci,
     edit_link = "main",
-    canonical = "https://JeffFessler.github.io/Sinograms.jl/stable/",
-#   assets = String[],
+    canonical = "https://$org.github.io/$repo.jl/stable/",
+    assets = ["assets/custom.css"],
 )
 
 makedocs(;
-    modules = [Sinograms],
+    modules = [repo],
     authors = "Jeff Fessler and contributors",
-    sitename = "Sinograms.jl",
+    sitename = "$repo.jl",
     format,
     pages = [
         "Home" => "index.md",
@@ -63,14 +65,12 @@ makedocs(;
 
 if isci
     deploydocs(;
-        repo = "github.com/JeffFessler/Sinograms.jl.git",
+        repo = "github.com/$base",
         devbranch = "main",
         devurl = "dev",
         versions = ["stable" => "v^", "dev" => "dev"],
         forcepush = true,
 #       push_preview = true,
-        # see https://JuliaImageRecon.github.io/ImageGeoms.jl/previews/PR##
+        # see https://$org.github.io/$repo.jl/previews/PR##
     )
-else
-    @warn "may need to: rm -r src/generated/"
 end
