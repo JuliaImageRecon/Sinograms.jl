@@ -26,7 +26,11 @@ This page was generated from a single Julia file:
 
 # Packages needed here.
 
-using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat, rays
+using Unitful: mm, °
+using UnitfulRecipes
+using Plots # must precede 'using Sinograms' for sino_plot_rays to work
+using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat, SinoFan
+using Sinograms: sino_plot_rays
 using MIRTjim: jim, prompt
 using InteractiveUtils: versioninfo
 
@@ -72,25 +76,114 @@ In this package,
 is the type that describes
 a parallel-beam sinogram geometry.
 
-The built-in defaults are helpful.
+The built-in defaults provide helpful reminders about the usage.
 =#
 
 SinoPar()
 
+#=
+This package supports units via the
+[Unitful.jl](https://github.com/PainterQubits/Unitful.jl)
+and using units is recommended
+(but not required).
 
-## todo: more details
+Here is an example of how to specify
+a parallel-beam geometry.
+Everything is a named keyword argument with sensible default values.
+
+* `orbit` and `orbit_start` must both be unitless (degrees)
+  or have the same units (e.g., degrees or radians).
+* detector spacing `d` and `strip_width`
+  must both be unitless or have the same units (e.g., mm).
+* The projection angles ``ϕ`` are equally space and given by
+  `orbit_start + (0:(nb-1))/nb * orbit`.
+=#
+
+sg = SinoPar( ;
+    nb = 64, # number of radial samples ("bins")
+    na = 30, # number of angular samples
+    d = 2mm, # detector spacing
+    offset = 0.25, # quarter detector offset (unitless)
+    orbit = 180, # angular range (in degrees)
+    orbit_start = 0, # starting angle (in degrees)
+    strip_width = 2mm, # detector width
+)
+
+#=
+The struct `sg` has numerous useful properties;
+type `?SinoGeom` to see the full list.
+
+For example,
+to access the angular samples in degrees
+type `sg.ad`
+=#
+
+sg.ad
 
 
+# The following function visualizes the sampling pattern.
+
+sino_plot_rays(sg; ylims=(0,180), yticks=(0:90:180), widen=true, title="Parallel")
+
+#
+prompt()
+
+
+#=
 ## Fan-beam CT with an arc detector (3rd generation CT)
 
-SinoFanArc()
+For a fan-beam geometry,
+the arguments are the same as for `SinoPar`
+with the addition of specifying:
+* `dsd` distance from source to detector
+* `dod` distance from origin (isocenter) to detector
+* `dfs` distance from focal point of detector to source
+  (0 for a 3rd gen arc detector, and `Inf` for a flat detector)
+* `source_offset` for misaligned systems
+   where the ray from the source to the detector center
+   does not intersect the isocenter.
+   Not fully supported; submit an issue if you need this feature.
+
+Here is an example that corresponds to a GE Lightspeed CT system.
+These numbers are published in
+[IEEE T-MI Oct. 2006, p.1272-1283](http://doi.org/10.1109/TMI.2006.882141).
+=#
+
+sg = SinoFanArc( ; nb=888, na=984,
+    d=1.0239mm, offset=1.25, dsd=949.075mm, dod=408.075mm)
 
 
+# Here is a smaller example for plotting the rays.
+
+sg = SinoFanArc( ; nb=64, na=30,
+    d=20mm, offset=0.25, dsd=900mm, dod=400mm)
+sino_plot_rays(sg; ylims=(-50,400), yticks=(0:180:360), widen=true,
+    title="Fan-beam for arc detector")
+
+#
+prompt()
+
+
+#=
 ## Fan-beam CT with a flat detector
 
-SinoFanFlat()
+This geometry is the same as the arc detector
+except that `dfs=Inf`.
+=#
+
+sg = SinoFanFlat( ; nb=64, na=30,
+    d=20mm, offset=0.25, dsd=900mm, dod=400mm)
+sino_plot_rays(sg; ylims=(-50,400), yticks=(0:180:360), widen=true,
+    title="Fan-beam for flat detector")
+
+#
+prompt()
 
 
+#=
 ## Mojette sampling
+This is a specialized sampling geometry
+that is currently incompletely supported.
+=#
 
 SinoMoj()
