@@ -352,7 +352,7 @@ end
 
 ```jldoctest
 julia> SinoFanFlat()
-SinoFanFlat{Float64, Float32} :
+SinoFanFlat{Float32, Float32} :
  nb::Int64 128
  na::Int64 200
  d::Float32 1.0
