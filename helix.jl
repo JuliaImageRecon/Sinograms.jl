@@ -15,7 +15,7 @@ function rebin_helix_do(proj, mask2, zslice, dz, dx, nx,
         return "only arc and flat done" ##Fail statement
     end
 
-    na1 = na/(orbit*360); 
+    na1 = na/(orbit*360)
     if abs(floor(int, na1) - na1) > 1e-4
         return "bad na/orbit" ##Fail statement
     end
@@ -86,7 +86,7 @@ function rebin_helix_do(proj, mask2, zslice, dz, dx, nx,
                 it0 = min(it0, nt-2)
                 frac = itr - it0
     
-                scale = rebin_helix_scale(dfs, dsd, ss, tt);
+                scale = rebin_helix_scale(dfs, dsd, ss, tt)
     
                 tmp = collect(1:ns) .+ it0*ns .+ (ia1-1)*ns*nt
                 tmp0 = proj[tmp]
