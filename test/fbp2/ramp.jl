@@ -1,12 +1,9 @@
 # test/fbp2/ramp.jl
 
-
 using Sinograms: SinoPar, SinoMoj, SinoFanFlat, SinoFanArc, fbp_ramp
 import Sinograms as SG
 using Unitful: mm, °
-using Test: @test, @testset, @test_throws, @inferred
-
-include("../helper.jl")
+using Test: @test, @testset, @inferred
 
 
 @testset "ramp-unit" begin
@@ -47,7 +44,7 @@ end
                 orbit_ in (90, 90f0, 90.0),
                 ou in (1, 1°)
 
-            sg = shape( ; d = d_*du, orbit=orbit_*ou)
+            sg = shape( ; d = d_ * du, orbit = orbit_ * ou)
             h, n = @inferred fbp_ramp(sg, N)
             @test h isa Vector
             @test length(h) == N

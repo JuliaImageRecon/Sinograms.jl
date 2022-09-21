@@ -17,7 +17,7 @@ function fbp_back(
 
     sg.dim == size(sino) || throw("sino size")
 
-    is_arc = sg.dfs == 0 ? true : isinf(sg.dfs) ? false : throw("bad dfs")
+    is_arc = iszero(sg.dfs) ? true : isinf(sg.dfs) ? false : throw("bad dfs")
 
     # type inference help:
     Toffset = Float32 # eltype(sg.offset)
@@ -52,6 +52,8 @@ function fbp_back_fan(
     ia_skip::Int,
 ) where {Td <: RealU, Toffset <: Real, Ts <: Number, To <: RealU}
 
+    T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
+
     nb, na = size(sino)
 
     # trick: extra zero column saves linear interpolation indexing within loop!
@@ -69,7 +71,7 @@ function fbp_back_fan(
 
     wb = Toffset((nb+1)/2 + offset)
 
-    img = 0
+    img = zero(T)
 
     warned = false
     for ia in 1:ia_skip:na
@@ -119,6 +121,5 @@ function fbp_back_fan(
     end
 
     img .*= (π * ia_skip / na)
-    T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
     return embed(img, mask)::Matrix{T}
 end

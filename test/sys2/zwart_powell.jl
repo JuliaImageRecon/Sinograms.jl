@@ -10,8 +10,8 @@ using Test: @test, @testset, @test_throws, @inferred
     myfun(r, ϕ) = zwart_powell.(r, ϕ')
     sino = @inferred myfun(r, ϕ)
     @test sino isa Matrix
-    @test zwart_powell(0, 0) == 0.75
-    @test zwart_powell(0, π/4) ≈ 1/√2
+    @test (@inferred zwart_powell(0, 0)) == 0.75
+    @test (@inferred zwart_powell(0, π/4)) ≈ 1/√2
 
 #=
     using Plots

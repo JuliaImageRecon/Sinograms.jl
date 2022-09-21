@@ -2,32 +2,14 @@
 test/fbp2/sino-geom.jl
 =#
 
-include("../helper.jl")
-
 using Sinograms: RealU
 using Sinograms: SinoGeom, SinoParallel, SinoFan
 using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat
-#using Sinograms #: sino_geom, sino_geom_par, sino_geom_fan, sino_geom_moj
 using Sinograms: ones, zeros, angles, rays, downsample, oversample # values
 using Sinograms: sino_w, sino_s
 import Sinograms as SG
-# todo
-
 using Unitful: mm, °
 using Test: @test, @testset, @test_throws, @inferred
-
-#=
-sg = SinoPar(; d=2mm, orbit=180°)
-@inferred sino_w(sg)
-@inferred sino_s(sg)
-sg = SinoFanFlat(; d=2mm, orbit=180°)
-    @inferred SG.sino_geom_gamma(sg)
-sg = SinoMoj(; d=2mm, orbit=180°)
-@inferred rays(sg)
-sg = SinoFanFlat(;d=2.0mm)
-@inferred rays(sg)
-todo
-=#
 
 
 function values(sg::S) where {S <: SinoGeom}
@@ -84,23 +66,6 @@ end
 end
 
 
-# sino_geom.jl
-
-#ig = image_geom(nx=512, fov=500).down(down)
-#ig = image_geom(nx=ig.nx, dx=ig.dx, mask=ig.circ())
-
-sg_list = (SinoPar, SinoMoj, SinoFanArc, SinoFanFlat)
-
-#=
-sg_list = (
-    sino_geom(:par ; down=down, d=4),
-    sino_geom(:ge1 ; down=down, orbit_start=20, dfs=0), # arc
-    sino_geom(:ge1 ; down=down, orbit_start=20, dfs=Inf), # flat
-    sino_geom(:moj ; down=down, d=4*sqrt(2)),
-    sino_geom(:fan ; down=down, orbit=:short),
-)
-=#
-
 function _test_prop(sg; d = 2mm, orbit = 180.0°)
     sg.ad[2]
     sg.rfov
@@ -128,7 +93,7 @@ function _test_prop(sg; d = 2mm, orbit = 180.0°)
     @test (@inferred angles(sg)) isa AbstractVector
     rs = @inferred rays(sg)
     @test rs isa Tuple
-    @test (@NOTinferred propertynames(sg)) isa NTuple
+    @test (@inferred propertynames(sg)) isa NTuple
 
     @inferred SG.sino_geom_gamma(sg)
 
@@ -159,6 +124,9 @@ function _test_prop(sg; d = 2mm, orbit = 180.0°)
     true
 end
 
+
+sg_list = (SinoPar, SinoMoj, SinoFanArc, SinoFanFlat)
+
 @testset "orbit-start" begin
     down = 8
     d, orbit = 2mm, 180.0°
@@ -172,6 +140,9 @@ end
 
 #=
     sg.plot_grid(plot)
+
+ig = image_geom(nx=512, fov=500).down(down)
+ig = image_geom(nx=ig.nx, dx=ig.dx, mask=ig.circ())
 
 nsg = length(sg_list)
 pl = Array{Any}(undef, nsg)

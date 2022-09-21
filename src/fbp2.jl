@@ -18,7 +18,7 @@ Moj() = Moj{AbstractMatrix{<:Real},AbstractMatrix{<:Real}}(zeros(Real,1,1),zeros
 =#
 
 
-struct NormalPlan{
+struct FBPNormalPlan{
     S <: SinoGeom,
     I <: ImageGeom,
     H <: AbstractVector{<:RealU},
@@ -31,14 +31,14 @@ struct NormalPlan{
 #   moj::Moj # todo
 
 #=
-    function NormalPlan(
+    function FBPNormalPlan(
         sg::S,
         ig::I,
         window::W,
         parker_weight::P,
     ) where {S <: SinoGeom, I <: ImageGeom,
         W <: Window, P <: AbstractMatrix{<:Real}}
-        return NormalPlan{S,I,W,P}(sg, ig, window, parker_weight) #, Moj())
+        return FBPNormalPlan{S,I,W,P}(sg, ig, window, parker_weight) #, Moj())
     end
 =#
 end
@@ -77,26 +77,27 @@ for parallel-beam & fan-beam cases,
 with either flat or arc detector for fan-beam case.
 
 To use this, you first call it with the sinogram and image geometry.
-The routine returns the initialized "plan".
+The routine returns the initialized `plan`.
 Thereafter, to to perform FBP reconstruction,
-call `fbp` with the plan
+call `fbp` with the `plan`
 (perhaps numerous times for the same geometry).
 
 
 # in
 - `sg::SinoGeom`
-- `ig::ImageGeom` # only reconstruct pixels within `ig.mask`.
+- `ig::ImageGeom` only reconstruct pixels within `ig.mask`.
 
 # options
-- `how::Symbol`  how to reconstruct
-    * `:normal`  default
+- `how::Symbol` how to reconstruct
+    * `:normal` default
     * `:mojette` use mojette rebinning and Gtomo2_table
-- `window::Window` e.g. `Window(Hamming(0.5))`; default `Window()`
-= `npad::Int` # of radial bins after padding; default `nextpow(2, sg.nb + 1)`
--`T::DataType`              type of sino elements (default: `Float32`)
+- `window::Window` e.g., `Window(Hamming(0.5))`; default `Window()`
+- `npad::Int` # of radial bins after padding; default `nextpow(2, sg.nb + 1)`
+- `decon1::Bool` deconvolve interpolator effect? (default `true`)
+-`T::DataType` type of sino elements (default `Float32`)
 
 # out
-- `plan::FBPplan`            initialized plan
+- `plan::FBPplan` initialized plan
 
 """
 function plan_fbp(
@@ -107,14 +108,14 @@ function plan_fbp(
     npad::Int = nextpow(2, sg.nb + 1),
     decon1::Bool = true,
     T::DataType = Float32,
-#   nthread::Int = Threads.nthreads()
+#   nthread::Int = Threads.nthreads(),
 )
 
     weight = parker_weight(sg)
     filter = fbp_filter(sg ; npad, window, decon1)
 
 #   if how === :normal
-        return NormalPlan(sg, ig, filter, weight)
+        return FBPNormalPlan(sg, ig, filter, weight)
 #       plan = plan_fbp_normal(sg, ig, filter)
 #       plan = plan_fbp_normal(sg, ig, npad, window, filter ; T)
 #   elseif how === :dsc
@@ -144,8 +145,8 @@ function plan_fbp_normal(
 )
     weight = parker_weight(sg)
 
-#   return NormalPlan(sg, ig, window, weight, filter, npad)
-    return NormalPlan(sg, ig, weight, filter)
+#   return FBPNormalPlan(sg, ig, window, weight, filter, npad)
+    return FBPNormalPlan(sg, ig, weight, filter)
 end
 =#
 
@@ -168,7 +169,7 @@ function plan_fbp_normal(
     end
 
     plan.moj.H = fbp2_make_sino_filter_moj(sg.nb, sg.na, sg.dx, sg.orbit, sg.orbit_start, window)
-    return NormalPlan{SinoMoj}(sg, ig, window, weight, moj)
+    return FBPNormalPlan{SinoMoj}(sg, ig, window, weight, moj)
 end
 =#
 
@@ -189,28 +190,36 @@ out
 
 """
 function fbp(
-    plan::NormalPlan{<:SinoGeom},
+    plan::FBPNormalPlan{<:SinoPar},
     sino::AbstractMatrix{<:Number},
 )
     return fbp(plan.sg, plan.ig, sino, plan.filter, plan.parker_weight)
 end
 
 function fbp(
-    plan::NormalPlan{<:SinoFan},
-    sino::AbstractMatrix{<:Number},
-)
+    plan::FBPNormalPlan{<:SinoFan},
+    sino::AbstractMatrix{Ts},
+) where {Ts <: Number}
     sino = sino .* fbp_sino_weight(plan.sg) # fan-beam weighting
-    return fbp(plan.sg, plan.ig, sino, plan.filter, plan.parker_weight)
+    Th = eltype(plan.filter)
+    Tp = eltype(plan.parker_weight)
+    To = eltype(oneunit(Ts) * oneunit(Th) * oneunit(Tp))
+    out = fbp(plan.sg, plan.ig, sino, plan.filter, plan.parker_weight)
+    return out[1]::Matrix{To}, out[2]::Matrix{To}
 end
 
 
 # 3D stack of sinograms
 function fbp(
-    plan::NormalPlan{<:SinoGeom},
-    aa::AbstractArray{<:Number},
-)
+    plan::FBPNormalPlan{<:SinoGeom},
+    aa::AbstractArray{Ts, D},
+) where {Ts <: Number, D}
+    Th = eltype(plan.filter)
+    Tp = eltype(plan.parker_weight)
+    To = eltype(oneunit(Ts) * oneunit(Th) * oneunit(Tp))
     fun(sino2) = fbp(plan, sino2)[1] # discard sino_filt!
-    return mapslices(fun, aa, dims = [1,2])
+    out = mapslices(fun, aa, dims = [1,2])
+    return out::Array{To,D}
 end
 
 
@@ -235,7 +244,7 @@ end
 
 #=
 function fbp(
-    plan::NormalPlan{<:SinoFan},
+    plan::FBPNormalPlan{<:SinoFan},
     sino::AbstractMatrix{<:Number},
 )
 
@@ -245,7 +254,7 @@ function fbp(
 
 #=
 function fbp(
-    plan::NormalPlan{<:SinoMoj}, # todo
+    plan::FBPNormalPlan{<:SinoMoj}, # todo
     sino::AbstractMatrix{<:Number},
 )
 
