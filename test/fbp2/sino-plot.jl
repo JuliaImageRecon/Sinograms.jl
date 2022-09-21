@@ -2,19 +2,25 @@
 
 # include("helper.jl")
 
-using Plots: gui
+using Plots: plot, gui, Plot
+using Unitful: mm #, °
+using UnitfulRecipes
 #using MIRTjim: prompt
-using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat, sino_plot_rays
+using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat
+using Sinograms: sino_plot_rays, sino_geom_plot!
+using Test: @test, @testset, @inferred
 
-#using Unitful: mm, °
-using Test: @test, @testset, @test_throws, @inferred
 
-
-function _test_sino_plot(geo ; nb::Int = 60, na::Int = 40)
+function _test_sino_plot_rays(geo ; nb::Int = 60, na::Int = 40)
     d, orbit = 2, 180
 #   d, orbit = 2mm, 180.0°
-    @show sg = geo(; d, orbit, nb, na)
-    sino_plot_rays(sg)
+    sg = geo(; d, orbit, nb, na)
+    p = sino_plot_rays(sg)
+    @test p isa Plot
+
+    plot()
+    p = sino_geom_plot!(sg)
+    @test p isa Plot
     true
 end
 
@@ -22,7 +28,7 @@ end
 #   sg = SinoFan(Val(:ge1))
     sg_list = (SinoPar, SinoFanArc, SinoFanFlat, SinoMoj)
     for geo in sg_list
-        @test _test_sino_plot(geo)
+        @test _test_sino_plot_rays(geo)
         gui()
 #       prompt()
     end
