@@ -91,7 +91,7 @@ call `fbp` with the `plan`
 - `how::Symbol` how to reconstruct
     * `:normal` default
     * `:mojette` use mojette rebinning and Gtomo2_table
-- `window::Window` e.g., `Window(Hamming(0.5))`; default `Window()`
+- `window::Window` e.g., `Window(Hamming(), 0.8)`; default `Window()`
 - `npad::Int` # of radial bins after padding; default `nextpow(2, sg.nb + 1)`
 - `decon1::Bool` deconvolve interpolator effect? (default `true`)
 -`T::DataType` type of sino elements (default `Float32`)
@@ -172,6 +172,15 @@ function plan_fbp_normal(
     return FBPNormalPlan{SinoMoj}(sg, ig, window, weight, moj)
 end
 =#
+
+
+function Base.show(io::IO, ::MIME"text/plain", p::FBPNormalPlan{S,I,H,P}) where {S,I,H,P}
+    println(io, "FBPNormalPlan{S,I,H,P} with")
+    println(io, " S = $S")
+    println(io, " I = $I")
+    println(io, " H = $H with extrema $(extrema(p.filter))")
+    println(io, " P = $P with extrema $(extrema(p.parker_weight))")
+end
 
 
 """
