@@ -30,7 +30,7 @@ using Unitful: mm, °
 using UnitfulRecipes
 using Plots # must precede 'using Sinograms' for sino_plot_rays to work
 using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat, SinoFan
-using Sinograms: sino_plot_rays
+using Sinograms: sino_plot_rays, rays
 using MIRTjim: jim, prompt
 using InteractiveUtils: versioninfo
 
@@ -189,4 +189,37 @@ This is a specialized sampling geometry
 that is currently incompletely supported.
 =#
 
-SinoMoj()
+sg = SinoMoj( ; nb=60, na=30)
+
+# Here is its sampling plot
+sino_plot_rays(sg; ylims=(0,180), yticks=(0:90:180), widen=true,
+    title="Mojette sampling")
+
+#=
+Here is a diagram that illustrates how the radial spacing
+is a function of the projection view angle for the Mojette geometry.
+The key aspect here
+is that in each image row
+the line intersection lengths are identical.
+=#
+
+plot(aspect_ratio=1, xlims=(-1,1) .* 3.5, ylims = (-1,1) .* 2.5,
+    xlabel="x", ylabel="x", title = "Mojette line integrals")
+default(label="")
+for y in -2:2
+    plot!([-3, 3], [y, y], color=:black)
+end
+for x in -3:3
+    plot!([x, x], [-2, 2], color=:black)
+end
+plot_ray(r, ϕ) = plot!(
+    r*cos(ϕ) .+ [-1, 1] * 4 * sin(ϕ),
+    r*sin(ϕ) .+ [1, -1] * 4 * cos(ϕ),
+    color = :blue,
+)
+ia = 4 # pick an angle
+r = rays(sg)[1][:,ia] # radial samples
+r = r[abs.(r) .< 3]
+ϕ = rays(sg)[2][1,ia] # projection angle
+plot_ray.(r, ϕ)
+gui()

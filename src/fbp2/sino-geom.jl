@@ -847,8 +847,25 @@ Base.getproperty(sg::SinoGeom, s::Symbol) =
         haskey(sino_geom_fun0, s) ? sino_geom_fun0[s](sg) :
         getfield(sg, s)
 
-Base.propertynames(sg::SinoGeom) =
-    (fieldnames(typeof(sg))..., keys(sino_geom_fun0)...)::NTuple{N,Symbol} where N
+_propertynames(sg::SinoGeom) =
+    (fieldnames(typeof(sg))..., keys(sino_geom_fun0)...)
+
+function Base.propertynames(sg::SinoParallel)::NTuple{31,Symbol}
+    return _propertynames(sg)
+end
+
+function Base.propertynames(sg::SinoFan)::NTuple{35,Symbol}
+    return _propertynames(sg)
+end
+
+#=
+# Type inference is impossible here
+# because different sinogram geometries have different properties.
+function Base.propertynames(sg::SinoGeom)
+    return _propertynames(sg)
+end
+=#
+
 
 """
     reshaper(x::AbstractArray, dim:Dims)

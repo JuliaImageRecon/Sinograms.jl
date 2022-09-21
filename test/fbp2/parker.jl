@@ -25,6 +25,7 @@ using Test: @test, @test_throws, @testset, @inferred
     sg = SinoPar( ; orbit = 270)
     pw = @inferred parker_weight(sg)
     @test pw[1] == 0 # todo: suboptimal?
+    @test sum(pw)/length(pw) ≈ 1
 
     sg = SinoFanArc( ; orbit = 90)
     @test_throws String parker_weight(sg)

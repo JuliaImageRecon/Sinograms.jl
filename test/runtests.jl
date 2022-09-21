@@ -13,8 +13,8 @@ include("fbp2/ramp.jl")
 include("fbp2/filter.jl")
 include("fbp2/sino-plot.jl")
 include("fbp2/back.jl")
+include("fbp2/plan.jl")
 
-include("fbp-plan.jl")
 include("fbp-par.jl")
 include("fbp-fan.jl")
 

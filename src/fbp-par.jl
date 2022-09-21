@@ -24,11 +24,15 @@ function fbp(
     sino::AbstractMatrix{Ts} ;
     nx::Int = size(sino, 1),
     ny::Int = nx,
+    dr::RealU = 1,
+    dx::RealU = dr,
+    dy::RealU = dx,
+    deltas::NTuple{2,Td} = (dx, dy),
     kwargs...
-) where {Ts <: Number}
-    U = promote_type(Ts, eltype(1f0 * oneunit(Ts)))
+) where {Ts <: Number, Td <: RealU}
+    U = eltype(1f0 * oneunit(Ts) / oneunit(Td))
     image = zeros(U, nx, ny)
-    fbp!(image, sino; kwargs...)
+    fbp!(image, sino; dr, dx, dy, deltas, kwargs...)
 end
 
 
@@ -79,7 +83,20 @@ function fbp!(
     ig = ImageGeom(ig.dims, ig.deltas, ig.offsets, mask)
     plan = plan_fbp(sg, ig ; kwargs...)
 #   fbp!(image, sino, plan) # todo
-    tmp, _ = fbp(plan, sino)
+    tmp, _ = fbp(plan, sino) # todo: integrate better!
     copyto!(image, tmp)
     return image
 end
+
+
+#=
+function fbp!(
+    image::AbstractMatrix{<:Number},
+    sino::AbstractMatrix{<:Number},
+    plan::FBPNormalPlan,
+)
+    tmp, _ = fbp(plan, sino) # todo: integrate better!
+    copyto!(image, tmp)
+    return image
+end
+=#

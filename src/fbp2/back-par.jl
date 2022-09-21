@@ -54,14 +54,17 @@ end
 function fbp_back_par(
     sino::AbstractMatrix{Ts},
     angles::AbstractVector{To},
-    ds::Td,
+    ds::Tds,
     offset::Toffset,
     rfov::RealU,
-    xc::AbstractArray{Td}, # todo: should be Td!
-    yc::AbstractArray{Td},
+    xc::AbstractArray{Tc},
+    yc::AbstractArray{Tc},
     mask::AbstractMatrix{Bool},
     ia_skip::Int,
-) where {Td <: RealU, Toffset <: Real, Ts <: Number, To <: RealU}
+) where {Tds <: RealU, Tc <: RealU, Toffset <: Real, Ts <: Number, To <: RealU}
+
+    Td = promote_type(Tds, Tc)
+    T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
 
     nb, na = size(sino)
 
@@ -80,7 +83,7 @@ function fbp_back_par(
 
     wb = Toffset((nb+1)/2 + offset)
 
-    img = 0
+    img = zero(T)
 
     warned = false
     for ia in 1:ia_skip:na
@@ -120,6 +123,67 @@ function fbp_back_par(
     end
 
     img .*= (π * ia_skip / na)
-    T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
     return embed(img, mask)::Matrix{T}
 end
+
+
+    # trick: extra zero column saves linear interpolation indexing within loop!
+#   sino_padded = cat(dims=1, sino, zeros(Ts, 1, size(sino,2)))
+#   sino_padded[:,1:ia_skip:end]
+#   sin.(angles[1:ia_skip:end])
+#   cos.(angles[1:ia_skip:end])
+
+
+#=
+# back-projection for a single (x,y) location (todo)
+function fbp_back_par_xy(
+    sino_padded::AbstractMatrix{Ts}, # (nb+1, na_subset)
+    sang::AbstractVector{To}, # sin.(angles) (na_subset)
+    cang::AbstractVector{To}, # cos.(angles) (na_subset)
+    ds::Td,
+    offset::Toffset,
+    rfov::RealU,
+    x::Td,
+    y::Td ;
+    warn_truncated::Bool = true,
+) where {Td <: RealU, Toffset <: Real, Ts <: Number, To <: RealU}
+
+    T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
+
+    nb1, na_subset = size(sino_padded)
+    nb = nb1 - 1
+
+    wb = Toffset((nb+1)/2 + offset)
+
+    img = zero(T)
+
+    bb = @. (x * cang + y * sang) # [na or a subset thereof]
+    bb = @. (bb / ds + wb) # unitless bin index
+
+#=
+    # nearest neighbor interpolation:
+    ib = round.(Int, bb)
+    # trick: make out-of-sinogram indices point to those extra zeros
+    @. ib[ib < 1 | ib > nb] = nb+1
+    img += sino[ib, ia]
+=#
+
+    # linear interpolation:
+    il = floor.(Int, bb) # left bin
+    ir = 1 .+ il # right bin
+
+    # handle truncated sinograms using the extra column of zeros
+    ig = (il .≥ 1) .& (ir .≤ nb)
+    if !all(ig)
+        warn_truncated && @warn("image exceeds system FOV; modify ig.mask?")
+        il[.!ig] .= nb+1
+        ir[.!ig] .= nb+1
+    end
+
+    wr = bb - il # left weight
+    wl = 1 .- wr # right weight
+
+    fun(ia) = wl[ia] * sino[il[ia], ia] + wr[ia] * sino[ir[ir], ia]
+    return sum(fun, 1:na_subset) * (π / na_subset)
+end
+=#
