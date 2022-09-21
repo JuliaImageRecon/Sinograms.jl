@@ -95,7 +95,8 @@ function _test_prop(sg; d = 2mm, orbit = 180.0°)
     @test rs isa Tuple
     @test (@inferred propertynames(sg)) isa NTuple
 
-    @inferred SG.sino_geom_gamma(sg)
+    γ = @inferred SG.sino_geom_gamma(sg)
+    @test γ isa Union{Nothing, AbstractVector}
 
     if sg isa SinoParallel
         @test isnothing(sg.gamma)
@@ -136,31 +137,3 @@ sg_list = (SinoPar, SinoMoj, SinoFanArc, SinoFanFlat)
         @test _test_prop(sg)
     end
 end
-
-
-#=
-    sg.plot_grid(plot)
-
-ig = image_geom(nx=512, fov=500).down(down)
-ig = image_geom(nx=ig.nx, dx=ig.dx, mask=ig.circ())
-
-nsg = length(sg_list)
-pl = Array{Any}(undef, nsg)
-for ii = 1:nsg
-
-# pl[ii] = plot(); sg.plot!(plot! ; ig=ig)
-
-#@inferred todo
-@test sino_geom(:ge1 ; units=:cm) isa SinoFanArc
-
-@test_throws String sino_geom(:badhow)
-@test_throws String sino_geom(:ge1 ; dfs=-1)
-@test_throws String sino_geom(:ge1 ; units=:bad)
-
-pg = sino_geom_plot_grids(plot)
-ps = sino_geom_show()
-
-plot(pg..., ps..., layout=(2,4))
-prompt()
-plot(pl[1:4]...)
-=#
