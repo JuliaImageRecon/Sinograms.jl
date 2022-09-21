@@ -54,15 +54,16 @@ end
 function fbp_back_par(
     sino::AbstractMatrix{Ts},
     angles::AbstractVector{To},
-    ds::Td,
+    ds::Tds,
     offset::Toffset,
     rfov::RealU,
-    xc::AbstractArray{Td},
-    yc::AbstractArray{Td},
+    xc::AbstractArray{Tc},
+    yc::AbstractArray{Tc},
     mask::AbstractMatrix{Bool},
     ia_skip::Int,
-) where {Td <: RealU, Toffset <: Real, Ts <: Number, To <: RealU}
+) where {Tds <: RealU, Tc <: RealU, Toffset <: Real, Ts <: Number, To <: RealU}
 
+    Td = promote_type(Tds, Tc)
     T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
 
     nb, na = size(sino)
