@@ -67,15 +67,16 @@ sg = SinoFanFlat( ; nb = 130, d = 0.3cm, na = 100, dsd = 50cm, dod = 14cm)
 
 # Examine the geometry to verify the FOV:
 jim(axes(ig), ig.mask; prompt=false)
-#plot();
 sino_geom_plot!(sg ; ig)
+
+#
 prompt()
 
 # Ellipse parameters for Shepp-Logan phantom:
 μ = 0.1 / cm # typical linear attenuation coefficient
 ob = shepp_logan(SheppLogan(); fovs = fovs(ig), u = (1, 1, μ))
 
-# Radon transform of Shepp-Logan phantom:
+# Arc fan-beam sinogram for Shepp-Logan phantom:
 sino = radon(ob).(rays(sg)...)
 jim(sg.r, sg.ad, sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
 

@@ -61,7 +61,6 @@ of the Shepp-Logan phantom.
 For completeness,
 we use units (from Unitful),
 but units are optional.
-
 =#
 
 # Use `ImageGeom` to define the image geometry.
@@ -72,15 +71,16 @@ sg = SinoFanArc( ; nb = 130, d = 3.2mm, na = 100, dsd = 400mm, dod = 140mm)
 
 # Examine the geometry to verify the FOV:
 jim(axes(ig), ig.mask; prompt=false)
-#plot();
 sino_geom_plot!(sg ; ig)
+
+#
 prompt()
 
 # Ellipse parameters for Shepp-Logan phantom:
 μ = 0.01 / mm # typical linear attenuation coefficient
 ob = shepp_logan(SheppLogan(); fovs = fovs(ig), u = (1, 1, μ))
 
-# Radon transform of Shepp-Logan phantom:
+# Flat fan-beam sinogram for Shepp-Logan phantom:
 sino = radon(ob).(rays(sg)...)
 jim(sg.r, sg.ad, sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
 
