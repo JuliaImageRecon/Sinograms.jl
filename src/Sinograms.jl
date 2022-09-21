@@ -17,8 +17,8 @@ include("fbp2/sino-filter.jl")
 include("fbp2/sino-weight.jl")
 include("fbp2/back-par.jl")
 include("fbp2/back-fan.jl")
-
-include("fbp2.jl")
+include("fbp2/plan.jl")
+include("fbp2/fbp.jl")
 
 include("fbp-par.jl")
 
