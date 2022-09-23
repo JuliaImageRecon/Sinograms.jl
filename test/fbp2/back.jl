@@ -2,7 +2,6 @@
 
 using ImageGeoms: ImageGeom, MaskCircle
 using LazyGrids: ndgrid
-using Random: seed!
 using Sinograms: SinoPar, SinoFanArc, SinoFanFlat, fbp_back
 using Sinograms: fbp_back_par, fbp_back_par!, fbp_back_par_xy
 using Unitful: mm
@@ -12,6 +11,7 @@ using BenchmarkTools
 #=
 # verify new pixel-driven vs old broadcasting/allocating way
 
+using Random: seed!
 using Sinograms: fbp_back_par_old
 
 #   ig = @inferred ImageGeom(MaskCircle(), dims=(32,30), deltas=(1mm,1mm) )
