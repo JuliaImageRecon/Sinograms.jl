@@ -56,7 +56,7 @@ using Sinograms: fbp_back_par_old
     ig = @inferred ImageGeom( dims=(32,30), deltas=(1mm,1mm) )
     for geom in (SinoPar, SinoFanArc, SinoFanFlat)
         sg = geom( ; nb = 12, d=2mm) # intentionally small FOV
-        back = @inferred fbp_back(sg, ig, sg.ones * 3mm)
+        back = @inferred fbp_back(sg, ig, sg.ones * 3mm; ia_skip = 2)
         @test back isa Matrix
     end
 end
