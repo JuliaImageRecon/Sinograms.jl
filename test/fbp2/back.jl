@@ -6,11 +6,11 @@ using Sinograms: SinoPar, SinoFanArc, SinoFanFlat, fbp_back
 using Sinograms: fbp_back_par, fbp_back_par!, fbp_back_par_xy
 using Unitful: mm
 using Test: @test, @testset, @inferred
-using BenchmarkTools
 
 #=
 # verify new pixel-driven vs old broadcasting/allocating way
 
+using BenchmarkTools
 using Random: seed!
 using Sinograms: fbp_back_par_old
 
