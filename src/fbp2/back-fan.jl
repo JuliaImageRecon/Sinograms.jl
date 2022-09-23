@@ -30,7 +30,7 @@ function fbp_back(
         sg.ds, sg.offset,
         sg.rfov,
         ndgrid(axes(ig)...)...,
-        ig.mask, ia_skip,
+        ig.mask ; ia_skip,
     )::Matrix{T}
 end
 
@@ -48,8 +48,8 @@ function fbp_back_fan(
     rfov::RealU,
     xc::AbstractArray{Tc},
     yc::AbstractArray{Tc},
-    mask::AbstractMatrix{Bool},
-    ia_skip::Int,
+    mask::AbstractMatrix{Bool} ;
+    ia_skip::Int = 1,
 ) where {Tds <: RealU, Tc <: RealU, Toffset <: Real, Ts <: Number, To <: RealU}
 
     Td = promote_type(Tds, Tc)
