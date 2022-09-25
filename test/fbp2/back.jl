@@ -3,7 +3,6 @@
 using ImageGeoms: ImageGeom, MaskCircle
 using LazyGrids: ndgrid
 using Sinograms: SinoPar, SinoFanArc, SinoFanFlat, fbp_back
-using Sinograms: fbp_back_par, fbp_back_par!, fbp_back_par_xy
 using Unitful: mm
 using Test: @test, @testset, @inferred
 
@@ -12,16 +11,22 @@ using Test: @test, @testset, @inferred
 
 using BenchmarkTools
 using Random: seed!
+using Sinograms: fbp_back_par, fbp_back_par!, fbp_back_par_xy
+using Sinograms: fbp_back_fan, fbp_back_fan!, fbp_back_fan_xy
 using Sinograms: fbp_back_par_old
+using Sinograms: fbp_back_fan_old
 
 #   ig = @inferred ImageGeom(MaskCircle(), dims=(32,30), deltas=(1mm,1mm) )
     ig = @inferred ImageGeom(dims=(32,30), deltas=(1mm,1mm) )
 #   sg = SinoPar( ; nb = 12, d=2mm) # intentionally small FOV
     sg = SinoPar( ; nb = 36, d=1mm)
+    sg = SinoFanArc( ; nb = 36, d=1mm)
 
     seed!(0)
     xc, yc = axes(ig)
     sino = randn(Float32, sg.dim)
+
+  if sg isa SinoPar
     f1 = sino -> fbp_back_par_old(sino, sg.ar, sg.ds, sg.offset, # sg.rfov,
          ndgrid(xc, yc)..., ig.mask ; warned=true)
     f2 = sino -> fbp_back_par(sino, sg.ar, sg.ds, sg.offset,
@@ -30,6 +35,24 @@ using Sinograms: fbp_back_par_old
     cang = cos.(sg.ar)
     f3! = (image, sino) -> fbp_back_par!(image, sino, sang, cang,
          sg.ds, sg.offset, xc, yc, ig.mask)
+
+  else # fan
+    is_arc = sg isa SinoFanArc
+    f1 = sino -> fbp_back_fan_old(sino, sg.ar,
+         sg.dsd, sg.dso, sg.source_offset, is_arc,
+         sg.ds, sg.offset, # sg.rfov,
+         ndgrid(xc, yc)..., ig.mask ; warned=true)
+    f2 = sino -> fbp_back_fan(sino, sg.ar,
+         sg.dsd, sg.dso, sg.source_offset, is_arc,
+         sg.ds, sg.offset,
+         xc, yc, ig.mask)
+    sβ = sin.(sg.ar)
+    cβ = cos.(sg.ar)
+    f3! = (image, sino) -> fbp_back_fan!(image, sino, sβ, cβ,
+         sg.dsd, sg.dso, sg.source_offset, is_arc,
+         sg.ds, sg.offset, xc, yc, ig.mask)
+  end
+
     b1 = f1(sino)
     b2 = f2(sino)
     b3 = zeros(eltype(b1), size(b1))
