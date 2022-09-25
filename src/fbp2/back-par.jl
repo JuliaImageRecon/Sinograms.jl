@@ -134,10 +134,12 @@ end
 # new version with threads and simplified code
 
 """
-    fbp_back_par(sino, angles, ds, offset, xc, yc, mask, ia_skip; T)
+    fbp_back_par(sino, angles,
+        ds, offset, xc, yc, mask ; ia_skip, T)
 Pixel-driven back-projection
 for a grid of `(xc,yc)` pixel center locations
-for sinogram `sino` from a parallel-beam geometry.
+for sinogram `sino` from a
+parallel-beam geometry.
 It assumes the angles are equally spaced over `[0,π)`.
 
 # in
@@ -154,7 +156,7 @@ It assumes the angles are equally spaced over `[0,π)`.
 - `T::DataType` usually same as `eltype(sino)`
 
 # out
-- `image::Matrix` `(nx, ny)` matrix to be mutated
+- `image::Matrix` `(nx, ny)`
 """
 function fbp_back_par(
     sino::AbstractMatrix{Ts},
@@ -171,13 +173,15 @@ function fbp_back_par(
     image = zeros(T, size(mask)) # need zero(T) outside mask
     sinϕ = sin.(angles[1:ia_skip:end])
     cosϕ = cos.(angles[1:ia_skip:end])
-    fbp_back_par!(image, sino, sinϕ, cosϕ, ds, offset, xc, yc, mask ; ia_skip)
+    fbp_back_par!(image, sino, sinϕ, cosϕ,
+        ds, offset, xc, yc, mask ; ia_skip)
     return image
 end
 
 
 """
-    fbp_back_par!(image, sino, sinϕ, cosϕ, ds, offset, xc, yc, mask, ia_skip)
+    fbp_back_par!(image, sino, sinϕ, cosϕ,
+        ds, offset, xc, yc, mask ; ia_skip)
 Mutating version of
 pixel-driven back-projection
 for a grid of `(xc,yc)` pixel center locations
@@ -216,7 +220,7 @@ function fbp_back_par!(
 
     length.((xc,yc)) == size(image) == size(mask) || throw("size mismatch")
 
-    nb, na = size(sino)
+    nb = size(sino, 1)
 
     wb = Toffset((nb+1)/2 + offset)
     if ia_skip > 1
@@ -229,8 +233,8 @@ function fbp_back_par!(
 
     Threads.@threads for c in findall(mask)
         image[c] = fbp_back_par_xy(
-            sino, sinϕ, cosϕ, wb,
-            xc_ds[c[1]], yc_ds[c[2]]; T,
+            sino, sinϕ, cosϕ,
+            wb, xc_ds[c[1]], yc_ds[c[2]]; T,
         )
     end
 
@@ -251,7 +255,8 @@ end
 
 
 """
-    fbp_back_par_xy(sino, sinϕ, cosϕ, wb, x, y ; T)
+    fbp_back_par_xy(sino, sinϕ, cosϕ,
+        wb, x, y ; T)
 Pixel-driven back-projection for a single (x,y) location
 for sinogram `sino` from a parallel-beam geometry.
 It assumes the angles are equally spaced over `[0,π)`.
@@ -299,7 +304,7 @@ function fbp_back_par_xy(
         il = floor(Int, bb) # left bin
         ir = 1 + il # right bin
 
-        if (il ≥ 1) && (ir ≤ nb)
+        if (1 ≤ il) && (ir ≤ nb)
             wr = bb - il # left weight
             wl = 1 - wr # right weight
             @inbounds pixel += wl * sino[il, ia] + wr * sino[ir, ia]
