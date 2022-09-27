@@ -172,7 +172,8 @@ function fbp_back_fan(
     yc::AbstractArray{Tc},
     mask::AbstractMatrix{Bool} ;
     ia_skip::Int = 1,
-    T = eltype(oneunit(Ts) * (oneunit(To) * oneunit(Tc) / oneunit(Tds) + oneunit(Toffset)))
+    T::DataType = eltype(oneunit(Ts) *
+        (oneunit(To) * oneunit(Tc) / oneunit(Tds) + oneunit(Toffset))),
 ) where {Ts <: Number, To <: RealU, Tds <: RealU, Toffset <: Real, Tc <: RealU}
 
     image = zeros(T, size(mask)) # need zero(T) outside mask
@@ -328,8 +329,8 @@ function fbp_back_fan_xy(
         ir = 1 + il # right bin
 
         if (1 ≤ il) && (ir ≤ nb)
-            wr = bb - il # left weight
-            wl = 1 - wr # right weight
+            wr = bb - il # right weight
+            wl = 1 - wr # left weight
             @inbounds pixel += (wl * sino[il, ia] + wr * sino[ir, ia]) * w2
         end
     end

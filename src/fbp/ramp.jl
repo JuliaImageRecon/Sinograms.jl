@@ -1,8 +1,8 @@
-# fbp2/ramp.jl
+# fbp/ramp.jl
 
 export fbp_ramp, ramp_flat, ramp_arc
 
-#using Sinograms: SinoFanFlat, SinoFanArc, SinoPar, RealU
+#using Sinograms: SinoFanFlat, SinoFanArc, SinoPar, CtGeom, RealU
 
 
 """
@@ -32,16 +32,16 @@ function fbp_ramp(sg::SinoMoj{Td}, N::Int ; dr::Td = sg.d) where Td
     return ramp_flat(N, dr)::T
 end
 
-function fbp_ramp(sg::SinoFanFlat{Td}, N::Int) where Td
+function fbp_ramp(sg::Union{SinoFanFlat{Td},CtFanFlat{Td}}, N::Int) where Td
     R = _ramp_type(Td)
     T = Tuple{Vector{R}, UnitRange{Int64}}
-    return ramp_flat(N, sg.d)::T
+    return ramp_flat(N, sg isa SinoGeom ? sg.d : sg.ds)::T
 end
 
-function fbp_ramp(sg::SinoFanArc{Td}, N::Int) where Td
+function fbp_ramp(sg::Union{SinoFanArc{Td},CtFanArc{Td}}, N::Int) where Td
     R = _ramp_type(Td)
     T = Tuple{Vector{R}, UnitRange{Int64}}
-   return ramp_arc(N, sg.d, sg.dsd)::T
+   return ramp_arc(N, sg isa SinoGeom ? sg.d : sg.ds, sg.dsd)::T
 end
 
 function _ramp_type(arg...)

@@ -762,7 +762,7 @@ end
 """
     show(io::IO, ::MIME"text/plain", sg::SinoGeom)
 """
-function Base.show(io::IO, ::MIME"text/plain", sg::SinoGeom)
+function Base.show(io::IO, ::MIME"text/plain", sg::Union{SinoGeom,CtGeom})
     println(io, "$(typeof(sg)) :")
     for f in fieldnames(typeof(sg))
         p = getproperty(sg, f)
@@ -775,23 +775,28 @@ end
 sino_w(sg::SinoGeom) = Toffset((sg.nb-1)/2 + sg.offset)::Toffset
 
 # detector centers: d * ((0:nb-1) .- w)
-function sino_s(sg::SinoGeom{Td}) where {Td <: Number}
-    T = promote_type(Toffset, eltype(one(Td)))
-    T = eltype(oneunit(Td) * one(T))
-    w = sino_w(sg)
-    b = LinRange(-w, sg.nb - 1 - w, sg.nb)
-    s = sg.d * b
-#   @show Td T Toffset eltype(w) eltype(b) eltype(s)
-    return s::LinRange{T,Int}
+function _lin_range(
+    d::Td, w::Toffset, n::Int ;
+    T::DataType = eltype(oneunit(Td) * one(Toffset)),
+)::LinRange{T,Int} where {Td <: RealU}
+    return d * LinRange(-w, n - 1 - w, n)
 end
+
 #sino_s(sg::SinoGeom) = sg.d * ((0:sg.nb-1) .- sino_w(sg))
+#sino_s(sg::SinoGeom) = _lin_range(sg.d, sg.w, sg.nb) # can't infer!?
+function sino_s(
+    sg::SinoGeom{Td} ;
+    T::DataType = eltype(oneunit(Td) * one(Toffset)),
+)::LinRange{T,Int} where {Td <: RealU}
+    return _lin_range(sg.d, sg.w, sg.nb)
+end
 
 dims(sg::SinoGeom) = (sg.nb, sg.na)
-ones(T::DataType, sg::SinoGeom) = ones(T, dims(sg))
-ones(sg::SinoGeom) = ones(Float32, sg)
-zeros(T::DataType, sg::SinoGeom) = ones(T, dims(sg))
-zeros(sg::SinoGeom) = ones(Float32, sg)
-angles(sg::SinoGeom{Td,To}) where {Td,To} =
+Base.ones(T::DataType, sg::SinoGeom) = ones(T, dims(sg))
+Base.ones(sg::SinoGeom) = ones(Float32, sg)
+Base.zeros(T::DataType, sg::SinoGeom) = ones(T, dims(sg))
+Base.zeros(sg::SinoGeom) = ones(Float32, sg)
+angles(sg::Union{SinoGeom{Td,To}, CtGeom{Td,To}}) where {Td,To} =
     LinRange(sg.orbit_start, To(sg.orbit_start + (sg.na-1)/sg.na * sg.orbit), sg.na)::LinRange{To,Int}
 #   range(sg.orbit_start, length = sg.na, step = sg.orbit / sg.na)
 

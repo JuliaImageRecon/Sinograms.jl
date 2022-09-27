@@ -1,4 +1,5 @@
 using MIRT
+using MIRTjim
 using MATLAB
 using Plots
 
@@ -42,6 +43,6 @@ sino_julia = ellipse_sino(sg, ell)
 
 mat"[sino_mat, pos, ang] = ellipse_sino(sg, ell)"
 mat"sizeof(sino_mat)"
-#@mget sino_mat
+@mget sino_mat
 
 #plot(jim(sino_julia, "julia"), jim(sino_mat, "matlab"), jim(sino_mat - sino_julia))

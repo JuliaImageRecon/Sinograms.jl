@@ -1,4 +1,4 @@
-# fbp2/sino-filter.jl
+# fbp/sino-filter.jl
 
 export fbp_filter, fbp_sino_filter
 
@@ -7,7 +7,7 @@ using FFTW
 
 
 """
-    Hk = fbp_filter(sg::SinoGeom ;
+    Hk = fbp_filter(sg::Union{SinoGeom,CtGeom} ;
         npad=0, ds::RealU = sg.d, decon1::Bool=true, window=Window())
 
 Compute frequency response of ramp-like filter
@@ -17,7 +17,7 @@ This code samples the band-limited ramp to avoid the aliasing that
 would be caused by sampling the ramp directly in the frequency domain.
 
 in
-- `sg::SinoGeom`
+- `sg::Union{SinoGeom,CtGeom}`
 
 options
 - `npad::Int` # of padded samples. (default: next power of 2)
@@ -28,9 +28,9 @@ out
 - `Hk::Vector` apodized ramp filter frequency response
 """
 function fbp_filter(
-    sg::SinoGeom{Td} = SinoPar() ;
+    sg::Union{SinoGeom{Td},CtGeom{Td}} = SinoPar() ;
     npad::Int = nextpow(2, sg.nb + 1),
-    ds::Td = sg.d,
+    ds::Td = sg isa SinoGeom ? sg.d : sg.ds,
     decon1::Bool = true,
     window::Window = Window(),
 ) where {Td <: RealU}

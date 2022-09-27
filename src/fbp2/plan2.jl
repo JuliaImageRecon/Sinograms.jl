@@ -1,4 +1,4 @@
-# fbp2/plan.jl
+# fbp2/plan2.jl
 
 export FBPplan, plan_fbp
 
@@ -109,8 +109,8 @@ call `fbp` with the `plan`
 
 """
 function plan_fbp(
-    sg::SinoGeom = SinoPar(),
-    ig::ImageGeom = ImageGeom() ;
+    sg::SinoGeom,
+    ig::ImageGeom ;
     how::Symbol = :normal,
     window::Window = Window(),
     npad::Int = nextpow(2, sg.nb + 1),

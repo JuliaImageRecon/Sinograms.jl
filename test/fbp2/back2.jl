@@ -1,4 +1,4 @@
-# test/fbp2/back.jl
+# test/fbp2/back2.jl
 
 using ImageGeoms: ImageGeom, MaskCircle
 using LazyGrids: ndgrid
@@ -75,7 +75,7 @@ using Sinograms: fbp_back_fan_old
 =#
 
 
-@testset "fbp2/back" begin
+@testset "fbp2/back2" begin
     ig = @inferred ImageGeom( dims=(32,30), deltas=(1mm,1mm) )
     for geom in (SinoPar, SinoFanArc, SinoFanFlat)
         sg = geom( ; nb = 12, d=2mm) # intentionally small FOV

@@ -10,17 +10,25 @@ const RealU = Number # Real or Unitful
 include("fbp/reale.jl")
 include("fbp/window.jl")
 
+include("fbp3/ct-geom.jl")
 include("fbp2/sino-geom.jl")
+include("fbp/ramp.jl")
+include("fbp/sino-filter.jl")
+
 include("fbp2/parker.jl")
-include("fbp2/ramp.jl")
-include("fbp2/sino-filter.jl")
 include("fbp2/sino-weight.jl")
 include("fbp2/back-par.jl")
 include("fbp2/back-fan.jl")
-include("fbp2/plan.jl")
+include("fbp2/plan2.jl")
 include("fbp2/fbp.jl")
 
 include("fbp-par.jl")
+
+include("fbp3/plan3.jl")
+include("fbp3/cb_arc_to_par.jl")
+include("fbp3/cb_flat_to_par.jl")
+include("fbp3/cbct-back.jl")
+include("fbp3/fdk.jl")
 
 include("sys2/zwart_powell.jl")
 

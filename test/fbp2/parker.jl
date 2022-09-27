@@ -3,11 +3,14 @@ test/fbp2/parker.jl
 =#
 
 using Sinograms: SinoPar, SinoFanArc, SinoMoj
-using Sinograms: parker_weight
+using Sinograms: parker_weight, parker_weight_fan
 using Test: @test, @test_throws, @testset, @inferred
 
 
 @testset "parker" begin
+
+    pw = @inferred parker_weight_fan(10, 360.)
+
     geoms = (SinoPar, SinoFanArc, SinoMoj)
     for geom in (geoms)
         sg = geom()
