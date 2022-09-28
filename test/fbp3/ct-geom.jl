@@ -67,35 +67,32 @@ end
 
 
 function _test_prop(cg; d = 2mm, orbit = 180.0°)
-    cg.ad[2]
+    @test cg.ad isa AbstractVector
 #   cg.rfov
 #   @inferred cg.down(2)
-    @inferred downsample(cg,2)
+    @test (@inferred downsample(cg,2)) isa CtGeom
 #   @inferred cg.over(2)
 #   cg.dims
-    cg.ws
-    cg.wt
+    @test cg.ws isa Real
+    @test cg.wt isa Real
 #   cg.ones
 #   cg.zeros
-    cg.ds
-    cg.dt
-    cg.s
-    cg.t
-    cg.ad
-    cg.ar
-    cg.xds
-    cg.yds
-    cg.cone_angle
-    cg.rmax
-    cg.zfov
+    @test cg.ds isa RealU
+    @test cg.dt isa RealU
+    @test cg.s isa AbstractVector
+    @test cg.t isa AbstractVector
+    @test cg.ad isa AbstractVector
+    @test cg.ar isa AbstractVector
+    @test cg.xds isa AbstractVector
+    @test cg.yds isa AbstractVector
+    @test cg.cone_angle isa Real
+    @test cg.rmax isa RealU
+    @test cg.zfov isa RealU
     @test cg.unitv() isa Array
     @test cg.unitv( ; is=1) isa Array
 
-#=
-#todo after debugging
     show(isinteractive() ? stdout : devnull, cg)
     show(isinteractive() ? stdout : devnull, MIME("text/plain"), cg)
-=#
 
     # common methods
     @test dims(cg) isa Dims{3}
@@ -130,14 +127,15 @@ function _test_prop(cg; d = 2mm, orbit = 180.0°)
 
     if cg isa CtFan
         @test cg.gamma isa AbstractVector
-        cg.gamma_max
+        @test cg.gamma_max isa Real
         @test cg.orbit_short isa Real
-        cg.dsd
-        cg.dfs
-        cg.dso
-#       cg.dod
+        @test cg.dsd isa RealU
+        @test cg.dfs isa RealU
+        @test cg.dso isa RealU
+        @test cg.dod isa RealU
         @test cg.source_dz_per_view isa RealU
         @test cg.source_zs isa AbstractVector
+        @test cg.gamma_max_abs isa Real
     end
 
     @test cg.shape(vec(ones(cg))) == ones(cg)
@@ -163,4 +161,9 @@ cg_list = (CtPar, CtFanArc, CtFanFlat)
         cg = @inferred geo( ; ds, orbit, orbit_start, down)
         @test _test_prop(cg)
     end
+end
+
+@testset "pitch" begin
+    cg = CtFanArc( ; pitch = 2)
+    @test cg.source_dz_per_view isa RealU
 end
