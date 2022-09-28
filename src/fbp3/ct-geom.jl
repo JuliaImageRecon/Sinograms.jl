@@ -469,10 +469,12 @@ function _downsample(st::CtGeom, down_s::Int, down_t::Int, down_a::Int)
     end
 =#
 
-    return (ns, nt, na, st.orbit, st.orbit_start,
-         st.ds * down_s, st.dt * down_t, st.offset_s, st.offset_t,
-         st.dsd, st.dod, st.pitch, st.source_z0,
-    )
+    out = (ns, nt, na, st.orbit, st.orbit_start,
+         st.ds * down_s, st.dt * down_t, st.offset_s, st.offset_t)
+    if st isa CtFan
+         out = (out..., st.dsd, st.dod, st.pitch, st.source_z0)
+    end
+    return out
 end
 
 
@@ -481,7 +483,7 @@ end
     downsample(ct, down::NTuple{3,Int})
 Down-sample CT geometry (for testing with small problems).
 """
-downsample(ct::CtGeom, down::Int) = downsample(ct, (1,1,1))
+downsample(ct::CtGeom, down::Int) = downsample(ct, (down,down,down))
 
 function downsample(ct::C, down::NTuple{3,Real}) where {C <: CtGeom}
     return all(==(1), down) ? ct : C(_downsample(ct, down...)...)::C
