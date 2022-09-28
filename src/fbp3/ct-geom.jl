@@ -82,7 +82,7 @@ abstract type CtParallel{Td,To} <: CtGeom{Td,To} end #line 238 of ct_geom
 abstract type CtFan{Td,To} <: CtGeom{Td,To} end
 
 
-# constructors
+# types
 
 
 struct CtPar{Td,To} <: CtParallel{Td,To}
@@ -95,13 +95,6 @@ struct CtPar{Td,To} <: CtParallel{Td,To}
     dt::Td
     offset_s::Float32
     offset_t::Float32
-#   dsd::Td
-#   dso::Float64 value is infinite
-#   dod::Td
-#   down::Float64
-#   pitch::Float32
-#   source_zs::Vector{Td}
-#   source_z0::Td
 end
 
 
@@ -118,11 +111,10 @@ struct CtFanArc{Td,To} <: CtFan{Td,To}
     dsd::Td
 #   dso::Td
     dod::Td
-#   down::Float64
+#   dfs::Td
     pitch::Float32
 #   user_source_zs::Vector{Td}
     source_z0::Td
-    #not included: dfs, nframe, frame
 end
 
 
@@ -139,11 +131,14 @@ struct CtFanFlat{Td,To} <: CtFan{Td,To}
     dsd::Td
 #   dso::Td
     dod::Td
-#   down::Float64
+#   dfs::Td
     pitch::Float32
 #   user_source_zs::Vector{Td}
     source_z0::Td
 end
+
+
+# constructors
 
 
 function CtPar( ;
@@ -158,9 +153,6 @@ function CtPar( ;
     offset_s::Real = 0,
     offset_t::Real = 0,
     down::Int = 1,
-#   pitch::Real = 0,
-#   source_z0::RealU = zero(ds),
-#   source_zs = (0:st.na-1) * source_dz .+ source_z0
 )
 
     To = _promoter(orbit, orbit_start)
@@ -490,17 +482,16 @@ Down-sample CT geometry (for testing with small problems).
 """
 downsample(ct::CtGeom, down::Int) = downsample(ct, (1,1,1))
 
-function downsample(ct::C, down::NTuple{3,Int}) where {C <: CtGeom}
+function downsample(ct::C, down::NTuple{3,Real}) where {C <: CtGeom}
     return all(==(1), down) ? ct : C(_downsample(ct, down...)...)::C
 end
 
-function ct_geom_unitv(st, is, it, ia)
-    out = st.zeros
-    if isempty(is)
-        is = floor(st.ns/2 + 1)
-        it = floor(st.nt/2 + 1)
-        ia = 1
-    end
+function ct_geom_unitv(st::CtGeom ;
+    is::Int = floor(Int, st.ns/2) + 1,
+    it::Int = floor(Int, st.nt/2) + 1,
+    ia::Int = 1,
+)
+    out = zeros(st)
     out[is, it, ia] = 1
     return out
 end
@@ -618,6 +609,7 @@ ct_geom_fun0 = Dict([
     (:wt, st -> ct_geom_wt(st)),
 #   (:ones, st -> ones(Float64, st.dim)),
 #   (:zeros, st -> zeros(Float64, st.dim)),
+    (:unitv, st -> ((; kwarg...) -> sino_geom_unitv(sg; kwarg...))),
 
     (:s, st -> ct_geom_s(st)),
     (:t, st -> ct_geom_t(st)),
@@ -640,7 +632,7 @@ ct_geom_fun0 = Dict([
 
     (:ad, st -> angles(st)),
     (:ar, st -> to_radians(st.ad)),
-    (:rad, st -> ct_geom_rad(st)),
+#   (:rad, st -> ct_geom_rad(st)),
     (:rmax, st -> ct_geom_rmax(st)),
     (:shape, st -> (proj -> reshaper(proj, dims(st)))),
 #   (:footprint_size, st -> ct_geom_footprint_size(st)),

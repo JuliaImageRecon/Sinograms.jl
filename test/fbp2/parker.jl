@@ -10,6 +10,7 @@ using Test: @test, @test_throws, @testset, @inferred
 @testset "parker" begin
 
     pw = @inferred parker_weight_fan(10, 360.)
+    pw = @inferred parker_weight_fan(10, 99.)
 
     geoms = (SinoPar, SinoFanArc, SinoMoj)
     for geom in (geoms)

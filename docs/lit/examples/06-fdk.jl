@@ -1,3 +1,4 @@
+#=
 include("ct_geom.jl")
 include("cylinder_proj.jl")
 include("ellipsoid_proj.jl")
@@ -56,6 +57,7 @@ println(minimum(errorvector))
 println(maximum(errorvector))
 
 cg.plot3(ig3)
+=#
 
 #=
 Run the code below to look at Feldkamp results for central and offcenter slices

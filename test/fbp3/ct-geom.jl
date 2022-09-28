@@ -5,7 +5,7 @@ test/fbp3/ct-geom.jl
 #using Sinograms: RealU
 using Sinograms: CtGeom, CtParallel, CtFan
 using Sinograms: CtPar, CtFanArc, CtFanFlat
-using Sinograms: ones, zeros, angles, rays, downsample, oversample # values
+using Sinograms: dims, ones, zeros, angles, rays, downsample, oversample # values
 import Sinograms as SG
 using Unitful: mm, °
 using Test: @test, @testset, @test_throws, @inferred
@@ -37,7 +37,7 @@ end
     @inferred CtPar(; ds, orbit)
     @inferred CtFanArc(; ds, orbit)
     @inferred CtFanFlat(; ds, orbit)
-#   @inferred CtFan(Val(:ge1))
+    @test (@inferred SG.ct_geom_ge1()) isa CtFanArc
 
     for geo in (CtPar, CtFanArc, CtFanFlat)
         @test _test(geo)
@@ -85,6 +85,13 @@ function _test_prop(cg; d = 2mm, orbit = 180.0°)
     cg.ar
     cg.xds
     cg.yds
+    cg.cone_angle
+    cg.rmax
+    cg.zfov
+    cg.source_dz_per_view
+    cg.source_zs
+    @test cg.unitv() isa Array
+    @test cg.unitv( ; is=1) isa Array
 
 #=
 #todo after debugging
@@ -114,6 +121,7 @@ function _test_prop(cg; d = 2mm, orbit = 180.0°)
         rs = rays(cg) # @NOTinferred todo
         @test rs isa Base.Generator
     end
+	@test collect(rs) isa Array{<:Tuple}
 
 #   γ = @inferred SG.ct_geom_gamma(cg)
 #   @test γ isa Union{Nothing, AbstractVector}

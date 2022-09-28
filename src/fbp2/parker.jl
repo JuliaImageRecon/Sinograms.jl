@@ -43,7 +43,7 @@ function parker_weight_fan(na::Int, orbit::RealU; T::DataType = Float32)
     if (orbit ÷ 360) * 360 == orbit
         return wt
     end
-    throw("todo: short-scan fan-beam Parker weighting not done")
+    @warn("todo: short-scan fan-beam Parker weighting not done")
     wt = zeros(T, na)
     return wt
 end

@@ -16,8 +16,8 @@ using Unitful: mm
     ob = ellipsoid( (2u,3u,4u), (8u,7u,6u) )
     ig = ImageGeom( (30, 28, 26), (1,1,1) .* 1u )
 
-#   for geo in (CtFanArc, CtFanFlat)
-    geo = (CtFanArc, CtFanFlat)[1]
+    for geo in (CtFanArc, CtFanFlat)
+#   geo = (CtFanArc, CtFanFlat)[1]
         cg = geo( ; ns=64, nt=40, ds=1u, dt=1.2u, na=32)
 
 #=
@@ -41,5 +41,5 @@ using Unitful: mm
         vol_true = volume(ob)
         vol_err = abs(vol_hat - vol_true) / vol_true
         @test_broken vol_err < 2e-6 # todo: bug
-#    end
+    end
 end
