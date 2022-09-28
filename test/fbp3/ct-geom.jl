@@ -2,7 +2,7 @@
 test/fbp3/ct-geom.jl
 =#
 
-#using Sinograms: RealU
+using Sinograms: RealU
 using Sinograms: CtGeom, CtParallel, CtFan
 using Sinograms: CtPar, CtFanArc, CtFanFlat
 using Sinograms: dims, ones, zeros, angles, rays, downsample, oversample # values
@@ -88,8 +88,6 @@ function _test_prop(cg; d = 2mm, orbit = 180.0°)
     cg.cone_angle
     cg.rmax
     cg.zfov
-    cg.source_dz_per_view
-    cg.source_zs
     @test cg.unitv() isa Array
     @test cg.unitv( ; is=1) isa Array
 
@@ -138,6 +136,8 @@ function _test_prop(cg; d = 2mm, orbit = 180.0°)
         cg.dfs
         cg.dso
 #       cg.dod
+        @test cg.source_dz_per_view isa RealU
+        @test cg.source_zs isa AbstractVector
     end
 
     @test cg.shape(vec(ones(cg))) == ones(cg)

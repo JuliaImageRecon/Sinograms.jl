@@ -57,7 +57,7 @@ call `fbp` with the `plan`
 
 # options
 - `window::Window` e.g., `Window(Hamming(), 0.8)`; default `Window()`
-- `npad::Int` # of radial bins after padding; default `nextpow(2, sg.nb + 1)`
+- `npad::Int` # of radial bins after padding; default `nextpow(2, cg.ns + 1)`
 - `decon1::Bool` deconvolve interpolator effect? (default `true`)
 -`T::DataType` type of sino elements (default `Float32`)
 

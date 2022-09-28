@@ -68,7 +68,7 @@ function fbp(
     length(parker_weight) == sg.na || throw("bad parker size")
 
     sino_filt = sino .* parker_weight'
-    sino_filt = fbp_sino_filter(sino_filt, filter) # todo: extra?
+    sino_filt = fbp_sino_filter(sino_filt, filter)
 
     image = fbp_back(sg, ig, sino_filt)
     return image, sino_filt
@@ -126,7 +126,8 @@ end
 # todo: needs broadcasts?
 function fbp_make_sino_filter_moj(nb, na, dx, orbit, orbit_start, window)
     ang = deg2rad(orbit_start .+ (0:na-1)./na .* orbit)
-    npad = 2^ceil(log2(2*nb-1)) # padded size
+    npad = nextpow(2, sg.nb + 1) # padded size
+
 
     dr = dx * max(abs(cos(ang)), abs(sin(ang)))
     if true
@@ -151,7 +152,7 @@ end
 
 function fbp2_apply_sino_filter_moj(sino, H)
     nb = size(sino,1)
-    npad = 2^ceil(log2(2*nb-1)) # padded size
+    npad = nextpow(2, sg.nb + 1) # padded size
     sinopad = [sino; zeros(npad-nb,size(sino,2))] # padded sinogram
     sino = _reale(ifft(fft(sinopad, 1) .* H), 1)
     sino = sino[1:nb,:]

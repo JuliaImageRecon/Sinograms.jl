@@ -13,7 +13,7 @@ include("fbp/window.jl")
 include("fbp3/ct-geom.jl")
 include("fbp2/sino-geom.jl")
 include("fbp/ramp.jl")
-include("fbp/sino-filter.jl")
+include("fbp/filter.jl")
 
 include("fbp2/parker.jl")
 include("fbp2/sino-weight.jl")

@@ -294,6 +294,7 @@ ct_geom_cone_angle(st::CtFan) = atan((st.nt * st.dt)/2 / st.dsd)
 #ct_geom_cone_angle(st::CtFan) = st.dso / st.dsd * st.nt * st.dt
 
 ct_geom_zfov(st::CtParallel) = st.nt * st.dt
+ct_geom_zfov(st::CtFan) = st.dso / st.dsd * st.nt * st.dt
 
 ct_geom_gamma_s(st::CtFanArc, ss) = ss / st.dsd
 ct_geom_gamma_s(st::CtFanFlat, ss) = atan.(ss / st.dsd)
@@ -609,7 +610,7 @@ ct_geom_fun0 = Dict([
     (:wt, st -> ct_geom_wt(st)),
 #   (:ones, st -> ones(Float64, st.dim)),
 #   (:zeros, st -> zeros(Float64, st.dim)),
-    (:unitv, st -> ((; kwarg...) -> sino_geom_unitv(sg; kwarg...))),
+    (:unitv, st -> ((; kwarg...) -> ct_geom_unitv(st ; kwarg...))),
 
     (:s, st -> ct_geom_s(st)),
     (:t, st -> ct_geom_t(st)),

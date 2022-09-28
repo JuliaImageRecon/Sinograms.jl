@@ -11,6 +11,7 @@ using Test: @test, @test_throws, @testset, @inferred
 
     pw = @inferred parker_weight_fan(10, 360.)
     pw = @inferred parker_weight_fan(10, 99.)
+    @test pw == zeros(10) # todo: until short-scan done
 
     geoms = (SinoPar, SinoFanArc, SinoMoj)
     for geom in (geoms)
@@ -32,5 +33,7 @@ using Test: @test, @test_throws, @testset, @inferred
     @test sum(pw)/length(pw) ≈ 1
 
     sg = SinoFanArc( ; orbit = 90)
-    @test_throws String parker_weight(sg)
+#   @test_throws String
+    pw = @inferred parker_weight(sg)
+    @test pw == zeros(sg.na) # todo: until short-scan done
 end

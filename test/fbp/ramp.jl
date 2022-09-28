@@ -1,4 +1,4 @@
-# test/fbp2/ramp.jl
+# test/fbp/ramp.jl
 
 using Sinograms: SinoPar, SinoMoj, SinoFanFlat, SinoFanArc, fbp_ramp
 import Sinograms as SG
@@ -35,7 +35,7 @@ using Test: @test, @testset, @inferred
 end
 
 
-@testset "fbp-ramp" begin
+@testset "fbp/ramp" begin
     N = 8
     for shape in (SinoPar, SinoMoj, SinoFanArc, SinoFanFlat)
         isinteractive() && (@show shape)

@@ -5,12 +5,12 @@ using Test: @test, @testset, detect_ambiguities
 
 include("helper.jl")
 
+include("fbp/filter.jl")
+include("fbp/ramp.jl")
 include("fbp/window.jl")
 
 include("fbp2/sino-geom.jl")
 include("fbp2/parker.jl")
-include("fbp2/ramp.jl")
-include("fbp2/filter.jl")
 include("fbp2/sino-plot.jl")
 include("fbp2/back2.jl")
 include("fbp2/plan2.jl")

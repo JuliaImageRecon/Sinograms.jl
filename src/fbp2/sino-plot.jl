@@ -33,7 +33,7 @@ function sino_plot_rays(sg::SinoGeom; kwargs...)
         markershape=:circle, linewidth=0,
         ylims, xlims, ylabel="ϕ",
         xticks=(-1:1)*rmax, yticks=[0,360] * unit_a,
-        title="$(typeof(sg))",
+        title="$(typeof(sg))", label="",
         kwargs...
     )
 end
