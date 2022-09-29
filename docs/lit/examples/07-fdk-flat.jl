@@ -31,7 +31,9 @@ This page was generated from a single Julia file:
 using Plots: plot, gui # these 3 must precede Sinograms for Requires to work!
 using Unitful: cm
 using UnitfulRecipes
-using Sinograms: CtFanFlat, rays #, plan_fbp, Window, Hamming, fbp, ct_geom_plot!
+using Sinograms: CtFanFlat, rays, plan_fbp, Window, Hamming, fdk #, ct_geom_plot!
+using Sinograms: CtFanArc
+using Sinograms: CtPar
 using ImageGeoms: ImageGeom, MaskCircle, fovs
 using ImagePhantoms: ellipsoid # todo cut
 using ImagePhantoms: SheppLogan, shepp_logan, radon, phantom
@@ -60,9 +62,12 @@ but units are optional.
 
 # Use `ImageGeom` to define the image geometry.
 ig = ImageGeom(MaskCircle(); dims=(128,126,40), deltas = (0.2cm,0.2cm,0.2cm) )
+ig = ImageGeom(MaskCircle(); dims=(64,62,30), deltas = (0.4cm,0.4cm,0.8cm) )
 
-# Use `CtFanFlat` to define the system geometry.
-cg = CtFanFlat( ; ns = 130, ds = 0.3cm, na = 100, dsd = 50cm, dod = 14cm)
+# Define the system geometry.
+cg = CtFanFlat( ; ns = 130, nt = 80, ds = 0.3cm, na = 50, dsd = 200cm, dod = 40cm)
+cg = CtFanArc( ; ns = 130, nt = 80, ds = 0.3cm, na = 50, dsd = 200cm, dod = 40cm)
+#cg = CtPar( ; ns = 130, nt = 80, ds = 0.3cm, na = 50)
 
 #src Examine the geometry to verify the FOV:
 #src jim(axes(ig), ig.mask; prompt=false)
@@ -75,14 +80,14 @@ cg = CtFanFlat( ; ns = 130, ds = 0.3cm, na = 100, dsd = 50cm, dod = 14cm)
 μ = 0.1 / cm # typical linear attenuation coefficient
 #src ob = shepp_logan(SheppLogan(); fovs = fovs(ig), u = (1, 1, μ))
 ob = [
-    ellipsoid((1cm,1cm,0cm), (((1,1) .* 0.43 .* fovs(ig)[1])..., 0.45 * fovs(ig)[3])),
+    ellipsoid((3cm,1cm,2cm), (((1,1) .* 0.43 .* fovs(ig)[1])..., 0.30 * fovs(ig)[3])),
     ellipsoid((3cm,2cm,1cm), (4cm,3cm,2cm), (π/6,0))
 ]
 # Here is the ideal phantom image
 clim = (0.9, 1.1) .* μ
 clim = (0, 2)
 true_image = phantom(axes(ig)..., ob, 3)
-jim(axes(ig)[1:2]..., true_image, "True 3D phantom image"; clim)
+#jim(axes(ig)[1:2]..., true_image, "True 3D phantom image"; clim)
 # todo: jim aspect_ratio
 
 # CBCT projections
@@ -90,13 +95,10 @@ i = rays(cg)
 proj = [radon(ob)(i...) for i in i]
 jim(cg.s, cg.t, proj; title="Shepp-Logan projections", xlabel="s", ylabel="t")
 
-#=
-throw()
-
 
 #=
 ## Image reconstruction via FBP / FDK
-Here we start with a "plan",
+We start with a "plan",
 which would save work if we were reconstructing many images.
 For illustration we include `Hamming` window. 
 =#
@@ -104,11 +106,12 @@ For illustration we include `Hamming` window.
 plan = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
 fdk_image = fdk(plan, proj)
 
+# A narrow color window is needed to see the soft tissue structures: todo
+jim(axes(ig), fdk_image, "FDK image"; clim)
 
-# A narrow color window is needed to see the soft tissue structures:
-jim(axes(ig), fdk_image, "FDK image for flat case"; clim)
 
-
+#=
+throw()
 todo clean up and/or cut
 include("cylinder_proj.jl")
 include("ellipsoid_proj.jl")

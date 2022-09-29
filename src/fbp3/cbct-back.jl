@@ -49,9 +49,9 @@ function cbct_back(
 end
 
 #=
-    ns = convert(Int64, cg.ns)
-    nt = convert(Int64, cg.nt)
-    na = convert(Int64, cg.na)
+    ns = cg.ns
+    nt = cg.nt
+    na = cg.na
     ds = cg.ds
     dt = cg.dt
     offset_s = cg.offset_s
@@ -62,7 +62,7 @@ end
     dfs = cg.dfs
     orbit = cg.orbit
     orbit_start = cg.orbit_start
-    source_zs = zeros(na) #for some reason in matlab this array is all zeros
+    source_zs = zeros(na) # in matlab this array is all zeros
     if isa(ig, im_geom2)
         mask = ig.mask
     elseif isa(ig, ImageGeom)
@@ -70,7 +70,7 @@ end
     else
         error("Mask Not implemented yet")
     end
-    nz = convert(Int64, ig.nz)
+    nz = ig.nz
     dx = ig.dx
     dy = ig.dy
     dz = ig.dz
@@ -79,13 +79,13 @@ end
     scale_dang = true
 
     (nx, ny) = size(mask)
-    betas = deg2rad.(orbit * [0:na-1;] / na .+ orbit_start)
-    wx = (nx-1)/2 + offset_xyz[1];
-    wy = (ny-1)/2 + offset_xyz[2];
-    wz = (nz-1)/2 + offset_xyz[3];
+    betas = @. deg2rad(orbit * (0:na-1) / na + orbit_start)
+    wx = (nx-1)/2 + offset_xyz[1]
+    wy = (ny-1)/2 + offset_xyz[2]
+    wz = (nz-1)/2 + offset_xyz[3]
 
-    xc, yc = ndgrid(([0:nx-1;] .- wx) * dx, ([0:ny-1;] .- wy) * dy)
-    zc = ([0:nz-1;] .- wz) * dz
+    xc, yc = ndgrid(((0:nx-1) .- wx) * dx, ((0:ny-1) .- wy) * dy)
+    zc = ((0:nz-1) .- wz) * dz
 
     xc = xc[mask]
     yc = yc[mask]
@@ -93,8 +93,7 @@ end
     ws = (ns+1)/2 + offset_s
     wt = (nt+1)/2 + offset_t
 
-    (t1, t2) = size(mask)
-    img = zeros(t1, t2, nz)
+    img = zeros(nx, ny, nz)
     sdim = (ns+1, nt)
     proj1 = zeros(ns+1, nt)
 
@@ -106,7 +105,6 @@ end
         for ia in ia_min:ia_skip:ia_max
             beta = betas[ia]
 
-            #matlab code has +xc for some reaso
             x_beta = xc * cos.(beta) + yc * sin.(beta)
             y_betas = - (-xc * sin.(beta) + yc * cos.(beta)) .+ dso
 
@@ -160,8 +158,7 @@ end
             img2 = img2 + p0
         end
 
-        #matlab has embed function which in this case adds a zero then reshapes
-        img[:,:,iz] = reshape([img2; 0], (ns, nt))
+        img[:,:,iz] = embed(img2, mask)
     end
 
     if scale_dang
@@ -169,7 +166,6 @@ end
     end
 
     return img
-(0.5 * deg2rad(abs(orbit)) / (na/ia_skip))
 end
 =#
 
@@ -193,13 +189,17 @@ function cbct_back_fan(
     ia_skip::Int = 1,
     T::DataType = eltype(oneunit(Ts)
         * (oneunit(To) * oneunit(Tc) / oneunit(Tds) + oneunit(Toffset))),
-)::Array{T,3} where {Ts <: Number, To <: RealU, Tds <: RealU, Toffset <: Real, Tc <: RealU}
+)::Array{T,3} where {
+    Ts <: Number,
+    To <: RealU,
+    Tds <: RealU,
+    Toffset <: Real,
+    Tc <: RealU,
+}
 
     image = zeros(T, size(mask)) # need zero(T) outside mask
-    sinβ = sin.(betas[1:ia_skip:end])
-    cosβ = cos.(betas[1:ia_skip:end])
 
-    cbct_back_fan!(image, proj, sinβ, cosβ,
+    cbct_back_fan!(image, proj, betas,
         dsd, dso,
 #       offset_source,
         ds, dt, offset_s, offset_t, is_arc,
@@ -211,11 +211,15 @@ function cbct_back_fan(
 end
 
 
+"""
+    cbct_back_fan!(...)
+This should work even for non-uniformly spaced source angles
+(for a circular source trajectory).
+"""
 function cbct_back_fan!(
     image::Array{T,3},
     proj::AbstractArray{<:Number,3},
-    sinβ::AbstractVector{<:Real},
-    cosβ::AbstractVector{<:Real},
+    betas::AbstractVector{To},
     dsd::RealU,
     dso::RealU,
 #   offset_source::RealU,
@@ -230,7 +234,7 @@ function cbct_back_fan!(
     zc::AbstractVector{<:RealU},
     mask::AbstractArray{Bool,3} ;
     ia_skip::Int = 1,
-) where {T <: Number, Toffset <: Real}
+) where {T <: Number, To <: RealU, Toffset <: Real}
 
     length.((xc,yc,zc)) == size(image) == size(mask) || throw("size mismatch")
 
@@ -238,8 +242,18 @@ function cbct_back_fan!(
     ws = Toffset((ns+1)/2 + offset_s)
     wt = Toffset((nt+1)/2 + offset_t)
     if ia_skip > 1
-        proj = @view proj[:,:,1:ia_skip:end]
+        ia = 1:ia_skip:na
+        proj = @view proj[:,:,ia]
+        betas = @view betas[ia]
     end
+    sinβ = sin.(betas)
+    cosβ = cos.(betas)
+
+    # scale projections by dβ for Riemann-like integration
+    dβ = diff(betas)
+    dβ = [dβ[1]; dβ] # todo
+    proj = proj .* reshape(dβ, 1, 1, :) / 2
+
     xc_ds = xc / ds
     yc_ds = yc / ds
     zc_ds = zc / ds
@@ -276,7 +290,6 @@ function cbct_back_fan_voxel(
     x_ds::Tx,
     y_ds::Tx,
     z_ds::Tx ;
-    scale::Real = 1,
     T::DataType = eltype(oneunit(Tp) * one(To) * one(Tw) * one(Tx)),
 ) where {Tp <: Number, To <: Real, Tw <: Real, Tx <: Real}
 
@@ -287,7 +300,6 @@ function cbct_back_fan_voxel(
         @inbounds sβ = sinβ[ia]
         @inbounds cβ = cosβ[ia]
 
-        # todo: matlab code has +xc for some reason (ask jason)
         x_beta = x_ds * cβ + y_ds * sβ
         y_beta = dso_ds - (-x_ds * sβ + y_ds * cβ) # dso - y_beta
 
@@ -311,7 +323,7 @@ function cbct_back_fan_voxel(
         is = floor(Int, bs)
         it = floor(Int, bt)
 
-       if (1 ≤ is < ns) && (1 ≤ it < nt)
+        if (1 ≤ is < ns) && (1 ≤ it < nt)
 
             # bilinear interpolation:
             wr = bs - is # right weight
@@ -326,5 +338,5 @@ function cbct_back_fan_voxel(
         end
     end
 
-    return voxel * scale
+    return voxel
 end

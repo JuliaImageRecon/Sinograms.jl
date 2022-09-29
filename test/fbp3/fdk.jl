@@ -3,7 +3,7 @@ test/fbp3/fdk.jl
 Test basic cone-beam FBP (aka FDK).
 =#
 
-using Sinograms: plan_fbp, fdk
+using Sinograms: plan_fbp, fdk, rays
 using Sinograms: CtFanArc, CtFanFlat
 using ImageGeoms: ImageGeom
 using ImagePhantoms: radon, ellipsoid, volume
@@ -17,7 +17,6 @@ using Unitful: mm
     ig = ImageGeom( (30, 28, 26), (1,1,1) .* 1u )
 
     for geo in (CtFanArc, CtFanFlat)
-#   geo = (CtFanArc, CtFanFlat)[1]
         cg = geo( ; ns=64, nt=40, ds=1u, dt=1.2u, na=32)
 
 #=
@@ -29,7 +28,7 @@ using Unitful: mm
 =#
 
         i = rays(cg)
-        proj = [radon(ob)(i...) for i in i]
+        proj = [radon(ob)(i...) for i in i] # todo
 
         plan = plan_fbp(cg, ig)
 #       recon = @inferred fdk(plan, proj)
@@ -40,6 +39,6 @@ using Unitful: mm
         vol_hat = sum(recon) * prod(ig.deltas)
         vol_true = volume(ob)
         vol_err = abs(vol_hat - vol_true) / vol_true
-        @test_broken vol_err < 2e-6 # todo: bug
+        @test vol_err < 3e-3
     end
 end
