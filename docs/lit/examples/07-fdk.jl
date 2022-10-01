@@ -28,11 +28,10 @@ This page was generated from a single Julia file:
 
 # Packages needed here.
 
-using Plots: plot, gui # these 3 must precede Sinograms for Requires to work!
+using Plots: plot, gui # these 2 must precede Sinograms for Requires to work!
 using Unitful: cm
-using UnitfulRecipes
 using Sinograms: CtFanArc, CtFanFlat # CtPar
-using Sinograms: rays, plan_fbp, Window, Hamming, fdk #, ct_geom_plot!
+using Sinograms: rays, plan_fbp, Window, Hamming, fdk, ct_geom_plot3
 using ImageGeoms: ImageGeom, MaskCircle, fovs
 using ImagePhantoms: ellipsoid_parameters, ellipsoid
 using ImagePhantoms: radon, phantom
@@ -76,11 +75,12 @@ jim(axes(ig), true_image, "True 3D Shepp-Logan phantom image"; clim)
 p = (ns = 130, ds = 0.3cm, nt = 80, dt = 0.4cm, na = 50, dsd = 200cm, dod = 40cm)
 cg = CtFanArc( ; p...)
 
-#src Examine the geometry to verify the FOV:
-#src jim(axes(ig), ig.mask; prompt=false)
-#src ct_geom_plot!(sg ; ig) # todo
-#src
-#src prompt()
+# Examine the geometry to verify the FOV:
+ct_geom_plot3(cg, ig)
+
+#
+prompt()
+
 
 # CBCT projections
 proj_arc = radon(rays(cg), ob)

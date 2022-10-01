@@ -26,9 +26,8 @@ This page was generated from a single Julia file:
 
 # Packages needed here.
 
+using Plots # these 2 must precede 'using Sinograms' for sino_plot_rays to work
 using Unitful: mm, °
-using UnitfulRecipes
-using Plots # must precede 'using Sinograms' for sino_plot_rays to work
 using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat, SinoFan
 using Sinograms: sino_plot_rays, rays
 using MIRTjim: jim, prompt

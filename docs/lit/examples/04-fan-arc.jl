@@ -35,9 +35,8 @@ This page was generated from a single Julia file:
 
 # Packages needed here.
 
-using Plots: plot, gui # these 3 must precede Sinograms for Requires to work!
+using Plots: plot, gui # these 2 must precede Sinograms for Requires to work!
 using Unitful: mm
-using UnitfulRecipes
 using Sinograms: SinoFanArc, rays, plan_fbp, fbp, sino_geom_plot!
 using ImageGeoms: ImageGeom, fovs, MaskCircle
 using ImagePhantoms: SheppLogan, shepp_logan, radon, phantom
@@ -71,7 +70,7 @@ sg = SinoFanArc( ; nb = 130, d = 3.2mm, na = 100, dsd = 400mm, dod = 140mm)
 
 # Examine the geometry to verify the FOV:
 jim(axes(ig), ig.mask; prompt=false)
-sino_geom_plot!(sg ; ig)
+sino_geom_plot!(sg, ig)
 
 #
 prompt()

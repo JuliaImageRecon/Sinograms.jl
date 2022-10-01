@@ -30,7 +30,6 @@ using Sinograms: SinoPar, rays, plan_fbp, fbp
 using ImageGeoms: ImageGeom, fovs, MaskCircle
 using ImagePhantoms: SheppLogan, shepp_logan, radon, phantom
 using Unitful: mm
-using UnitfulRecipes
 using MIRTjim: jim, prompt
 
 
