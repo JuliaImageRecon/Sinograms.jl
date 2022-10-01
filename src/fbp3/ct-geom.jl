@@ -52,8 +52,8 @@ todo
 * `.t` t sample locations
 * `.gamma` [nb] gamma sample values [radians]
 * `.gamma_s` gamma values given s values
-* `.gamma_max` half of fan angle [radians] (if offset_s=0)
-* `.gamma_max_abs` half of fan angle [radians] (recommended)
+* `.gamma_max` half of fan angle [radians], if offset_s=0
+* `.gamma_max_abs` half of fan angle [radians] - recommended
 * `.ws` (ns-1)/2 + st.offset_s
 * `.wt` (nt-1)/2 + st.offset_t
 * `.ad` [na] source angles in degrees
