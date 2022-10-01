@@ -7,7 +7,7 @@ Show CT geometries.
 export ct_geom_plot2!, ct_geom_plot3
 
 #using Sinograms: CtGeom, RealU
-using .Plots: plot, plot! #, default scatter,
+using .Plots: plot, plot!, default
 using ImageGeoms: axes
 
 
@@ -32,6 +32,7 @@ end
 
 
 function ct_geom_plot_ig!(ig::ImageGeom{3})
+    default(label = "")
     xmin, xmax = extrema(axes(ig)[1])
     ymin, ymax = extrema(axes(ig)[2])
     zmin, zmax = extrema(axes(ig)[3])
@@ -66,6 +67,7 @@ end
 """
 function ct_geom_plot3(st::CtFan, ig::ImageGeom)
 
+    default(label = "")
     plot()
     ct_geom_plot_ig!(ig)
 
@@ -88,7 +90,7 @@ function ct_geom_plot3(st::CtFan, ig::ImageGeom)
     elseif st.na == 2
         ia_list = [1, st.na]
     else
-        ia_list = [1, st.na÷2, st.na]
+        ia_list = floor.(Int, 1 .+ (0:2)/3 .* st.na)
     end
 
     for (ic, ia) in enumerate(ia_list)
