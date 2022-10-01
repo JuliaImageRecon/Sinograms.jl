@@ -86,7 +86,7 @@ function _test_prop(cg; d = 2mm, orbit = 180.0°)
     @test cg.xds isa AbstractVector
     @test cg.yds isa AbstractVector
     @test cg.cone_angle isa Real
-    @test cg.rmax isa RealU
+    @test cg.rfov isa RealU
     @test cg.zfov isa RealU
     @test cg.unitv() isa Array
     @test cg.unitv( ; is=1) isa Array

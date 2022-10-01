@@ -63,7 +63,7 @@ todo
 * `.ones` ones(ns,nt,na, 'single')
 * `.zeros` zeros(ns,nt,na, 'single')
 * `.rad` [ns] radial distance of each ray from origin
-* `.rmax` max radius within FOV
+* `.rfov` max radius within FOV
 * `.footprint_size(ig)` max footprint width in 's' (not done)
 * `.cone_angle` (half) cone angle on axis (s=0): +/- angle
 * `.zfov` axial FOV
@@ -277,9 +277,9 @@ end
 ct_geom_dfs(st::CtFanArc{Td}) where Td = zero(Td)
 ct_geom_dfs(st::CtFanFlat{Td}) where Td = Inf * oneunit(Td)
 
-ct_geom_rmax(st::CtPar) = maximum(abs, st.s)
-ct_geom_rmax(st::CtFanArc) = st.dso * sin(ct_geom_gamma_max_abs(st))
-ct_geom_rmax(st::CtFanFlat) = st.dso * sin(ct_geom_gamma_max_abs(st)) # todo: correct?
+ct_geom_rfov(st::CtPar) = maximum(abs, st.s)
+ct_geom_rfov(st::CtFanArc) = st.dso * sin(ct_geom_gamma_max_abs(st))
+ct_geom_rfov(st::CtFanFlat) = st.dso * sin(ct_geom_gamma_max_abs(st)) # todo: correct?
 
 ct_geom_xds(st::CtFanArc) = st.dsd * sin.(st.gamma_s(st.s))
 ct_geom_xds(st::CtFanFlat) = st.s
@@ -636,7 +636,7 @@ ct_geom_fun0 = Dict([
     (:ad, st -> angles(st)),
     (:ar, st -> to_radians(st.ad)),
 #   (:rad, st -> ct_geom_rad(st)),
-    (:rmax, st -> ct_geom_rmax(st)),
+    (:rfov, st -> ct_geom_rfov(st)),
     (:shape, st -> (proj -> reshaper(proj, dims(st)))),
 #   (:footprint_size, st -> ct_geom_footprint_size(st)),
 
