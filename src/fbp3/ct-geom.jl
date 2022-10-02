@@ -17,6 +17,8 @@ export dims
 
 import Base: ones, zeros
 
+using ImageGeoms: ImageGeom, fovs
+
 
 """
     CtGeom{Td,To}
@@ -64,7 +66,7 @@ todo
 * `.zeros` zeros(ns,nt,na, 'single')
 * `.rad` [ns] radial distance of each ray from origin
 * `.rfov` max radius within FOV
-* `.footprint_size(ig)` max footprint width in 's' (not done)
+* `.footprint_size(ig)` max footprint width in 's'
 * `.cone_angle` (half) cone angle on axis (s=0): +/- angle
 * `.zfov` axial FOV
 * `.source_zs` [na] z-locations of source for each view
@@ -291,7 +293,6 @@ ct_geom_yds(st::CtParallel) = 0 * st.s
 
 ct_geom_cone_angle(st::CtParallel) = 0
 ct_geom_cone_angle(st::CtFan) = atan((st.nt * st.dt)/2 / st.dsd)
-#ct_geom_cone_angle(st::CtFan) = st.dso / st.dsd * st.nt * st.dt
 
 ct_geom_zfov(st::CtParallel) = st.nt * st.dt
 ct_geom_zfov(st::CtFan) = st.dso / st.dsd * st.nt * st.dt
@@ -321,21 +322,11 @@ function rays(st::CtPar{Td,To})::_rays_type(Td,To) where {Td,To}
     u = st.s
     v = st.t
     ϕ = st.ar / oneunit(eltype(st.ar))
-#   θ = [zero(To)]
     θ = zero(eltype(ϕ))
     i = Iterators.product(u, v, ϕ, θ)
     return i
-#=
-    u = [p[1] for p in i]
-    v = [p[2] for p in i]
-    ϕ = [p[3] for p in i]
-    θ = [p[4] for p in i]
-    Tϕ = eltype(oneunit(to_radians([oneunit(To)])[1]))
-    return (u, v, ϕ, θ)::Tuple{Array{Td,4}, Array{Td,4}, Array{Tϕ,4}, Array{Tϕ,4}}
-=#
 end
 
-#function cb_to_par(ss, tt, β)
 
 function rays(st::CtFan{Td,To}) where {Td,To}
     st.pitch == 0 || throw("pitch not done")
@@ -349,17 +340,6 @@ function rays(st::CtFan{Td,To}) where {Td,To}
         fun = stb -> cb_flat_to_par(stb..., st.dso, st.dod)
     end
     return Iterators.map(fun, i)
-#=
-    s = [p[1] for p in i]
-    t = [p[2] for p in i]
-    β = [p[3] for p in i]
-    out = cb_arc_to_par.(s, t, st.dso, st.dod)
-#   γ = ct_geom_gamma_s(st, s)
-#   r = st.dso * sin.(γ)
-#   ϕ = γ + β
-#   θ =
-    return (u, v, ϕ, θ)::Tuple{Array{Td,4}, Array{Td,4}, Array{Tϕ,4}, Array{Tϕ,4}}
-=#
 end
 
 
@@ -367,10 +347,6 @@ function ct_geom_source_dz_per_view(st::CtGeom{Td}) where Td
     if st.na == 1 || st.pitch == 0
         return zero(Td)
     end
-#   if length(st.orbit) != 1 || st.orbit == 0
-#       error("ERROR OCCURRED") # todo: cut?
-#       return 0
-#   end
     na_per_360 = st.na * (360 / st.orbit)
     out = st.pitch * st.zfov / na_per_360
 end
@@ -384,46 +360,28 @@ function ct_geom_source_zs(st::CtGeom)
 #   end
 end
 
-#=
-function ct_geom_footprint_size(st::CtPar, ig)
-    di = sqrt(ig.dx^2 + ig.dy^2)
-    smax = maximum(abs.(st.s))
-    rfov = max(ig.nx * ig.dx, ig.ny * ig.dy) / 2
-    dso = st.dso
-    dsd = st.dsd
-    if rfov > 0.99 * dso
-        error("BAD DSO ERROR")
-        return 1 / 0
-    end
+
+function ct_geom_footprint_size(st::CtPar, ig::ImageGeom{3})::Float32
+    di = sqrt(sum(abs2, ig.deltas[1:2]))
+    smax = maximum(abs, st.s)
     return di / st.ds
 end
 
-function ct_geom_footprint_size(st::CtFanFlat, ig)
-    di = sqrt(ig.dx^2 + ig.dy^2)
-    smax = maximum(abs.(st.s))
-    rfov = max(ig.nx * ig.dx, ig.ny * ig.dy) / 2
-    dso = st.dso
-    dsd = st.dsd
-    if rfov > 0.99 * dso
-        error("BAD DSO ERROR")
-        return 1 / 0
-    end
-    return di / st.ds * sqrt(dsd^2 + smax^2) / (dso-rfov)
+function ct_geom_footprint_size(st::CtFanFlat, ig::ImageGeom{3})::Float32
+    di = sqrt(sum(abs2, ig.deltas[1:2]))
+    smax = maximum(abs, st.s)
+    rfov = maximum(fovs(ig)[1:2]) / 2
+    rfov > 0.99 * st.dso && throw("bad dso")
+    return di / st.ds * sqrt(st.dsd^2 + smax^2) / (st.dso - rfov)
 end
 
-function ct_geom_footprint_size(st::CtFanArc, ig)
-    di = sqrt(ig.dx^2 + ig.dy^2)
-    smax = maximum(abs.(st.s))
-    rfov = max(ig.nx * ig.dx, ig.ny * ig.dy) / 2
-    dso = st.dso
-    dsd = st.dsd
-    if rfov > 0.99 * dso
-        error("BAD DSO ERROR")
-        return 1 / 0
-    end
-    return di / st.ds * dsd / (dso-rfov)
+function ct_geom_footprint_size(st::CtFanArc, ig::ImageGeom{3})::Float32
+    di = sqrt(sum(abs2, ig.deltas[1:2]))
+    smax = maximum(abs, st.s)
+    rfov = maximum(fovs(ig)[1:2]) / 2
+    rfov > 0.99 * st.dso && throw("bad dso")
+    return di / st.ds * st.dsd / (st.dso - rfov)
 end
-=#
 
 
 function _downsample(st::CtGeom, down_s::Int, down_t::Int, down_a::Int)
@@ -500,110 +458,6 @@ function ct_geom_unitv(st::CtGeom ;
 end
 
 
-#=
-# plot 2D geometry of the setup
-
-using PyPlot
-
-function ct_geom_plot2(st::CtGeom, ig::ImageGeom)
-    t = LinRange(0, 2*pi, 1001)
-
-    if isa(st, CtParallel)
-        error("Not implemented yet")
-    end
-    beta0 = deg2rad(st.orbit_start)
-    rot = [cos(beta0) sin(beta0); -sin(beta0) cos(beta0)]
-    p0 = st.dso * [-sin(beta0); cos(beta0)]
-    pd = rot' * [st.xds'; st.yds']
-    rfov = st.dso * sin(maximum(abs.(st.gamma)))
-
-    Plots.scatter([p0[1]],[p0[2]], linestyle = :solid)
-    Plots.plot!(st.dso * cos.(t), st.dso * sin.(t), linecolor = :red)
-    Plots.plot!(pd[1,:], pd[2,:], linestyle = :solid, linecolor = :yellow)
-
-    xmin = minimum(ig.x)
-    xmax = maximum(ig.x)
-    ymin = minimum(ig.y)
-    ymax = maximum(ig.y)
-    Plots.plot!([xmax, xmin, xmin, xmax, xmax], [ymax, ymax, ymin, ymin, ymax], linecolor = :green)
-
-    Plots.plot!([pd[1,1], p0[1], last(pd[1,:])], [pd[2,1], p0[2], last(pd[2,:])], linestyle = :dash)
-    Plots.plot!(rfov*cos.(t), rfov*sin.(t), linecolor = :magenta, linestyle = :dot)
-end
-
-#helper functions for ct_geom_plot3
-function r100(x)
-    return 100 * ceil(maximum(abs.(x))/100)
-end
-
-function r10(x)
-    return 10 * ceil(maximum(abs.(x))/10)
-end
-
-#3D helical geometry plot, saves plot to myfig.png
-function ct_geom_plot3(st::CtGeom, ig::ImageGeom)
-    if isinf(st.dso) || isinf(st.dsd)
-        error("Parallel beam Not done")
-    end
-
-    t1 = -st.dso * sin.(st.ar)
-    t2 = st.dso * cos.(st.ar)
-    t3 = st.source_zs
-
-    fig = figure()
-    ax = Axes3D(fig)
-    ax.plot3D(t1, t2, t3, color = "yellow", linestyle = "dotted")
-
-    ax.plot3D([-1, 1] * r100(t1), [0,0], [0,0])
-    ax.plot3D([0,0], [-1, 1]*r100(t2), [0,0])
-    ax.plot3D([0,0], [0,0], [-1,1]*r10(t3))
-
-    #skip the part about ztick line 740
-    xmin = minimum(ig.x)
-    xmax = maximum(ig.x)
-    ymin = minimum(ig.y)
-    ymax = maximum(ig.y)
-    zmin = minimum(ig.z)
-    zmax = maximum(ig.z)
-    ax.plot3D([xmin, xmax, xmax, xmin, xmin], [ymin, ymin, ymax, ymax, ymin], [zmin, zmin, zmin, zmin, zmin], color = "green", linestyle = "dashed")
-    ax.plot3D([xmin, xmax, xmax, xmin, xmin], [ymin, ymin, ymax, ymax, ymin], [zmax, zmax, zmax, zmax, zmax], color = "green", linestyle = "dashed")
-    ax.plot3D(xmin*[1,1], ymin*[1,1], [zmin, zmax], color = "green", linestyle = "dashed")
-    ax.plot3D(xmax*[1,1], ymin*[1,1], [zmin, zmax], color = "green", linestyle = "dashed")
-    ax.plot3D(xmin*[1,1], ymax*[1,1], [zmin, zmax], color = "green", linestyle = "dashed")
-    ax.plot3D(xmax*[1,1], ymax*[1,1], [zmin, zmax], color = "green", linestyle = "dashed")
-    ax.plot3D(xmin*ones(ig.nz), ymin*ones(ig.nz), ig.z, color = "green", linestyle = "dotted")
-
-    detcolor = ["red", "cyan", "magenta"]
-    if st.na == 1
-        ia_list = 1
-    elseif st.na == 2
-        ia_list = [1, st.na]
-    else
-        ia_list = [1, 1+floor(Int, st.na/2), st.na]
-    end
-
-    for ia = ia_list
-        src = [t1[ia], t2[ia], t3[ia]]
-        unit_vec = [-src[1], -src[2], 0]/sqrt(src[1]^2 + src[2]^2)
-        det_cen_loc = src + st.dsd * unit_vec
-        #ax.plot3D(det_cen_loc[1], det_cen_loc[2], det_cen_loc[3], )
-
-        rot = st.ar[ia]
-        rot = [cos(rot) -sin(rot); sin(rot) cos(rot)]
-        pd = rot * [st.xds'; st.yds']
-
-        for it = 1:st.nt
-            indices = findall(x -> x == ia, ia_list)
-            indices = indices[1]
-            ax.plot3D(pd[1,:], pd[2,:], src[3] .+ st.t[it] * ones(st.ns), color = detcolor[indices])
-        end
-    end
-    ax.view_init(22, -200)
-    PyPlot.savefig("myfig.png")
-end
-=#
-
-
 ct_geom_fun0 = Dict([
 #   (:help, st -> ct_geom_help()),
 
@@ -638,7 +492,7 @@ ct_geom_fun0 = Dict([
 #   (:rad, st -> ct_geom_rad(st)),
     (:rfov, st -> ct_geom_rfov(st)),
     (:shape, st -> (proj -> reshaper(proj, dims(st)))),
-#   (:footprint_size, st -> ct_geom_footprint_size(st)),
+    (:footprint_size, st -> (ig -> ct_geom_footprint_size(st, ig))),
 
 #   (:plot_grid, st -> ((plot::Function) -> ct_geom_plot_grid(st, plot))),
 #   (:plot2, st -> ((ig::ImageGeom) -> ct_geom_plot2(st, ig))),
@@ -651,4 +505,3 @@ Base.getproperty(st::CtGeom, s::Symbol) =
 
 Base.propertynames(st::CtGeom) =
     (fieldnames(typeof(st))..., keys(ct_geom_fun0)...)
-
