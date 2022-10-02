@@ -60,7 +60,7 @@ end
     for tmp in geoms
         sg = tmp[1]
         x = tmp[2]
-        @inferred SG.sino_geom_taufun(sg, x, 2x)
+        @inferred SG.sino_geom_tau(sg, x, 2x)
         @inferred sg.taufun(x, 2*x)
     end
 end
