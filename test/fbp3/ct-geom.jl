@@ -48,27 +48,8 @@ end
 end
 
 
-#=
-@testset "taufun" begin
-    geoms = (
-        (CtPar(; d = 2, na = 5), (1:3)),
-        (CtPar(; d = 2, na = 5), (1:3) * 1.0),
-        (CtPar(; d = 2mm, na = 5), (1:3)mm),
-        (CtPar(; d = 2.0mm, na = 5), (1:3)mm),
-    )
-    for tmp in geoms
-        cg = tmp[1]
-        x = tmp[2]
-        @inferred SG.ct_geom_taufun(cg, x, 2x)
-        @inferred cg.taufun(x, 2*x)
-    end
-end
-=#
-
-
 function _test_prop(cg; d = 2mm, orbit = 180.0°)
     @test cg.ad isa AbstractVector
-#   cg.rfov
 #   @inferred cg.down(2)
     @test (@inferred downsample(cg,2)) isa CtGeom
 #   @inferred cg.over(2)
