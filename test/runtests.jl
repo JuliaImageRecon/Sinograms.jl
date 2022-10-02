@@ -22,6 +22,7 @@ include("fbp3/ct-geom.jl")
 include("fbp3/plan3.jl")
 include("fbp3/back3.jl")
 include("fbp3/fdk.jl")
+include("fbp3/ct-plot.jl")
 
 include("sys2/zwart_powell.jl")
 
