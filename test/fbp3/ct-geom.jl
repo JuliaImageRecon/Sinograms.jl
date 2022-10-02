@@ -6,6 +6,7 @@ using Sinograms: RealU
 using Sinograms: CtGeom, CtParallel, CtFan
 using Sinograms: CtPar, CtFanArc, CtFanFlat
 using Sinograms: dims, ones, zeros, angles, rays, downsample, oversample # values
+using Sinograms: footprint_size
 import Sinograms as SG
 using ImageGeoms: ImageGeom
 using Unitful: mm, °
@@ -116,8 +117,7 @@ function _test_prop(cg; d = 2mm, orbit = 180.0°)
     @test cg.shape(vec(ones(cg))) == ones(cg)
 
     ig = ImageGeom((9,9,9), (1,1,1) .* cg.ds)
-    @test (@inferred SG.ct_geom_footprint_size(cg, ig)) isa RealU
-    @test cg.footprint_size(ig) isa Real
+    @test (@inferred footprint_size(cg, ig)) isa Float32
 
 #=
     x = (1:4) * oneunit(d)

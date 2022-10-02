@@ -30,6 +30,7 @@ include("fbp3/cb_flat_to_par.jl")
 include("fbp3/cbct-back.jl")
 include("fbp3/fdk.jl")
 
+include("sys2/footprint.jl")
 include("sys2/zwart_powell.jl")
 
 

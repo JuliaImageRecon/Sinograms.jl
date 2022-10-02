@@ -66,7 +66,6 @@ todo
 * `.zeros` zeros(ns,nt,na, 'single')
 * `.rad` [ns] radial distance of each ray from origin
 * `.rfov` max radius within FOV
-* `.footprint_size(ig)` max footprint width in 's'
 * `.cone_angle` (half) cone angle on axis (s=0): +/- angle
 * `.zfov` axial FOV
 * `.source_zs` [na] z-locations of source for each view
@@ -361,29 +360,6 @@ function ct_geom_source_zs(st::CtGeom)
 end
 
 
-function ct_geom_footprint_size(st::CtPar, ig::ImageGeom{3})::Float32
-    di = sqrt(sum(abs2, ig.deltas[1:2]))
-    smax = maximum(abs, st.s)
-    return di / st.ds
-end
-
-function ct_geom_footprint_size(st::CtFanFlat, ig::ImageGeom{3})::Float32
-    di = sqrt(sum(abs2, ig.deltas[1:2]))
-    smax = maximum(abs, st.s)
-    rfov = maximum(fovs(ig)[1:2]) / 2
-    rfov > 0.99 * st.dso && throw("bad dso")
-    return di / st.ds * sqrt(st.dsd^2 + smax^2) / (st.dso - rfov)
-end
-
-function ct_geom_footprint_size(st::CtFanArc, ig::ImageGeom{3})::Float32
-    di = sqrt(sum(abs2, ig.deltas[1:2]))
-    smax = maximum(abs, st.s)
-    rfov = maximum(fovs(ig)[1:2]) / 2
-    rfov > 0.99 * st.dso && throw("bad dso")
-    return di / st.ds * st.dsd / (st.dso - rfov)
-end
-
-
 function _downsample(st::CtGeom, down_s::Int, down_t::Int, down_a::Int)
     ns = 4 * max(st.ns ÷ 4down_s, 1)
     nt = 2 * max(st.nt ÷ 2down_t, 1)
@@ -492,7 +468,6 @@ ct_geom_fun0 = Dict([
 #   (:rad, st -> ct_geom_rad(st)),
     (:rfov, st -> ct_geom_rfov(st)),
     (:shape, st -> (proj -> reshaper(proj, dims(st)))),
-    (:footprint_size, st -> (ig -> ct_geom_footprint_size(st, ig))),
 
 #   (:plot_grid, st -> ((plot::Function) -> ct_geom_plot_grid(st, plot))),
 #   (:plot2, st -> ((ig::ImageGeom) -> ct_geom_plot2(st, ig))),
