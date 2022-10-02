@@ -116,14 +116,7 @@ function _test_prop(cg; d = 2mm, orbit = 180.0°)
         rs = rays(cg) # @NOTinferred todo
         @test rs isa Base.Generator
     end
-	@test collect(rs) isa Array{<:Tuple}
-
-#   γ = @inferred SG.ct_geom_gamma(cg)
-#   @test γ isa Union{Nothing, AbstractVector}
-
-#   if cg isa CtParallel
-#       @test isnothing(cg.gamma)
-#   end
+    @test collect(rs) isa Array{<:Tuple}
 
     if cg isa CtFan
         @test cg.gamma isa AbstractVector
@@ -143,8 +136,6 @@ function _test_prop(cg; d = 2mm, orbit = 180.0°)
 #=
     x = (1:4) * oneunit(d)
     @inferred cg.taufun(x, 2*x)
-    cg.unitv()
-    cg.unitv(ib=1, ia=2)
 =#
     true
 end

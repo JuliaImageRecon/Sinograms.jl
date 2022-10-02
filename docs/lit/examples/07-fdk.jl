@@ -92,7 +92,7 @@ jim(cg.s, cg.t, proj_arc ;
 ## Image reconstruction via FBP / FDK
 We start with a "plan",
 which would save work if we were reconstructing many images.
-For illustration we include `Hamming` window. 
+For illustration we include `Hamming` window.
 =#
 
 plan = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
