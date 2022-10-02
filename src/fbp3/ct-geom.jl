@@ -1,5 +1,5 @@
 #=
-ct_geom.jl
+fbp3/ct-geom.jl
 CT geometry for 3D image reconstruction
 that describes the sampling characteristics of a CT scan
 using the parallel, fan beam arc, or flat fan beam geometry.
