@@ -1,15 +1,19 @@
 #=
-sino-plot.jl
-Show sinogram geometries.
+fbp2/sino-plot.jl
+Show 2D sinogram geometries.
 2022-01-23, Jeff Fessler
 =#
 
 export sino_plot_rays, sino_geom_plot!
 
 #using Sinograms: SinoGeom, RealU
-using .Plots: scatter, plot!, default
-using .Unitful
-using .UnitfulRecipes
+using .Plots: scatter, plot, plot!, default, xlims!
+
+
+function _title(st::Union{SinoGeom,CtGeom})
+    title = "$(typeof(st))"
+    return title[1:findfirst('{', title)-1]
+end
 
 
 """
@@ -31,57 +35,94 @@ function sino_plot_rays(sg::SinoGeom; kwargs...)
         r, ad ;
         markersize=1, markerstrokecolor=:auto,
         markershape=:circle, linewidth=0,
-        ylims, xlims, ylabel="ϕ",
-        xticks=(-1:1)*rmax, yticks=[0,360] * unit_a,
-        title="$(typeof(sg))",
+        ylims, xlims, xlabel = "r", ylabel="ϕ",
+        xticks = (-1:1)*rmax, yticks = [0,360] * unit_a,
+        title = _title(sg), label="",
         kwargs...
     )
 end
 
 
-"""
-    sino_geom_plot!(sg ; ig)
-Picture of the source position / detector geometry.
-"""
-function sino_geom_plot!(
-    sg::SinoGeom ;
+# helpers
+
+_round(x; kwargs...) = oneunit(x) * round(x / oneunit(x); kwargs...)
+
+scat!(args... ; kwargs...) =
+    plot!(args... ; kwargs..., markerstrokecolor=:auto, linewidth=0)
+
+
+function sino_geom_plot_ig!(
+    rfov::RealU ;
     ig::Union{Nothing,ImageGeom} = nothing,
 )
-    u = oneunit(sg.rfov) # hack to avoid unit issues
 
     default(label="")
-    scat!(args... ; kwargs...) =
-        plot!(args... ; kwargs..., markerstrokecolor=:auto, linewidth=0)
 
-    xmax = sg.rfov / u; xmin = -xmax; (ymin,ymax) = (xmin,xmax)
+    xmax = rfov; xmin = -xmax; (ymin,ymax) = (xmin,xmax)
     if !isnothing(ig)
 #       plot!(jim(ig.x, ig.y, ig.mask[:,:,1], clim=(0,1))) # todo: jim!
         x, y = axes(ig)
-        x = x / u
-        y = y / u
         xmin = minimum(x); xmax = maximum(x)
         ymin = minimum(y); ymax = maximum(y)
     end
 
-    myround(x; kwargs...) = oneunit(x) * round(x / oneunit(x); kwargs...)
+    xticks = _round.([xmin, zero(xmin), xmax]; digits = 0)
+    yticks = _round.([ymin, zero(ymin), ymax]; digits = 2)
+    plot!(
+        [xmax, xmin, xmin, xmax, xmax],
+        [ymax, ymax, ymin, ymin, ymax] ;
+        xlabel = "x", ylabel = "y",
+        color = :green,
+        xticks,
+        yticks,
+    )
 
-    plot!([xmax, xmin, xmin, xmax, xmax],
-        [ymax, ymax, ymin, ymin, ymax], color=:green)
-
-    xticks = myround.([xmin, zero(xmin), xmax]; digits = 0)
-#@show xmin, xmax, ymin, ymax
-#@show xticks
-    plot!(xtick = myround.([xmin, zero(xmin), xmax]; digits = 0))
-    plot!(ytick = myround.([ymin, zero(xmin), ymax]; digits = 2))
-
-    θ = LinRange(0, 2π, 501)
-    rfov = sg.rfov
-    scat!([0], [0], marker=:circle)
+    scat!([zero(xmin)], [zero(xmin)], marker=:circle)
+    θ = LinRange(0, 2π, 401)
     plot!(rfov * cos.(θ), rfov * sin.(θ), color=:magenta) # rfov circle
-    rfov = myround(sg.rfov, digits=1)
-    title = "$(typeof(sg))"
-    title = title[1:findfirst('{', title)-1]
-    plot!(xlabel="x", ylabel="y"; title)
+    plot!(aspect_ratio = 1)
+end
+
+
+function sino_geom_plot_fan!(
+    ar,
+    rfov,
+    dso,
+    xds,
+    yds,
+)
+
+    x0 = zero(dso)
+    y0 = dso
+    t = LinRange(0, 2π, 100)
+    rot = ar[1]
+    rot = [cos(rot) -sin(rot); sin(rot) cos(rot)]
+    p0 = rot * [x0; y0]
+    pd = rot * [xds'; yds'] # detector points
+
+    xlims = (-1,1) .* dso
+    ylims = (-1,1) .* dso
+    tmp = ar .+ π/2 # trick: angle beta defined ccw from y axis
+    scat!([p0[1]], [p0[2]], color=:blue, marker=:square, # source
+        ; xlims, ylims)
+    plot!(dso * cos.(t), dso * sin.(t), color=:cyan) # source circle
+    scat!(dso * cos.(tmp), dso * sin.(tmp),
+        color=:blue, marker=:circle, markersize=2) # source points
+    scat!(vec(pd[1,:]), vec(pd[2,:]), marker=:circle,
+        color=:orange, markersize=1) # detectors
+
+    plot!([pd[1,1], p0[1], pd[1,end]], [pd[2,1], p0[2], pd[2,end]],
+        color=:red, label="")
+end
+
+
+"""
+    sino_geom_plot!(sg)
+Picture of the source position / detector geometry.
+"""
+function sino_geom_plot!(sg::SinoGeom)
+
+    plot!(; title = _title(sg))
 
 #=
     if sg isa SinoPar
@@ -89,30 +130,15 @@ function sino_geom_plot!(
 =#
 
     if sg isa SinoFan
-        x0 = zero(sg.dso)
-        y0 = sg.dso
-        t = LinRange(0, 2π, 100)
-        rot = sg.ar[1]
-        rot = [cos(rot) -sin(rot); sin(rot) cos(rot)]
-        p0 = rot * [x0; y0]
-        pd = rot * [sg.xds'; sg.yds'] # detector points
-        plot!(xlims = (-1,1) .* sg.dso ./ u)
-        plot!(ylims = (-1,1) .* sg.dso ./ u)
+        sino_geom_plot_fan!(
+            sg.ar,
+            sg.rfov,
+            sg.dso,
+            sg.xds,
+            sg.yds,
+        )
 
-        tmp = sg.ar .+ π/2 # trick: angle beta defined ccw from y axis
-        scat!([p0[1]], [p0[2]], color=:blue, marker=:square) # source
-        plot!(sg.dso * cos.(t), sg.dso * sin.(t), color=:cyan) # source circle
-        scat!(sg.dso * cos.(tmp), sg.dso * sin.(tmp),
-            color=:blue, marker=:circle, markersize=2) # source points
-        scat!(vec(pd[1,:]), vec(pd[2,:]), marker=:circle,
-            color=:orange, markersize=1) # detectors
-
-        plot!([pd[1,1], p0[1], pd[1,end]], [pd[2,1], p0[2], pd[2,end]],
-            color=:red, label="")
-#       plot!(title="$(typeof(sg))")
-    end
-
-    if sg isa SinoMoj
+    elseif sg isa SinoMoj
         θ = LinRange(0, 2π, 100)
         rphi = sg.nb/2 * sg.d_moj.(θ)
         plot!(rphi .* cos.(θ), rphi .* sin.(θ), color=:blue, label="")
@@ -120,6 +146,18 @@ function sino_geom_plot!(
     #   axis([-1 1 -1 1] * max([rmax ig.fov/2]) * 1.1)
     end
 
-
     return plot!(aspect_ratio=1)
+end
+
+
+"""
+    sino_geom_plot!(sg, ig)
+Picture of the source position / detector geometry.
+"""
+function sino_geom_plot!(
+    sg::SinoGeom,
+    ig::ImageGeom;
+)
+    sino_geom_plot_ig!(sg.rfov; ig)
+    sino_geom_plot!(sg)
 end

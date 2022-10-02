@@ -38,16 +38,18 @@ function parker_weight(sg::SinoPar ; T::DataType = Float32)::Vector{T}
 end
 
 
-function parker_weight(sg::SinoFan; T::DataType = Float32)::Vector{T}
-    orbit = abs(sg.orbit)
-    na = sg.na
+function parker_weight_fan(na::Int, orbit::RealU; T::DataType = Float32)
     wt = ones(T, na)
-    if (sg.orbit ÷ 360) * 360 == orbit
+    if (orbit ÷ 360) * 360 == orbit
         return wt
     end
-    throw("todo: short-scan fan-beam Parker weighting not done")
-#   return wt
+    @warn("todo: short-scan fan-beam Parker weighting not done")
+    wt = zeros(T, na)
+    return wt
 end
+
+parker_weight(sg::SinoFan; T::DataType = Float32)::Vector{T} =
+    parker_weight_fan(sg.na, sg.orbit; T)
 
 
 function parker_weight(sg::SinoMoj ; T::DataType = Float32)::Vector{T}

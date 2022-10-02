@@ -6,8 +6,9 @@ using Sinograms: RealU
 using Sinograms: SinoGeom, SinoParallel, SinoFan
 using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat
 using Sinograms: ones, zeros, angles, rays, downsample, oversample # values
-using Sinograms: sino_w, sino_s
+using Sinograms: sino_w, sino_s, footprint_size
 import Sinograms as SG
+using ImageGeoms: ImageGeom
 using Unitful: mm, °
 using Test: @test, @testset, @test_throws, @inferred
 
@@ -60,7 +61,7 @@ end
     for tmp in geoms
         sg = tmp[1]
         x = tmp[2]
-        @inferred SG.sino_geom_taufun(sg, x, 2x)
+        @inferred SG.sino_geom_tau(sg, x, 2x)
         @inferred sg.taufun(x, 2*x)
     end
 end
@@ -122,6 +123,10 @@ function _test_prop(sg; d = 2mm, orbit = 180.0°)
     @inferred sg.taufun(x, 2*x)
     sg.unitv()
     sg.unitv(ib=1, ia=2)
+
+    ig = ImageGeom( (5,7), (1,1) .* d)
+    @test (@inferred footprint_size(sg, ig)) isa Float32
+
     true
 end
 

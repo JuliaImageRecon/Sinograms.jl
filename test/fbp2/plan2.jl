@@ -1,5 +1,5 @@
 #=
-test/fbp2/plan.jl
+test/fbp2/plan2.jl
 =#
 
 using Sinograms: plan_fbp, Window, FBPNormalPlan
@@ -8,7 +8,7 @@ using ImageGeoms: ImageGeom
 using Test: @test, @testset, @inferred
 
 
-@testset "fbp-plan" begin
+@testset "fbp2/plan2" begin
     sg = SinoPar()
     ig = ImageGeom()
 

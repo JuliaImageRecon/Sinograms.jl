@@ -1,5 +1,6 @@
 # Sinograms.jl
-Julia library for working with sinograms / tomography / Radon transform
+Julia library for working with
+sinograms / tomography / Radon transform / cone-beam CT / CBCT
 
 https://github.com/JeffFessler/Sinograms.jl
 
@@ -12,18 +13,15 @@ https://github.com/JeffFessler/Sinograms.jl
 [![code-style][code-blue-img]][code-blue-url]
 <img src="docs/src/assets/logo.png" alt="logo" width="150"/>
 
-Associated with
-[JuliaImageRecon](https://github.com/JuliaImageRecon)
-and the
-[Michigan Image Reconstruction Toolbox (MIRT)](https://github.com/JeffFessler/MIRT.jl).
-
 See the examples under the blue "docs" badges above.
 
-Tested with Julia ≥ 1.7.
+Tested with Julia ≥ 1.8.
 
 
 ### Related packages in Julia
 
+* [JuliaImageRecon](https://github.com/JuliaImageRecon)
+* [Michigan Image Reconstruction Toolbox (MIRT)](https://github.com/JeffFessler/MIRT.jl)
 * https://github.com/JuliaImages/ImageReconstruction.jl (`radon`, `iradon`)
 * https://github.com/JeffFessler/SPECTrecon.jl
 

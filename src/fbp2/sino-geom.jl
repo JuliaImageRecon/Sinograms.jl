@@ -650,43 +650,63 @@ sino_geom_rfov(sg::SinoFan) = sg.dso * sin(sg.gamma_max)
 sino_geom_rfov(sg::SinoMoj) = sg.nb/2 * minimum(sg.d_ang) # (ignores offset)
 
 
-function _sino_geom_taufun(sg::SinoPar, x::AbstractVector, y::AbstractVector)
-    ar = sg.ar' # row vector, for outer-product
-    return (x * cos.(ar) + y * sin.(ar)) / sg.dr # tau
+# τ (unitless)
+function _sino_geom_tau(ϕ::RealU, x::RealU, y::RealU, dr::RealU)
+    sϕ, cϕ = sincos(ϕ)
+    return (x * cϕ + y * sϕ) / dr
+end
+
+function _sino_geom_tau(
+    st::Union{SinoPar,CtPar},
+    x::AbstractVector,
+    y::AbstractVector,
+)
+    return _sino_geom_tau.(st.ar', x, y, st.dr) # outer-product
 end
 
 # this one may not be useful but it helps unify tests
-function _sino_geom_taufun(sg::SinoMoj, x::AbstractVector, y::AbstractVector)
-    ar = sg.ar' # row vector, for outer-product
-    return (x * cos.(ar) + y * sin.(ar)) ./ sg.d_moj.(sg.ar)' # tau
-end
+_sino_geom_tau(sg::SinoMoj, x::AbstractVector, y::AbstractVector) =
+    _sino_geom_tau.(sg.ar', x, y, sg.d_moj.(sg.ar)') # outer-product
 
-_sino_geom_tau(sg::SinoFanArc, tangam) = sg.dsd / sg.ds * atan.(tangam)
-_sino_geom_tau(sg::SinoFanFlat, tangam) = sg.dsd / sg.ds * tangam
+_sino_geom_tau_arc(dsd::RealU, ds::RealU, tangam::Real) =
+    dsd / ds * atan(tangam)
+_sino_geom_tau_flat(dsd::RealU, ds::RealU, tangam::Real) =
+    dsd / ds * tangam
+_sino_geom_tau(st::Union{SinoFanArc,CtFanArc}, tangam) =
+    _sino_geom_tau_arc.(st.dsd, st.ds, tangam)
+_sino_geom_tau(st::Union{SinoFanFlat,CtFanFlat}, tangam) =
+    _sino_geom_tau_flat.(st.dsd, st.ds, tangam)
 
-function _sino_geom_taufun(sg::SinoFan, x::AbstractVector, y::AbstractVector)
-    b = sg.ar' # row vector, for outer-product
+function _sino_geom_tau(
+    st::Union{SinoFan,CtFan},
+    x::AbstractVector,
+    y::AbstractVector,
+)
+    b = st.ar' # row vector, for outer-product
     xb = x * cos.(b) + y * sin.(b)
     yb = -x * sin.(b) + y * cos.(b)
-    tangam = (xb .- sg.source_offset) ./ (sg.dso .- yb) # e,tomo,fan,L,gam
-    tau = _sino_geom_tau(sg, tangam)
+    if st isa SinoFan
+        xb .-= st.source_offset
+    end
+    tangam = xb ./ (st.dso .- yb) # e,tomo,fan,L,gam
+    tau = _sino_geom_tau(st, tangam)
     return tau
 end
 
 
 """
-    sino_geom_taufun(sg::SinoGeom, x, y)
+    sino_geom_tau(st::Union{SinoGeom,CtGeom}, x, y)
 Projected `s/ds`, useful for footprint center and support.
-Returns `Matrix` of size `length(x) × sg.na`.
+Returns `Matrix` of size `length(x) × st.na`.
 """
-function sino_geom_taufun(
-    sg::SinoGeom{Td,To},
+function sino_geom_tau(
+    st::Union{SinoGeom{Td,To},CtGeom{Td,To}},
     x::AbstractArray{Tx},
     y::AbstractArray{Ty},
 ) where {Td <: Number, To <: Number, Tx <: Number, Ty <: Number}
     size(x) != size(y) && throw("bad x,y size")
     T = promote_type(map(t -> eltype(one(t)), (Tx, Ty, Td, To))...)
-    return _sino_geom_taufun(sg, vec(x), vec(y))::Matrix{T}
+    return _sino_geom_tau(st, vec(x), vec(y))::Matrix{T}
 end
 
 
@@ -762,7 +782,7 @@ end
 """
     show(io::IO, ::MIME"text/plain", sg::SinoGeom)
 """
-function Base.show(io::IO, ::MIME"text/plain", sg::SinoGeom)
+function Base.show(io::IO, ::MIME"text/plain", sg::Union{SinoGeom,CtGeom})
     println(io, "$(typeof(sg)) :")
     for f in fieldnames(typeof(sg))
         p = getproperty(sg, f)
@@ -775,23 +795,28 @@ end
 sino_w(sg::SinoGeom) = Toffset((sg.nb-1)/2 + sg.offset)::Toffset
 
 # detector centers: d * ((0:nb-1) .- w)
-function sino_s(sg::SinoGeom{Td}) where {Td <: Number}
-    T = promote_type(Toffset, eltype(one(Td)))
-    T = eltype(oneunit(Td) * one(T))
-    w = sino_w(sg)
-    b = LinRange(-w, sg.nb - 1 - w, sg.nb)
-    s = sg.d * b
-#   @show Td T Toffset eltype(w) eltype(b) eltype(s)
-    return s::LinRange{T,Int}
+function _lin_range(
+    d::Td, w::Toffset, n::Int ;
+    T::DataType = eltype(oneunit(Td) * one(Toffset)),
+)::LinRange{T,Int} where {Td <: RealU}
+    return d * LinRange(-w, n - 1 - w, n)
 end
+
 #sino_s(sg::SinoGeom) = sg.d * ((0:sg.nb-1) .- sino_w(sg))
+#sino_s(sg::SinoGeom) = _lin_range(sg.d, sg.w, sg.nb) # can't infer!?
+function sino_s(
+    sg::SinoGeom{Td} ;
+    T::DataType = eltype(oneunit(Td) * one(Toffset)),
+)::LinRange{T,Int} where {Td <: RealU}
+    return _lin_range(sg.d, sg.w, sg.nb)
+end
 
 dims(sg::SinoGeom) = (sg.nb, sg.na)
-ones(T::DataType, sg::SinoGeom) = ones(T, dims(sg))
-ones(sg::SinoGeom) = ones(Float32, sg)
-zeros(T::DataType, sg::SinoGeom) = ones(T, dims(sg))
-zeros(sg::SinoGeom) = ones(Float32, sg)
-angles(sg::SinoGeom{Td,To}) where {Td,To} =
+Base.ones(T::DataType, sg::SinoGeom) = ones(T, dims(sg))
+Base.ones(sg::SinoGeom) = ones(Float32, sg)
+Base.zeros(T::DataType, sg::SinoGeom) = ones(T, dims(sg))
+Base.zeros(sg::SinoGeom) = ones(Float32, sg)
+angles(sg::Union{SinoGeom{Td,To}, CtGeom{Td,To}}) where {Td,To} =
     LinRange(sg.orbit_start, To(sg.orbit_start + (sg.na-1)/sg.na * sg.orbit), sg.na)::LinRange{To,Int}
 #   range(sg.orbit_start, length = sg.na, step = sg.orbit / sg.na)
 
@@ -826,7 +851,7 @@ sino_geom_fun0 = Dict([
 #   (:plot!, sg ->
 #       ((plot!::Function ; ig=nothing) -> sino_geom_plot!(sg, plot! ; ig=ig))),
     (:shape, sg -> (((x::AbstractArray) -> reshaper(x, sg.dim)))),
-    (:taufun, sg -> ((x,y) -> sino_geom_taufun(sg,x,y))),
+    (:taufun, sg -> ((x,y) -> sino_geom_tau(sg,x,y))),
     (:unitv, sg -> ((; kwarg...) -> sino_geom_unitv(sg; kwarg...))),
 
     # angular dependent d for :moj

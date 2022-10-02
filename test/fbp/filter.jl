@@ -1,4 +1,4 @@
-# test/fbp2/filter.jl
+# test/fbp/filter.jl
 
 using Sinograms: SinoPar, SinoGeom, fbp_filter, fbp_sino_filter
 using Unitful: mm
@@ -6,7 +6,7 @@ using Test: @test, @testset, @test_throws, @inferred
 
 include("../helper.jl")
 
-@testset "fbp_filter" begin
+@testset "fbp/filter" begin
     for d_ in (2, 2f0, 2.0),
             du in (1, 1mm)
         d = d_ * du

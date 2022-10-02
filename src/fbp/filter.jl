@@ -1,4 +1,4 @@
-# fbp2/sino-filter.jl
+# fbp/filter.jl
 
 export fbp_filter, fbp_sino_filter
 
@@ -7,20 +7,21 @@ using FFTW
 
 
 """
-    Hk = fbp_filter(sg::SinoGeom ;
-        npad=0, ds::RealU = sg.d, decon1::Bool=true, window=Window())
+    Hk = fbp_filter(st::Union{SinoGeom,CtGeom} ;
+        npad=0, ds::RealU = st.d, decon1::Bool=true, window=Window())
 
 Compute frequency response of ramp-like filter
-used for 2D FBP image reconstruction.
-Both parallel-beam and fan-beam tomographic geometries are supported.
+used for FBP image reconstruction.
+Supports parallel-beam and fan-beam tomographic geometries in 2D and 3D.
 This code samples the band-limited ramp to avoid the aliasing that
 would be caused by sampling the ramp directly in the frequency domain.
 
 in
-- `sg::SinoGeom`
+- `st::Union{SinoGeom,CtGeom}`
 
 options
 - `npad::Int` # of padded samples. (default: next power of 2)
+- `ds::Td` detector sample spacing (default from `st`)
 - `decon1::Bool` deconvolve effect of linear interpolator? (default: true)
 - `window::Window` apodizer; default: `Window()`
 
@@ -28,15 +29,15 @@ out
 - `Hk::Vector` apodized ramp filter frequency response
 """
 function fbp_filter(
-    sg::SinoGeom{Td} = SinoPar() ;
-    npad::Int = nextpow(2, sg.nb + 1),
-    ds::Td = sg.d,
+    st::Union{SinoGeom{Td},CtGeom{Td}} = SinoPar() ;
+    npad::Int = nextpow(2, st.nb + 1),
+    ds::Td = st isa SinoGeom ? st.d : st.ds,
     decon1::Bool = true,
     window::Window = Window(),
 ) where {Td <: RealU}
 
 #   U = eltype(1 / oneunit(Td))
-    hn, nn = fbp_ramp(sg, npad)
+    hn, nn = fbp_ramp(st, npad)
 
     unit = oneunit(eltype(hn)) # handle units
     Hk = unit * fft(fftshift(hn / unit))
@@ -56,13 +57,12 @@ end
 
 
 """
-    sino = fbp_sino_filter(sg::SinoGeom, sino, filter ; extra=0)
+    sino = fbp_sino_filter(sino::Array, filter::Vector ; extra=0)
 
 Apply ramp-like filters to sinogram(s) for 2D FBP image reconstruction.
-Both parallel-beam and fan-beam tomographic geometries are supported. todo?
+Supports both parallel-beam and fan-beam tomographic geometries in 2D and 3D.
 
 in
-- `sg::SinoGeom`
 - `sino::AbstractArray{<:Number}` `[nb (L)]` sinograms
 - `filter::AbstractVector` `(npad ≥ nb)` apodized ramp filter frequency response
 

@@ -26,9 +26,8 @@ This page was generated from a single Julia file:
 
 # Packages needed here.
 
+using Plots # these 2 must precede 'using Sinograms' for sino_plot_rays to work
 using Unitful: mm, °
-using UnitfulRecipes
-using Plots # must precede 'using Sinograms' for sino_plot_rays to work
 using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat, SinoFan
 using Sinograms: sino_plot_rays, rays
 using MIRTjim: jim, prompt
@@ -203,8 +202,7 @@ is that in each image row
 the line intersection lengths are identical.
 =#
 
-plot(aspect_ratio=1, xlims=(-1,1) .* 3.5, ylims = (-1,1) .* 2.5,
-    xlabel="x", ylabel="x", title = "Mojette line integrals")
+plot(xlims=(-1,1) .* 3.5, ylims = (-1,1) .* 2.5, xlabel="x", ylabel="x")
 default(label="")
 for y in -2:2
     plot!([-3, 3], [y, y], color=:black)
@@ -222,4 +220,4 @@ r = rays(sg)[1][:,ia] # radial samples
 r = r[abs.(r) .< 3]
 ϕ = rays(sg)[2][1,ia] # projection angle
 plot_ray.(r, ϕ)
-gui()
+plot!(aspect_ratio=1, title = "Mojette line integrals")

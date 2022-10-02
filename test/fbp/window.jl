@@ -5,7 +5,7 @@ using Sinograms: NoWindow, Boxcar, Hamming, Hann, WindowVect
 using Test: @test, @testset, @inferred
 
 
-@testset "windows" begin
+@testset "fbp/window" begin
     shapes = (NoWindow, Boxcar, Hamming, Hann)
     for shape in shapes
         ws = @inferred Window(shape(), 0.7)
