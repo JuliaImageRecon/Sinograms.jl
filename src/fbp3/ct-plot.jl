@@ -85,13 +85,7 @@ function ct_geom_plot3(st::CtFan, ig::ImageGeom)
     plot!([0,0]*u, [0,0]*u, [-1,1]*r10(t3), color=:red)
 
     detcolor = [:red, :cyan, :magenta]
-    if st.na == 1
-        ia_list = 1
-    elseif st.na == 2
-        ia_list = [1, st.na]
-    else
-        ia_list = floor.(Int, 1 .+ (0:2)/3 .* st.na)
-    end
+    ia_list = unique(floor.(Int, 1 .+ (0:2)/3 .* st.na))
 
     for (ic, ia) in enumerate(ia_list)
         src = [t1[ia], t2[ia], t3[ia]]
