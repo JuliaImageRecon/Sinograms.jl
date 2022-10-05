@@ -7,7 +7,7 @@ This page describes image reconstruction
 for cone-beam computed tomography (CBCT)
 with both arc and flat detectors
 using the Julia package
-[`Sinograms.jl`](https://github.com/JeffFessler/Sinograms.jl).
+[`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl).
 
 This page was generated from a single Julia file:
 [07-fdk.jl](@__REPO_ROOT_URL__/07-fdk.jl).

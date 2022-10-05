@@ -11,7 +11,7 @@ CurrentModule = Sinograms
 
 ## Overview
 
-[`Sinograms.jl`](https://github.com/JeffFessler/Sinograms.jl)
+[`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl)
 is a Julia language package
 with tools for tomographic image reconstruction,
 including

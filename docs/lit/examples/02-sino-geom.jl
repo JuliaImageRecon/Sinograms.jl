@@ -5,7 +5,7 @@
 #=
 This page describes the 2D sinogram geometries
 available in the Julia package
-[`Sinograms.jl`](https://github.com/JeffFessler/Sinograms.jl).
+[`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl).
 
 This page was generated from a single Julia file:
 [02-sino-geom.jl](@__REPO_ROOT_URL__/02-sino-geom.jl).
