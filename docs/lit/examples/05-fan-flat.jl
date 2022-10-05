@@ -5,7 +5,7 @@
 #=
 This page describes fan-beam tomographic image reconstruction
 using the Julia package
-[`Sinograms.jl`](https://github.com/JeffFessler/Sinograms.jl).
+[`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl).
 
 This page focuses on fan-beam with a "flat" detector,
 i.e., one row of a flat-panel detector

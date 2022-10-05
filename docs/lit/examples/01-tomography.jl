@@ -4,7 +4,7 @@
 
 #=
 This page gives an overview of the Julia package
-[`Sinograms.jl`](https://github.com/JeffFessler/Sinograms.jl).
+[`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl).
 
 This page was generated from a single Julia file:
 [01-tomography.jl](@__REPO_ROOT_URL__/01-tomography.jl).
