@@ -1,3 +1,5 @@
+# test/sys2/zwart_powell.jl
+
 using Sinograms: zwart_powell
 using Test: @test, @testset, @test_throws, @inferred
 
@@ -8,8 +10,8 @@ using Test: @test, @testset, @test_throws, @inferred
     myfun(r, ϕ) = zwart_powell.(r, ϕ')
     sino = @inferred myfun(r, ϕ)
     @test sino isa Matrix
-    @test zwart_powell(0, 0) == 0.75
-    @test zwart_powell(0, π/4) ≈ 1/√2
+    @test (@inferred zwart_powell(0, 0)) == 0.75
+    @test (@inferred zwart_powell(0, π/4)) ≈ 1/√2
 
 #=
     using Plots
@@ -20,7 +22,7 @@ using Test: @test, @testset, @test_throws, @inferred
     sino = zwart_powell.(r, ϕ')
 
     p2 = plot()
-	for (i,θ) in enumerate(ϕ)
+    for (i,θ) in enumerate(ϕ)
         plot!(r, sino[:,i], label="ϕ=$θ")
     end
     plot(p1, p2)

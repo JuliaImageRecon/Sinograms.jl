@@ -3,8 +3,8 @@ fbp-par.jl
 Simple interfaces to parallel-beam FBP for user convenience
 =#
 
-using MIRT: sino_geom, image_geom # todo
-#using Sinograms: fbp2, RealU
+using ImageGeoms: ImageGeom, circle
+#using Sinograms: plan_fbp, fbp, RealU, SinoPar
 
 export fbp, fbp!
 
@@ -18,18 +18,22 @@ Returns an image of size `[nx × ny]`.
 # Options
 * `nx` : default `nr`
 * `ny` : default `nx`
-* `kwargs` : passed to `fbp2`
+* `kwargs` : passed to `fbp!`
 """
 function fbp(
-    sino::AbstractMatrix{T} ;
+    sino::AbstractMatrix{Ts} ;
     nx::Int = size(sino, 1),
     ny::Int = nx,
+    dr::RealU = 1,
+    dx::RealU = dr,
+    dy::RealU = dx,
+    deltas::NTuple{2,Td} = (dx, dy),
     kwargs...
-) where {T <: Number}
-    image = zeros(promote_type(T, Float32), nx, ny)
-    fbp!(image, sino; kwargs...)
+) where {Ts <: Number, Td <: RealU}
+    U = eltype(1f0 * oneunit(Ts) / oneunit(Td))
+    image = zeros(U, nx, ny)
+    fbp!(image, sino; dr, dx, dy, deltas, kwargs...)
 end
-
 
 
 """
@@ -41,16 +45,17 @@ Writes result into `image` matrix.
 # Input
 * `sino::AbstractMatrix`
 
-# Options for `sino_geom`
+# Options for `SinoPar` constructor
 * `dr` : sinogram radial spacing; default 1
 * `orbit` : angular range in degrees; default 180
-* `orbit_start` : angular range in degrees; default 180
+* `orbit_start` : angular range in degrees; default 0
 
-# Options for `image_geom`
-* `dx`, `dy`, `offset_x`, `offset_y`
+# Options for `ImageGeom`
+* `dx`, `dy`, `deltas`, `offset_x`, `offset_y`, `offsets`
+* `rmax` maximum radius for mask
 
 # Options
-* `kwargs` : passed to `fbp2`
+* `kwargs` : passed to `plan_fbp`
 
 # Output
 * `image::AbstractMatrix` is mutated
@@ -59,22 +64,39 @@ function fbp!(
     image::AbstractMatrix{<:Number},
     sino::AbstractMatrix{<:Number} ;
     dr::RealU = 1,
-    orbit::Real = 180,
-    orbit_start::Real = 0,
+    orbit::RealU = 180,
+    orbit_start::RealU = zero(orbit),
     dx::RealU = dr,
     dy::RealU = dx,
+    deltas = (dx, dy),
     offset_x::Real = 0,
     offset_y::Real = 0,
+    offsets = (offset_x, offset_y),
+    rmax::RealU = zero(dr),
     kwargs...
 )
     nb, na = size(sino)
     nx, ny = size(image)
-    sg = sino_geom(:par ; nb, na, d = dr, orbit, orbit_start)
-    ig = image_geom(; nx, ny, dx, dy, offset_x, offset_y)
-#   plan = FBPplan(sg, ig)
-    plan = fbp2(sg, ig) # todo FBPplan ??
-#   fbp2!(image, sino, plan) # todo
-    tmp, _ = fbp2(plan, sino)
+    sg = SinoPar( ; nb, na, d = dr, orbit, orbit_start)
+    ig = ImageGeom(; dims=(nx, ny), deltas, offsets)
+    mask = circle(ig ; r = (rmax == zero(dr)) ? sg.rfov : rmax)
+    ig = ImageGeom(ig.dims, ig.deltas, ig.offsets, mask)
+    plan = plan_fbp(sg, ig ; kwargs...)
+#   fbp!(image, sino, plan) # todo
+    tmp, _ = fbp(plan, sino) # todo: integrate better!
     copyto!(image, tmp)
     return image
 end
+
+
+#=
+function fbp!(
+    image::AbstractMatrix{<:Number},
+    sino::AbstractMatrix{<:Number},
+    plan::FBPNormalPlan,
+)
+    tmp, _ = fbp(plan, sino) # todo: integrate better!
+    copyto!(image, tmp)
+    return image
+end
+=#

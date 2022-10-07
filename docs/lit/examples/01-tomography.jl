@@ -1,10 +1,10 @@
 #---------------------------------------------------------
-# # [Tomography](@id 01-tomography)
+# # [Tomography overview](@id 01-tomography)
 #---------------------------------------------------------
 
 #=
 This page gives an overview of the Julia package
-[`Sinograms.jl`](https://github.com/JeffFessler/Sinograms.jl).
+[`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl).
 
 This page was generated from a single Julia file:
 [01-tomography.jl](@__REPO_ROOT_URL__/01-tomography.jl).
@@ -132,8 +132,8 @@ sino = proj2.(r, ϕ', 5, 1, 3)
 jimsino = (sino, title) -> jim(
     r, ϕ, sino; title, aspect_ratio=:none,
     xlabel = "r", ylabel = "ϕ", ylims=(0,π), yticks=([0, π], ["0", "π"]),
-	yflip=false, xticks = [-10, 0, 2, 5, 8, 10],
-	clim = (0, 6),
+    yflip=false, xticks = [-10, 0, 2, 5, 8, 10],
+    clim = (0, 6),
 )
 jimsino(sino, "Sinogram for one disk")
 
@@ -277,9 +277,7 @@ See this
 
 # This page was generated with the following version of Julia:
 
-io = IOBuffer()
-versioninfo(io)
-split(String(take!(io)), '\n')
+io = IOBuffer(); versioninfo(io); split(String(take!(io)), '\n')
 
 
 # And with the following package versions

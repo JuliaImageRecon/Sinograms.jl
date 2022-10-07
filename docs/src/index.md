@@ -11,16 +11,15 @@ CurrentModule = Sinograms
 
 ## Overview
 
-[`Sinograms.jl`](https://github.com/JeffFessler/Sinograms.jl).
+[`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl)
 is a Julia language package
 with tools for tomographic image reconstruction,
 including
-* describing ray geometries (parallel beam, fan beam, etc.)
-* performing filtered back-projection (FBP) image reconstruction
-* system models for iterative reconstruction
+* describing ray geometries (parallel beam, fan beam, etc.) ✅
+* performing filtered back-projection (FBP) image reconstruction ✅
+* system models for iterative reconstruction (WIP)
 
-It is all a WIP.
-See the examples
+See the examples.
 
 See also:
 * Michigan Image Reconstruction Toolbox
