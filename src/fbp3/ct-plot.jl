@@ -12,7 +12,7 @@ using ImageGeoms: axes
 
 
 function ct_geom_plot2!(st::CtGeom)
-    plot!(; title = _title(st))
+    plot!(; title = nameof(typeof(st)))
     if st isa CtFan
         sino_geom_plot_fan!(st.ar, st.rfov, st.dso, st.xds, st.yds)
     end

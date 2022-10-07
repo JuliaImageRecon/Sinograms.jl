@@ -10,12 +10,6 @@ export sino_plot_rays, sino_geom_plot!
 using .Plots: scatter, plot, plot!, default, xlims!
 
 
-function _title(st::Union{SinoGeom,CtGeom})
-    title = "$(typeof(st))"
-    return title[1:findfirst('{', title)-1]
-end
-
-
 """
     sino_plot_rays(sg::SinoGeom ; kwargs...)
 
@@ -34,10 +28,10 @@ function sino_plot_rays(sg::SinoGeom; kwargs...)
     scatter(
         r, ad ;
         markersize=1, markerstrokecolor=:auto,
-        markershape=:circle, linewidth=0,
+        markershape=:circle, linewidth=0, label="",
         ylims, xlims, xlabel = "r", ylabel="ϕ",
         xticks = (-1:1)*rmax, yticks = [0,360] * unit_a,
-        title = _title(sg), label="",
+        title = nameof(typeof(sg)),
         kwargs...
     )
 end
@@ -122,7 +116,7 @@ Picture of the source position / detector geometry.
 """
 function sino_geom_plot!(sg::SinoGeom)
 
-    plot!(; title = _title(sg))
+    plot!(; title = nameof(typeof(sg)))
 
 #=
     if sg isa SinoPar
