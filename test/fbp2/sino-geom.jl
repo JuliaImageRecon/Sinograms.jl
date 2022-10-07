@@ -69,21 +69,21 @@ end
 
 function _test_prop(sg; d = 2mm, orbit = 180.0°)
     sg.ad[2]
-    sg.rfov
-    @inferred sg.down(2)
-    @inferred sg.over(2)
-    sg.dim
-    sg.w
-    sg.ones
-    sg.zeros
-    sg.dr
-    sg.ds
-    sg.r
-    sg.s
-    sg.ad
-    sg.ar
-    sg.xds
-    sg.yds
+    @test sg.rfov isa RealU
+    @test (@inferred sg.down(2)) isa SinoGeom
+    @test (@inferred sg.over(2)) isa SinoGeom
+    @test sg.dim isa Dims
+    @test sg.w isa RealU
+    @test sg.ones isa Array
+    @test sg.zeros isa Array
+    @test sg.dr isa RealU
+    @test sg.ds isa RealU
+    @test sg.r isa AbstractVector
+    @test sg.s isa AbstractVector
+    @test sg.ad isa AbstractVector
+    @test sg.ar isa AbstractVector
+    @test sg.xds isa AbstractVector
+    @test sg.yds isa AbstractVector
 
     show(isinteractive() ? stdout : devnull, sg)
     show(isinteractive() ? stdout : devnull, MIME("text/plain"), sg)
@@ -99,30 +99,26 @@ function _test_prop(sg; d = 2mm, orbit = 180.0°)
     γ = @inferred SG.sino_geom_gamma(sg)
     @test γ isa Union{Nothing, AbstractVector}
 
-    if sg isa SinoParallel
-        @test isnothing(sg.gamma)
-    end
-
     if sg isa SinoFan
         @test sg.gamma isa AbstractVector
-        sg.gamma_max
-        @test sg.orbit_short isa Real
-        sg.dsd
-        sg.dfs
-        sg.dso
-#       sg.dod
+        @test sg.gamma_max isa RealU
+        @test sg.orbit_short isa RealU
+        @test sg.dsd isa RealU
+        @test sg.dfs isa RealU
+        @test sg.dso isa RealU
+        @test sg.dod isa RealU
     end
 
     if sg isa SinoMoj
-        sg.d_moj(0)
-        sg.d_ang # angular dependent d for :moj
+        @test sg.d_moj(0) isa RealU
+        @test sg.d_ang isa AbstractVector # angular dependent d for :moj
     end
 
     @test sg.shape(vec(sg.ones)) == sg.ones
     x = (1:4) * oneunit(d)
     @inferred sg.taufun(x, 2*x)
-    sg.unitv()
-    sg.unitv(ib=1, ia=2)
+    @test sg.unitv() isa Array
+    @test sg.unitv(ib=1, ia=2) isa Array
 
     ig = ImageGeom( (5,7), (1,1) .* d)
     @test (@inferred footprint_size(sg, ig)) isa Float32
