@@ -3,6 +3,7 @@
 using Plots: plot, plot!, gui, Plot
 using Unitful: mm #, °
 using Sinograms: CtPar, CtFanArc, CtFanFlat, CtFan
+using Sinograms: CtSourceCircle, CtSourceHelix
 using Sinograms: ct_geom_plot2!
 using Sinograms: ct_geom_plot3
 using ImageGeoms: ImageGeom
@@ -15,10 +16,11 @@ function _test_ct_plot(geo ;
     na::Int = 20,
     d = 2mm,
     orbit = 180.0, #°
+    src = CtSourceCircle(),
 )
 
     arg = geo() isa CtFan ? (; dod=120mm, dsd=300mm, ds=2d) : (; ds=d)
-    sg = geo(; ns, nt, na, orbit, arg...)
+    sg = geo(; ns, nt, na, orbit, src, arg...)
 
     plot()
     ig = ImageGeom( ; dims = (64, 62, 30), deltas = (1,1,1) .* d)
@@ -38,6 +40,8 @@ end
         p[i] = _test_ct_plot(geo)
         @test p[i] isa Plot
     end
-    plot(p..., layout = (1,3))
+    q = _test_ct_plot(CtFanArc; src=CtSourceHelix(;pitch=1.5,source_z0=0mm))
+    plot!(q ; title="Helix")
+    plot(p..., q)
     gui()
 end

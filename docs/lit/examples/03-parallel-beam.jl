@@ -64,7 +64,7 @@ sg = SinoPar( ; nb = 130, d = 2mm, na = 100)
 ob = shepp_logan(SheppLogan(); fovs = fovs(ig), u = (1, 1, μ))
 
 # Radon transform of Shepp-Logan phantom:
-sino = radon(ob).(rays(sg)...)
+sino = radon(rays(sg), ob)
 jim(sg.r, sg.ad, sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
 
 ## Image reconstruction via FBP

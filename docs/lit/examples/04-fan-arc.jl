@@ -80,7 +80,7 @@ prompt()
 ob = shepp_logan(SheppLogan(); fovs = fovs(ig), u = (1, 1, μ))
 
 # Flat fan-beam sinogram for Shepp-Logan phantom:
-sino = radon(ob).(rays(sg)...)
+sino = radon(rays(sg), ob)
 jim(sg.r, sg.ad, sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
 
 

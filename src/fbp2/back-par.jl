@@ -35,7 +35,7 @@ function fbp_back(
 #   do_r_mask::Bool = false
 ) where {Td, To, Ts <: Number}
 
-    sg.dim == size(sino) || throw("sino size")
+    dims(sg) == size(sino) || throw("sino size")
 
     # type inference help:
     Toffset = Float32 # eltype(sg.offset)

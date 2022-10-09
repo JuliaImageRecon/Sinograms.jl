@@ -17,8 +17,11 @@ Make a scatter plot of the `(r, ϕ)` sample locations for all rays.
 Requires `Plots`.
 """
 function sino_plot_rays(sg::SinoGeom; kwargs...)
-    r, phi = rays(sg)
-    ad = rad2deg.(phi)
+#   r, phi = rays(sg)
+    i = rays(sg)
+    r = [i[1] for i in i]
+    ϕ = [i[2] for i in i]
+    ad = rad2deg.(ϕ)
     unit_a = oneunit(eltype(ad))
     ylims = (min(zero(unit_a), minimum(ad)),
              max(360*unit_a, maximum(ad)))

@@ -7,11 +7,21 @@ using Requires: @require
 
 const RealU = Number # Real or Unitful
 
+include("geom/util.jl")
+include("geom/ct-source.jl")
+include("geom/type2.jl")
+include("geom/type3.jl")
+include("geom/sino-geom.jl")
+include("geom/ct-geom.jl")
+include("geom/common.jl")
+include("geom/prop2.jl")
+include("geom/prop3.jl")
+
 include("fbp/reale.jl")
 include("fbp/window.jl")
 
-include("fbp3/ct-geom.jl")
-include("fbp2/sino-geom.jl")
+#include("fbp3/ct-geom.jl")
+#include("fbp2/sino-geom.jl")
 include("fbp/ramp.jl")
 include("fbp/filter.jl")
 
@@ -35,14 +45,12 @@ include("sys2/zwart_powell.jl")
 
 
 """
-    to_radians(angle::Real)
-    to_radians(angles::AbstractArray{<:Real})
-If no Unitful package loaded, assume `angle` is in degrees and convert to radians.
+    to_radians(angles::AbstractArray{<:AbstractFloat})
+When Unitful package not loaded,
+assume `angles` are in degrees and convert to radians.
 """
-#to_radians(angle::T) where {T <: AbstractFloat} = T(deg2rad(angle))
-#to_radians(angle::Real) = deg2rad(Float32(angle))
 to_radians(aa::AbstractArray{T}) where {T <: AbstractFloat} = aa * T(deg2rad(1))
-#to_radians(aa::AbstractArray{T}) where {T <: Real} = aa * deg2rad(1f0) # Float32
+
 _unit_precision(x::T) where {T <: Number} = T
 
 
@@ -57,7 +65,6 @@ function __init__()
         include("units.jl")
     end
 end
-
 
 
 end # module
