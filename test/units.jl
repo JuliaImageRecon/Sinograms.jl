@@ -5,6 +5,7 @@ This is tricky because of Requires.jl
 =#
 
 using Sinograms: to_radians
+using InteractiveUtils: @which
 using Test
 
 function _is_sinograms(x)
