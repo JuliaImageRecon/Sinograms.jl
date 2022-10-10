@@ -26,8 +26,8 @@ This page was generated from a single Julia file:
 
 # Packages needed here.
 
-using Plots # these 2 must precede 'using Sinograms' for sino_plot_rays to work
 using Unitful: mm, °
+using Plots # these 2 must precede 'using Sinograms' for sino_plot_rays to work
 using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat, SinoFan
 using Sinograms: sino_plot_rays, rays
 using MIRTjim: jim, prompt
@@ -92,8 +92,7 @@ Everything is a named keyword argument with sensible default values.
 
 * `orbit` and `orbit_start` must both be unitless (degrees)
   or have the same units (e.g., degrees or radians).
-* detector spacing `d` and `strip_width`
-  must both be unitless or have the same units (e.g., mm).
+* detector spacing `d` (can be unitless or have units e.g., mm).
 * The projection angles ``ϕ`` are equally space and given by
   `orbit_start + (0:(nb-1))/nb * orbit`.
 =#
@@ -105,7 +104,6 @@ sg = SinoPar( ;
     offset = 0.25, # quarter detector offset (unitless)
     orbit = 180, # angular range (in degrees)
     orbit_start = 0, # starting angle (in degrees)
-    strip_width = 2mm, # detector width
 )
 
 #=
@@ -210,14 +208,17 @@ end
 for x in -3:3
     plot!([x, x], [-2, 2], color=:black)
 end
-plot_ray(r, ϕ) = plot!(
+plot_ray!(r, ϕ) = plot!(
     r*cos(ϕ) .+ [-1, 1] * 4 * sin(ϕ),
     r*sin(ϕ) .+ [1, -1] * 4 * cos(ϕ),
     color = :blue,
 )
 ia = 4 # pick an angle
-r = rays(sg)[1][:,ia] # radial samples
+i = rays(sg) # iterator
+rs = [i[1] for i in i] # radial samples
+ϕs = [i[2] for i in i] # projection angle
+r = rs[:,ia]
 r = r[abs.(r) .< 3]
-ϕ = rays(sg)[2][1,ia] # projection angle
-plot_ray.(r, ϕ)
+ϕ = ϕs[1,ia]
+plot_ray!.(r, ϕ)
 plot!(aspect_ratio=1, title = "Mojette line integrals")

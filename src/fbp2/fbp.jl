@@ -64,7 +64,7 @@ function fbp(
     filter::AbstractVector{<:Number},
     parker_weight::AbstractVector{<:Number} = ones(size(sino,2)),
 )
-    sg.dim != size(sino) && throw("bad sino size")
+    dims(sg) == size(sino) || throw("bad sino size")
     length(parker_weight) == sg.na || throw("bad parker size")
 
     sino_filt = sino .* parker_weight'

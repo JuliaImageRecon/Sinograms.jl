@@ -1,19 +1,27 @@
 # units.jl
 
-using .Unitful: °, rad
+using .Unitful: °, rad, NoDims
+
+#=
+https://github.com/PainterQubits/Unitful.jl/issues/375
+=#
+using .Unitful: Units, Quantity, convfact
+import .Unitful: uconvert
+function uconvert(a::Units, x::Quantity{T,D,U}) where {T<:AbstractFloat,D,U}
+    return Quantity(x.val * T(convfact(a, U())), a)
+end
 
 
 """
-    to_radians(angle::Unitful.Quantity)
     to_radians(angles::AbstractArray{Unitful.Quantity})
 
-Convert `Unitful` quantity to radians.
+Convert `Unitful` quantity array to radians.
 """
-#to_radians(angle::Unitful.Quantity) = convert(eltype(1.0rad), angle)
-#to_radians(aa::AbstractArray{T}) where {T <: Unitful.Quantity} = convert(eltype(1.0rad), angle)
-#to_radians(aa::AbstractArray{<: Unitful.Quantity{T}}) where {T <: Real} =
-#    aa * ((one(Float32)*rad) / oneunit(eltype(aa)))
-to_radians(aa::AbstractArray{<: Unitful.Quantity{T}}) where {T <: AbstractFloat} =
-    aa * ((one(T)*rad) / oneunit(eltype(aa)))
+function to_radians(aa::AbstractArray{<: Unitful.Quantity{T}}) where {T <: AbstractFloat}
+    U = eltype(aa)
+    c = rad(oneunit(U)) / oneunit(U)
+    return aa * c
+end
+
 
 _unit_precision(x::Unitful.Quantity{T}) where {T <: Number} = "Unit{$T}"

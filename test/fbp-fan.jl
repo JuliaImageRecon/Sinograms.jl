@@ -19,9 +19,12 @@ include("helper.jl")
         ig = ImageGeom(MaskCircle() ; deltas = (1,1) .* 0.1f0mm)
         mask = circle(ig ; r = sg.rfov)
         ig = ImageGeom(ig.dims, ig.deltas, ig.offsets, mask)
-        r, ϕ = rays(sg)
+#       r, ϕ = rays(sg)
+        i = rays(sg)
         rad = 2mm
-        sino = rad * proj2.(r, ϕ, 2mm, 1mm, rad)
+        fun(rϕ) = rad * proj2.(rϕ..., 2mm, 1mm, rad)
+#       sino = rad * proj2.(r, ϕ, 2mm, 1mm, rad)
+        sino = [fun(i) for i in i]
 #       jim(sg.s, sg.ad, sino)
 
         plan = @inferred plan_fbp(sg, ig)

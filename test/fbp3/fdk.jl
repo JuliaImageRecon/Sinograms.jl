@@ -19,18 +19,9 @@ using Unitful: mm
     for geo in (CtFanArc, CtFanFlat)
         cg = geo( ; ns=64, nt=40, ds=1u, dt=1.2u, na=32)
 
-#=
-        proj1 = r -> abs(r) < 1 ? 2 * sqrt(1 - r^2) : zero(r) # unit sphere proj.
-        proj2 = (u, v, ϕ, θ, x, y, z, w) -> w * proj1((r - (x * cos(ϕ) + y * sin(ϕ)))/w) # shifted
-        rad = 2u
-        sino = proj2.(r, ϕ', 2u, 1u, rad)
-        jim(r, ϕ, sino)
-=#
+        proj = radon(rays(cg), [ob])
 
-        i = rays(cg)
-        proj = [radon(ob)(i...) for i in i] # todo
-
-        plan = plan_fbp(cg, ig)
+        plan = @inferred plan_fbp(cg, ig)
 #       recon = @inferred fdk(plan, proj)
         recon = fdk(plan, proj) # todo: NOTinferred
         @test recon isa Array{<:Number, 3}

@@ -2,7 +2,7 @@
 
 export fbp_sino_weight
 
-using Sinograms: SinoFan, sino_geom_gamma
+#using Sinograms: SinoFan, _geom_gamma
 
 
 """
@@ -10,6 +10,6 @@ using Sinograms: SinoFan, sino_geom_gamma
 Return 1D sinogram weighting for first step of 2D fan-beam FBP.
 """
 function fbp_sino_weight(sg::SinoFan)
-    gam = sino_geom_gamma(sg)
+    gam = _geom_gamma(sg)
     return @. abs(sg.dso * cos(gam) - sg.source_offset * sin(gam)) / sg.dsd
 end

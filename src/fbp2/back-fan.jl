@@ -15,7 +15,7 @@ function fbp_back(
     ia_skip::Int = 1,
 ) where {Td, To, Ts <: Number}
 
-    sg.dim == size(sino) || throw("sino size")
+    dims(sg) == size(sino) || throw("sino size")
 
     is_arc = iszero(sg.dfs) ? true : isinf(sg.dfs) ? false : throw("bad dfs")
 

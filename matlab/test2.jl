@@ -5,12 +5,12 @@ using Plots
 
 # setup matlab to use MIRT
 if !@isdefined(irtdir)
-	ENV["MATLAB_ROOT"] = "/Applications/matlab"
+    ENV["MATLAB_ROOT"] = "/Applications/matlab"
 
-	irtdir = "/Users/jasonhu/Documents/MATLAB/phd"
-	tmp = "addpath('$irtdir')"
-	eval_string(tmp)
-	mat"setup"
+    irtdir = "/Users/jasonhu/Documents/MATLAB/phd"
+    tmp = "addpath('$irtdir')"
+    eval_string(tmp)
+    mat"setup"
 end
 
 fov = 500.
