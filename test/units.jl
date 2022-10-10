@@ -27,7 +27,7 @@ end
     ar = @inferred to_radians(aa)
     @test ar ≈ [π]
     @test ar[1] isa Float32
-    @test _is_sinograms(aa)
+    isinteractive() && @test _is_sinograms(aa)
 end
 
 
@@ -43,17 +43,17 @@ using Unitful: °, rad
     ar = @inferred to_radians(aa)
     @test ar ≈ [π]
     @test ar[1] isa Float32
-    @test _is_sinograms(aa)
+    isinteractive() && @test _is_sinograms(aa)
 
     aa = [1f0rad] # radians
     ar = @inferred to_radians(aa)
     @test ar ≈ [1rad]
     @test ar[1].val isa Float32
-    @test _is_units(aa)
+    isinteractive() && @test _is_units(aa)
 
     aa = [180f0°] # degrees
     ar = @inferred to_radians(aa)
     @test ar ≈ [1π * rad]
     @test ar[1].val isa Float32
-    @test _is_units(aa)
+    isinteractive() && @test _is_units(aa)
 end
