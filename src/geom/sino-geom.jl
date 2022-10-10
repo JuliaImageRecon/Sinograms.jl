@@ -5,10 +5,7 @@ sinogram geometry definitions for 2D tomographic image reconstruction
 2022-01-22, copied from MIRT.jl and updated to support Unitful values
 =#
 
-# using Sinograms: RealU
-
-export rays, downsample, oversample
-export dims
+export dims, downsample, oversample, rays
 export sino_w, sino_s
 
 # Methods common to all types
@@ -90,36 +87,6 @@ end
 
 
 
-#=
-todo cut after docs pass
-"""
-    (rg, ϕg) = sino_geom_grid(sg::SinoGeom)
-
-Return grids `rg` and `ϕg` (in radians) of size `[nb na]`
-of equivalent *parallel-beam* `(r,ϕ)` (radial, angular) sampling positions,
-for any sinogram geometry.
-For parallel beam this is just `ndgrid(sg.r, sg.ar)`
-but for fan beam and mojette this involves more complicated computations.
-"""
-sino_geom_grid(sg::SinoPar) = ndgrid(sg.r, sg.ar)
-
-function sino_geom_grid(sg::SinoFan)
-    gamma = sg.gamma
-    rad = sg.dso * sin.(gamma) + sg.source_offset * cos.(gamma)
-    rg = repeat(rad, 1, sg.na) # [nb na]
-    return (rg, gamma .+ sg.ar') # [nb na] phi = gamma + beta
-end
-
-function sino_geom_grid(sg::SinoMoj)
-    phi = sg.ar
-    # trick: ray_spacing aka ds comes from dx which is sg.d for mojette
-    wb = (sg.nb - 1)/2 + sg.offset
-    dt = sg.d_ang # [na]
-    pos = ((0:(sg.nb-1)) .- wb) * dt' # [nb na]
-    return (pos, repeat(phi', sg.nb, 1))
-end
-=#
-
 
 # type inference help:
 function _rays_type2(Td,To)
@@ -146,12 +113,6 @@ function rays(st::SinoPar{Td,To})::_rays_type2(Td,To) where {Td,To}
     s = sino_s(st)
     ϕ = st.ar # / oneunit(eltype(st.ar)) # deg2rad.(angles(st))
     i = Iterators.product(s, ϕ)
-#todo @show _rays_type2(Td,To)
-#   rs = [p[1] for p in i]
-#   ϕs = [p[2] for p in i]
-#   Tϕ = eltype(oneunit(to_radians([oneunit(To)])[1]))
-#   @show Td To Tϕ eltype(ϕs)
-#   return (rs, ϕs)::Tuple{Matrix{Td}, Matrix{Tϕ}}
     return i
 end
 
@@ -165,16 +126,6 @@ function rays(st::SinoMoj{Td,To})::_moj_rays_type2(Td,To) where {Td, To}
     ϕ = st.ar # / oneunit(eltype(st.ar))
     i = Iterators.product(s, ϕ)
     return Iterators.map(_moj_to_par, i)
-#=
-# todo cut
-    cϕ = @. abs(cos(ϕ))
-    sϕ = @. abs(sin(ϕ))
-    rs = s * max.(cϕ, sϕ)';
-    ϕs = repeat(ϕ', st.nb, 1)
-    Tϕ = eltype(one(To))
-    Tr = eltype(one(To) * oneunit(Td))
-    return (rs, ϕs)#::Tuple{Matrix{Tr}, Matrix{Tϕ}}
-=#
 end
 
 
@@ -192,14 +143,6 @@ function rays(st::SinoFan{Td,To}) where {Td, To}
     i = Iterators.product(s, β)
     fun = sβ -> _fan_to_par(st, sβ) # closure prevents type inference?
     return Iterators.map(fun, i)
-#= todo cut
-    γ = sino_geom_gamma(st)
-    rs = repeat(st.dso * sin.(γ), 1, st.na)
-    ϕs = γ .+ β'
-    Tϕ = promote_type(eltype(one(Td)), eltype(one(To)))
-#   Tr = eltype(one(To) * oneunit(Td))
-    return (rs, ϕs)#::Tuple{Matrix{Td}, Matrix{Tϕ}}
-=#
 end
 
 

@@ -6,8 +6,7 @@ using the parallel, fan beam arc, or flat fan beam geometry.
 2022-05-11, Jason Hu, Jeff Fessler translated from ct_geom.m in MIRT
 =#
 
-# export dims
-#using ImageGeoms: ImageGeom, fovs
+export dims, downsample, oversample, rays
 
 
 # Methods common to all types
@@ -136,7 +135,7 @@ end
 # basic 3d methods
 
 
-ct_geom_cone_angle(st::CtParallel) = 0
+#ct_geom_cone_angle(st::CtParallel) = 0
 ct_geom_cone_angle(st::CtFan) = atan((st.nt * st.dt)/2 / st.dsd)
 
 ct_geom_zfov(st::CtParallel) = st.nt * st.dt

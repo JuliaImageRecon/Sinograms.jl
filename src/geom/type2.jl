@@ -19,10 +19,10 @@ for a 2D parallel or fan-beam system.
 
 # Common fields
 
-* `nb` # of "radial" samples, aka nr or ns
-* `d` aka dr or ds, "radial" sample spacing
+* `nb` # of "radial" samples, aka `nr` or `ns`
+* `d` aka `dr` or `ds`, "radial" sample spacing
 * `offset` unitless sample offset (usually 0 or 0.25)
-* `na` # of angular samples, aka nϕ or nβ
+* `na` # of angular samples, aka `nϕ` or `nβ`
    default: `2 * floor(Int, nb * π/2 / 2)`
 * `orbit` source orbit in degrees (or Unitful)
 * `orbit_start` starting angle in degrees (or Unitful)
@@ -32,6 +32,7 @@ for a 2D parallel or fan-beam system.
 
 * `dsd` distance from source to detector
 * `dod` distance from origin to detector
+* `source_offset` usually 0
 
 # Units:
 
@@ -40,18 +41,14 @@ for a 2D parallel or fan-beam system.
 
 # Derived values (available by `getproperty`), i.e., `st.?`
 
-* `.dim` dimensions: `(nb,na)`
 * `.ds|dr` radial sample spacing (`NaN` for `:moj`)
 * `.s (nb) s` sample locations
 * `.w = (nb-1)/2 + offset` "middle" sample position
-* `.ad (na)` source angles [degrees]
-* `.ar (na)` source angles [radians]
-* `.ones`      `ones(Float32, nb,na)`
-* `.zeros`     `zeros(Float32, nb,na)`
+* `.ad (na)` source angles `degrees`
+* `.ar (na)` source angles `radians`
 * `.rfov` radial FOV
 * `.xds (nb)` center of detector elements (beta=0)
 * `.yds (nb)` ""
-* `.plot_grid(scatter)` plot `sg.grid` using `Plots.scatter`
 
 For mojette:
 
@@ -59,30 +56,30 @@ For mojette:
 
 For fan beam:
 
-* `source_offset:` same units as d, etc., e.g., [mm] (use with caution!)
 * `dso = dsd - dod` distance from source to origin (Inf for parallel beam)
 * `dfs` distance from source to detector focal spot
         (0 for 3rd gen CT, `Inf` for flat detectors)
-* `.gamma (nb)` gamma sample values [radians]
-* `.gamma_max` half of fan angle [radians], if offset=0
+* `.gamma (nb)` gamma sample values `radians`
+* `.gamma_max` half of fan angle `radians`, if offset=0
 
 # Basic methods
 
-* `dims` (nb, na)
-* `sino_s` [nb] s sample locations
-* `sino_w` `(nb-1)/2 + offset` ('middle' sample position)
-* `rays` `(rgrid, ϕgrid)` [nb na] parallel-beam coordinates
-* `ones` `ones(Float32, nb, na)`
-* `zeros` `zeros(Float32, nb, na)`
-* `downsample`
-* `oversample`
+* `dims (nb, na)`
+* `sino_s (nb) s` sample locations
+* `sino_w = (nb-1)/2 + offset` ('middle' sample position)
+* `rays` iterator of `(r, ϕ)` parallel-beam coordinate tuples of size `(nb, na)`
+* `ones = ones(Float32, nb, na)`
+* `zeros = zeros(Float32, nb, na)`
+* `downsample(st, down)`
+* `oversample(st, over)`
 * `angles` (na) in degrees
+* `sino_geom_plot!` plot system geometry
 
 # Methods
 
-* `.shape(sino)` reshape sinograms into array [nb na :]
+* `.shape(sino)` reshape sinograms into array `(nb,na,:)`
 * `.unitv(;ib,ia)` unit 'vector' with single nonzero element
-* `.taufun(x,y)` projected s/ds for each (x,y) pair [numel(x) na]
+* `.taufun(x,y)` projected s/ds for each (x,y) pair `(numel(x),na)`
 
 # Notes
 * Use `ct_geom()` instead for 3D axial or helical cone-beam CT.
@@ -343,6 +340,7 @@ GE Lightspeed system CT geometry.
 These numbers are published in IEEE T-MI Oct. 2006, p.1272-1283 wang:06:pwl.
 
 ```jldoctest
+julia> SinoFanArc(Val(:ge1))
 SinoFanArc{Float64, Float32} :
  nb::Int64 888
  d::Float64 1.0239

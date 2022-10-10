@@ -36,6 +36,7 @@ for 3D CT imaging.
 
 * `dsd` distance from source to detector
 * `dod` distance from origin to detector
+* `source_offset` usually 0
 
 # Units:
 
@@ -60,19 +61,21 @@ For fan beam:
 * `dso = dsd - dod` distance from source to origin (Inf for parallel beam)
 * `dfs` distance from source to detector focal spot
         (0 for 3rd gen CT, `Inf` for flat detectors)
-* `.gamma (nb)` gamma sample values [radians]
+* `.gamma (ns)` gamma sample values `radians`
 * `.gamma_s` gamma values given s values
-* `.gamma_max` half of fan angle [radians], if offset_s=0
-* `.gamma_max_abs` half of fan angle [radians] - recommended
+* `.gamma_max` half of fan angle `radians`, if offset_s=0
+* `.gamma_max_abs` half of fan angle `radians` - recommended
 * `.cone_angle` (half) cone angle on axis (s=0): +/- angle
 
 # Basic methods
 
-* `dims` (ns, nt, na)
-* `ones` ones(Float32, ns,nt,na)
-* `zeros` zeros(Float32, ns,nt,na)
+* `dims (ns, nt, na)`
+* `ones = ones(Float32, ns,nt,na)`
+* `zeros = zeros(Float32, ns,nt,na)`
 * `rays` iterator of `(u,v,ϕ,θ)` samples
-* `downsample(down)` reduce sampling by integer factor
+* `downsample(st, down)` reduce sampling by integer factor
+* `oversample(st, over)`
+* `ct_geom_plot!` plot system geometry
 
 # Methods
 
@@ -193,7 +196,7 @@ See `?CtGeom` for documentation.
 
 ```jldoctest
 julia> CtPar()
-SinoPar{Float32, Float32} :
+CtPar{Float32, Float32, CtSourceCircle} :
  ns::Int64 128
  nt::Int64 64
  ds::Float32 1.0
@@ -203,6 +206,7 @@ SinoPar{Float32, Float32} :
  na::Int64 60
  orbit::Float32 180.0
  orbit_start::Float32 0.0
+ src::CtSourceCircle CtSourceCircle()
 ```
 """
 function CtPar( ;
@@ -235,6 +239,7 @@ See `?CtGeom` for documentation.
 
 ```jldoctest
 julia> CtMoj()
+CtMoj{Float32, Float32, CtSourceCircle} :
  ns::Int64 128
  nt::Int64 64
  ds::Float32 1.0
@@ -244,6 +249,7 @@ julia> CtMoj()
  na::Int64 60
  orbit::Float32 180.0
  orbit_start::Float32 0.0
+ src::CtSourceCircle CtSourceCircle()
 ```
 """
 function CtMoj( ;
@@ -278,7 +284,7 @@ See `?CtGeom` for documentation.
 
 ```jldoctest
 julia> CtFanArc()
-CtFanArc{Float32, Float32} :
+CtFanArc{Float32, Float32, CtSourceCircle} :
  ns::Int64 128
  nt::Int64 64
  ds::Float32 1.0
@@ -331,7 +337,7 @@ See `?CtGeom` for documentation.
 
 ```jldoctest
 julia> CtFanFlat()
-CtFanArc{Float32, Float32} :
+CtFanFlat{Float32, Float32, CtSourceCircle} :
  ns::Int64 128
  nt::Int64 64
  ds::Float32 1.0
@@ -387,8 +393,8 @@ GE Lightspeed system CT geometry.
 These numbers are published in IEEE T-MI Oct. 2006, p.1272-1283 wang:06:pwl.
 
 ```jldoctest
-julia> CtFanArc(Val(:ge1)
-CtFanArc{Float64, Float32} :
+julia> CtFanArc(Val(:ge1))
+CtFanArc{Float64, Float32, CtSourceCircle} :
  ns::Int64 888
  nt::Int64 64
  ds::Float64 1.0239

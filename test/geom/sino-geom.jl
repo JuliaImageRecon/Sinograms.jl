@@ -105,6 +105,7 @@ function _test_prop(
         γ = @inferred SG._geom_gamma(st)
         @test γ isa AbstractVector
         @test st.gamma isa AbstractVector
+        @test st.gamma_s(st.s) isa AbstractVector
         @test st.gamma_max isa RealU
         @test st.gamma_max_abs isa Real
         @test st.orbit_short isa RealU

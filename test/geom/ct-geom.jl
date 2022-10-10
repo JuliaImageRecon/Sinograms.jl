@@ -95,6 +95,7 @@ function _test_prop(
 
     if st isa CtFan
         @test st.gamma isa AbstractVector
+        @test st.gamma_s(st.s) isa AbstractVector
         @test st.gamma_max isa RealU
         @test st.gamma_max_abs isa Real
         @test st.orbit_short isa RealU
