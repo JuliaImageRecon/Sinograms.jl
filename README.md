@@ -5,7 +5,6 @@ sinograms / tomography / Radon transform / cone-beam CT / CBCT
 https://github.com/JuliaImageRecon/Sinograms.jl
 
 [![action status][action-img]][action-url]
-[![pkgeval status][pkgeval-img]][pkgeval-url]
 [![codecov][codecov-img]][codecov-url]
 [![license][license-img]][license-url]
 [![docs-stable][docs-stable-img]][docs-stable-url]
@@ -42,8 +41,6 @@ Tested with Julia ≥ 1.8.
 [action-url]: https://github.com/JuliaImageRecon/Sinograms.jl/actions
 [build-img]: https://github.com/JuliaImageRecon/Sinograms.jl/workflows/CI/badge.svg?branch=main
 [build-url]: https://github.com/JuliaImageRecon/Sinograms.jl/actions?query=workflow%3ACI+branch%3Amain
-[pkgeval-img]: https://juliaci.github.io/NanosoldierReports/pkgeval_badges/S/Sinograms.svg
-[pkgeval-url]: https://juliaci.github.io/NanosoldierReports/pkgeval_badges/S/Sinograms.html
 [code-blue-img]: https://img.shields.io/badge/code%20style-blue-4495d1.svg
 [code-blue-url]: https://github.com/invenia/BlueStyle
 [codecov-img]: https://codecov.io/github/JuliaImageRecon/Sinograms.jl/coverage.svg?branch=main
