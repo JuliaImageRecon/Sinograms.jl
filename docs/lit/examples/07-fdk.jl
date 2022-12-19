@@ -71,11 +71,13 @@ oversample = 3
 true_image = phantom(axes(ig)..., ob, oversample)
 jim(axes(ig), true_image, "True 3D Shepp-Logan phantom image"; clim)
 
-# Define the system geometry:
+# Define the system geometry
+# (for some explanation use `?CtGeom`):
 p = (ns = 130, ds = 0.3cm, nt = 80, dt = 0.4cm, na = 50, dsd = 200cm, dod = 40cm)
 cg = CtFanArc( ; p...)
 
-# Examine the geometry to verify the FOV:
+# Examine the geometry to verify the FOV
+# (this is more interesting when interacting via other Plot backends):
 ct_geom_plot3(cg, ig)
 
 #
@@ -83,13 +85,21 @@ prompt()
 
 
 # CBCT projections
+# using `Sinogram.rays` and `ImagePhantoms.radon`:
 proj_arc = radon(rays(cg), ob)
 jim(cg.s, cg.t, proj_arc ;
     title="Shepp-Logan projections (arc)", xlabel="s", ylabel="t")
 
 
 #=
+There is no "inverse crime" here
+because we compute the projection views
+using the analytical phantom geometry,
+but then reconstruct
+on a discrete grid.
+
 ## Image reconstruction via FBP / FDK
+
 We start with a "plan",
 which would save work if we were reconstructing many images.
 For illustration we include `Hamming` window.

@@ -17,6 +17,10 @@ export CtPar, CtFanArc, CtFanFlat
 Abstract type for representing ray geometries
 for 3D CT imaging.
 
+The projection view coordinates are `(s,t)`
+where `s` denotes the transaxial sampling
+and `t` denotes the axial direction (along `z`).
+
 # Common fields
 
 * `ns` size of each projection view
