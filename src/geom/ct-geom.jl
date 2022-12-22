@@ -6,12 +6,14 @@ using the parallel, fan beam arc, or flat fan beam geometry.
 2022-05-11, Jason Hu, Jeff Fessler translated from ct_geom.m in MIRT
 =#
 
-export dims, downsample, oversample, rays
+export dims, downsample, oversample, rays, axes
 
 
 # Methods common to all types
 
 dims(st::CtGeom) = (st.ns, st.nt, st.na)::NTuple{3,Int}
+
+axes(st::CtGeom) = (ct_geom_s(st), ct_geom_t(st), angles(st)) # use ° because mainly for plots
 
 ct_geom_ws(st::CtGeom) = ((st.ns-1)//2 + st.offset_s)::Toffset
 ct_geom_wt(st::CtGeom) = ((st.nt-1)//2 + st.offset_t)::Toffset
