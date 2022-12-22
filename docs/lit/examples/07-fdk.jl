@@ -1,8 +1,6 @@
-#---------------------------------------------------------
-# # [CBCT FDK](@id 07-fdk)
-#---------------------------------------------------------
-
 #=
+# [CBCT FDK](@id 07-fdk)
+
 This page describes image reconstruction
 for cone-beam computed tomography (CBCT)
 with both arc and flat detectors
@@ -38,7 +36,7 @@ using ImagePhantoms: radon, phantom
 using MIRTjim: jim, prompt
 
 
-# The following line is helpful when running this example.jl file as a script;
+# The following line is helpful when running this file as a script;
 # this way it will prompt user to hit a key after each figure is displayed.
 
 isinteractive() ? jim(:prompt, true) : prompt(:draw);
