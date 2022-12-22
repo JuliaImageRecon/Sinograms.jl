@@ -5,7 +5,7 @@ test/geom/sino-geom.jl
 using Sinograms: RealU
 using Sinograms: SinoGeom, SinoParallel, SinoFan
 using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat
-using Sinograms: dims, ones, zeros, angles, rays, downsample, oversample
+using Sinograms: dims, ones, zeros, angles, rays, axes, downsample, oversample
 using Sinograms: sino_w, sino_s, footprint_size
 import Sinograms as SG
 using ImageGeoms: ImageGeom
@@ -94,6 +94,7 @@ function _test_prop(
     # common methods
     D = length(dims(st))
     @test (@inferred dims(st)) isa Dims{D}
+    @test (@inferred axes(st)) isa Tuple
     @test (@inferred angles(st)) isa AbstractVector
     @test (@inferred ones(st)) isa Array{Float32,D}
     @test (@inferred zeros(st)) isa Array{Float32,D}
