@@ -66,7 +66,7 @@ function cbct_back_fan(
     zc::AbstractVector{<:Tc},
     mask::AbstractArray{Bool,3} ;
     ia_skip::Int = 1,
-    T::DataType = eltype(oneunit(Ts)
+    T::Type{<:Number} = eltype(oneunit(Ts)
         * (oneunit(To) * oneunit(Tc) / oneunit(Tds) + oneunit(Toffset))),
 )::Array{T,3} where {
     Ts <: Number,
@@ -169,7 +169,7 @@ function cbct_back_fan_voxel(
     x_ds::Tx,
     y_ds::Tx,
     z_ds::Tx ;
-    T::DataType = eltype(oneunit(Tp) * one(To) * one(Tw) * one(Tx)),
+    T::Type{<:Number} = eltype(oneunit(Tp) * one(To) * one(Tw) * one(Tx)),
 ) where {Tp <: Number, To <: Real, Tw <: Real, Tx <: Real}
 
     voxel = zero(Tp)

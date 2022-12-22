@@ -154,7 +154,7 @@ It assumes the angles are equally spaced over `[0,π)`.
 
 # option
 - `ia_skip::Int` default 1
-- `T::DataType` usually same as `eltype(sino)`
+- `T::Type{<:Number}` usually same as `eltype(sino)`
 
 # out
 - `image::Matrix` `(nx, ny)`
@@ -172,7 +172,7 @@ function fbp_back_fan(
     yc::AbstractArray{Tc},
     mask::AbstractMatrix{Bool} ;
     ia_skip::Int = 1,
-    T::DataType = eltype(oneunit(Ts) *
+    T::Type{<:Number} = eltype(oneunit(Ts) *
         (oneunit(To) * oneunit(Tc) / oneunit(Tds) + oneunit(Toffset))),
 ) where {Ts <: Number, To <: RealU, Tds <: RealU, Toffset <: Real, Tc <: RealU}
 
@@ -275,7 +275,7 @@ It assumes the angles are equally spaced over `[0,π)`.
 - `x,y::Real` pixel center location, normalized by ray spacing
 
 # option
-- `T::DataType` typically same as `eltype(sino)`
+- `T::Type{<:Number}` typically same as `eltype(sino)`
 
 # out
 - Returns a scalar of type `T`.
@@ -291,7 +291,7 @@ function fbp_back_fan_xy(
     wb::Tb, # (nb+1)/2 + offset
     x_ds::Tx, # xc / ds
     y_ds::Tx ;
-    T::DataType = eltype(oneunit(Ts) * one(To) * one(Tb) * one(Tx)),
+    T::Type{<:Number} = eltype(oneunit(Ts) * one(To) * one(Tb) * one(Tx)),
 ) where {Ts <: Number, To <: Real, Tb <: Real, Tx <: Real}
 
     nb = size(sino,1)
