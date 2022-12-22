@@ -23,9 +23,9 @@ Base.propertynames(st::RayGeom) =
     (fieldnames(typeof(st))..., map(x -> x[1], _props(st))...)
 
 
-Base.ones(T::DataType, st::RayGeom) = ones(T, dims(st))
+Base.ones(T::Type{<:Number}, st::RayGeom) = ones(T, dims(st))
 Base.ones(st::RayGeom) = ones(Float32, st)
-Base.zeros(T::DataType, st::RayGeom) = zeros(T, dims(st))
+Base.zeros(T::Type{<:Number}, st::RayGeom) = zeros(T, dims(st))
 Base.zeros(st::RayGeom) = zeros(Float32, st)
 
 angles(st::RayGeom{Td,To}) where {Td,To} =
@@ -107,7 +107,7 @@ Projection views with a single non-zero ray value
 at position `pos` (default: middle).
 """
 function _geom_unitv(
-    T::DataType,
+    T::Type{<:Number},
     st::RayGeom,
     pos::Tuple = dims(st) .÷ 2 .+ 1,
 )

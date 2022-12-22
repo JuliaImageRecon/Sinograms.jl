@@ -46,7 +46,7 @@ reshaper(x::AbstractArray, dim::Dims) =
 # seems to be needed to help with type inference
 function _lin_range(
     d::Td, w::Toffset, n::Int ;
-    T::DataType = eltype(oneunit(Td) * one(Toffset)),
+    T::Type{<:Number} = eltype(oneunit(Td) * one(Toffset)),
 )::LinRange{T,Int} where {Td <: RealU}
     return d * LinRange(-w, n - 1 - w, n)
 end

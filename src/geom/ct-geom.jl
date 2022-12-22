@@ -19,14 +19,14 @@ ct_geom_wt(st::CtGeom) = ((st.nt-1)//2 + st.offset_t)::Toffset
 #ct_geom_s(st::CtGeom) = st.ds * ((0:st.ns-1) .- st.ws) # can't infer!?
 function ct_geom_s(
     st::CtGeom{Td} ;
-    T::DataType = eltype(oneunit(Td) * one(Toffset)),
+    T::Type{<:Number} = eltype(oneunit(Td) * one(Toffset)),
 )::LinRange{T,Int} where {Td}
     return _lin_range(st.ds, st.ws, st.ns)
 end
 
 function ct_geom_t(
     st::CtGeom{Td} ;
-    T::DataType = eltype(oneunit(Td) * one(Toffset)),
+    T::Type{<:Number} = eltype(oneunit(Td) * one(Toffset)),
 )::LinRange{T,Int} where {Td}
     return _lin_range(st.dt, st.wt, st.nt)
 end

@@ -61,7 +61,7 @@ function fbp!(
 end
 
 
-function sino_geom(sino::AxisMatrix ; geo::DataType = SinoPar, kwargs...)
+function sino_geom(sino::AxisMatrix ; geo::Type{<:RayGeom} = SinoPar, kwargs...)
     geo( ;
         nb = size(sino,1),
         na = size(sino,2),
