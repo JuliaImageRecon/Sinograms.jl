@@ -1,5 +1,5 @@
 #=
-# [Fan-beam tomography: arc detector](@id 06-fan-short)
+# [Fan-beam tomography: short scan](@id 06-fan-short)
 
 This page describes fan-beam tomographic image reconstruction
 using the Julia package
@@ -45,14 +45,14 @@ using ImagePhantoms: SheppLogan, shepp_logan, radon, phantom
 using MIRTjim: jim, prompt
 
 
-# The following line is helpful when running this example.jl file as a script;
+# The following line is helpful when running this file as a script;
 # this way it will prompt user to hit a key after each figure is displayed.
 
 isinteractive() ? jim(:prompt, true) : prompt(:draw);
 
 
 #=
-### Fan-beam sinogram of Shepp-Logan phantom
+## Fan-beam sinogram of Shepp-Logan phantom
 
 For illustration,
 we start by synthesizing
@@ -67,13 +67,19 @@ but units are optional.
 # Use `ImageGeom` to define the image geometry.
 ig = ImageGeom(MaskCircle(); dims=(128,126), deltas = (2mm,2mm) )
 
-# Use `SinoFanArc` to define the sinogram geometry,
-# with the `:short` option for `orbit` to make a short scan.
+#=
+Use `SinoFanArc` to define the sinogram geometry,
+with the `:short` option for `orbit` to make a short scan.
+Note that even though we specify `na = 100`
+we end up with `na = 67` views
+because of the `:short` option.
+=#
 sg = SinoFanArc( :short, ;
     nb = 130, d = 3.2mm, na = 100, dsd = 400mm, dod = 140mm,
 )
 
-# Examine the geometry to verify the FOV:
+# Examine the geometry to verify the FOV.
+# The `na=67` blue dots show the `:short` scan.
 jim(axes(ig), ig.mask; prompt=false)
 sino_geom_plot!(sg, ig)
 
@@ -86,7 +92,7 @@ ob = shepp_logan(SheppLogan(); fovs = fovs(ig), u = (1, 1, μ))
 
 # Short arc fan-beam sinogram for Shepp-Logan phantom:
 sino = radon(rays(sg), ob)
-jim(sg.r, sg.ad, sino; title="Shepp-Logan 'short' sinogram",
+jim(axes(sg), sino; title="Shepp-Logan 'short' sinogram",
     xlabel="r", ylabel="ϕ")
 
 
@@ -98,17 +104,21 @@ which would save work if we were reconstructing many images.
 
 plan = plan_fbp(sg, ig)
 
-# Examine Parker weights
-jim(sg.r, sg.ad, plan.parker_weight; title = "Parker weights",
+# Examine Parker weights:
+jim(axes(sg), plan.parker_weight; title = "Parker weights",
     xlabel="r", ylabel="ϕ")
 
-# Finally perform FBP
+# Finally perform FBP:
 fbp_image, sino_filt = fbp(plan, sino);
 
 # A narrow color window is needed to see the soft tissue structures:
 clim = (0.9, 1.1) .* μ
 jim(axes(ig), fbp_image, "FBP image for 'short' arc case"; clim)
 
-# For comparison, here is the ideal phantom image
+# For comparison, here is the ideal phantom image:
 true_image = phantom(axes(ig)..., ob, 2)
 jim(axes(ig)..., true_image, "True phantom image"; clim)
+
+# Here is the difference image.
+# Better sampling would reduce the errors.
+jim(axes(ig)..., fbp_image - true_image, "Error image")

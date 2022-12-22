@@ -1,8 +1,6 @@
-#---------------------------------------------------------
-# # [2D sinogram geometry](@id 02-sino-geom)
-#---------------------------------------------------------
-
 #=
+# [2D sinogram geometry](@id 02-sino-geom)
+
 This page describes the 2D sinogram geometries
 available in the Julia package
 [`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl).
@@ -34,7 +32,7 @@ using MIRTjim: jim, prompt
 using InteractiveUtils: versioninfo
 
 
-# The following line is helpful when running this example.jl file as a script;
+# The following line is helpful when running this file as a script;
 # this way it will prompt user to hit a key after each figure is displayed.
 
 isinteractive() ? jim(:prompt, true) : prompt(:draw);

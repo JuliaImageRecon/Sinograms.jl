@@ -5,12 +5,15 @@ sinogram geometry definitions for 2D tomographic image reconstruction
 2022-01-22, copied from MIRT.jl and updated to support Unitful values
 =#
 
-export dims, downsample, oversample, rays
+export dims, downsample, oversample, rays, axes
 export sino_w, sino_s
 
 # Methods common to all types
 
 dims(sg::SinoGeom) = (sg.nb, sg.na)::NTuple{2,Int}
+
+# use ° via `angles()` because mainly for plots
+Base.axes(sg::SinoGeom) = (sino_s(sg), angles(sg))
 
 sino_w(sg::SinoGeom) = Toffset((sg.nb-1)/2 + sg.offset)::Toffset
 

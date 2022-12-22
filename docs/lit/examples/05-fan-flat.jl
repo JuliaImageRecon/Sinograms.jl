@@ -1,8 +1,6 @@
-#---------------------------------------------------------
-# # [Fan-beam tomography: flat detector](@id 05-fan-flat)
-#---------------------------------------------------------
-
 #=
+# [Fan-beam tomography: flat detector](@id 05-fan-flat)
+
 This page describes fan-beam tomographic image reconstruction
 using the Julia package
 [`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl).
@@ -38,7 +36,7 @@ using ImagePhantoms: SheppLogan, shepp_logan, radon, phantom
 using MIRTjim: jim, prompt
 
 
-# The following line is helpful when running this example.jl file as a script;
+# The following line is helpful when running this file as a script;
 # this way it will prompt user to hit a key after each figure is displayed.
 
 isinteractive() ? jim(:prompt, true) : prompt(:draw);
@@ -77,7 +75,7 @@ ob = shepp_logan(SheppLogan(); fovs = fovs(ig), u = (1, 1, μ))
 
 # Arc fan-beam sinogram for Shepp-Logan phantom:
 sino = radon(rays(sg), ob)
-jim(sg.r, sg.ad, sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
+jim(axes(sg), sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
 
 
 #=

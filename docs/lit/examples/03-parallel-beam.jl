@@ -1,8 +1,6 @@
-#---------------------------------------------------------
-# # [Parallel-beam tomography](@id 03-parallel-beam)
-#---------------------------------------------------------
-
 #=
+# [Parallel-beam tomography](@id 03-parallel-beam)
+
 This page describes parallel-beam tomographic image reconstruction
 using the Julia package
 [`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl).
@@ -33,7 +31,7 @@ using Unitful: mm
 using MIRTjim: jim, prompt
 
 
-# The following line is helpful when running this example.jl file as a script;
+# The following line is helpful when running this file as a script;
 # this way it will prompt user to hit a key after each figure is displayed.
 
 isinteractive() ? jim(:prompt, true) : prompt(:draw);
@@ -65,7 +63,7 @@ ob = shepp_logan(SheppLogan(); fovs = fovs(ig), u = (1, 1, μ))
 
 # Radon transform of Shepp-Logan phantom:
 sino = radon(rays(sg), ob)
-jim(sg.r, sg.ad, sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
+jim(axes(sg), sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
 
 ## Image reconstruction via FBP
 # Here we start with a "plan",
