@@ -3,7 +3,7 @@
 export FDKplan, plan_fbp
 
 using ImageGeoms: ImageGeom
-# using Sinograms: CtGeom Window fbp_filter parker_weight
+# using Sinograms: CtGeom Window fbp_filter parker_weight_fan
 
 
 """
@@ -14,7 +14,7 @@ struct FDKplan{
     C <: CtGeom,
     I <: ImageGeom{3},
     H <: AbstractVector{<:RealU},
-    P <: AbstractVector{<:Real},
+    P <: Any,
 }
     cg::C
     ig::I
@@ -28,14 +28,19 @@ struct FDKplan{
         window::W,
         parker_weight::P,
     ) where {C <: CtGeom, I <: ImageGeom{3},
-        W <: Window, P <: AbstractVector{<:Real}}
+        W <: Window, P <: AbstractArray{<:Real}}
         return FDKplan{C,I,W,P}(cg, ig, window, parker_weight)
     end
 =#
 end
 
 
-parker_weight(cg::CtFan) = parker_weight_fan(cg.na, cg.orbit)
+function parker_weight(cg::CtFan; kwargs...)
+    return parker_weight_fan(
+        cg.ns, cg.na, cg.orbit, cg.orbit_short,
+        cg.ar, cg.gamma, cg.gamma_max; kwargs...,
+    )
+end
 
 
 """
@@ -59,7 +64,7 @@ call `fbp` with the `plan`
 - `window::Window` e.g., `Window(Hamming(), 0.8)`; default `Window()`
 - `npad::Int` # of radial bins after padding; default `nextpow(2, cg.ns + 1)`
 - `decon1::Bool` deconvolve interpolator effect? (default `true`)
--`T::DataType` type of sino elements (default `Float32`)
+-`T::Type{<:Number}` type of sino elements (default `Float32`)
 
 # out
 - `plan::FDKplan` initialized plan
@@ -71,7 +76,7 @@ function plan_fbp(
     window::Window = Window(),
     npad::Int = nextpow(2, cg.ns + 1),
     decon1::Bool = true,
-    T::DataType = Float32,
+    T::Type{<:Number} = Float32,
 )
 
     filter = fbp_filter(cg ; npad, window, decon1)
@@ -87,6 +92,6 @@ function Base.show(io::IO, ::MIME"text/plain", p::FDKplan{C,I,H,P}) where {C,I,H
     println(io, " C = $C ", (c.ns, c.nt, c.na))
     i = p.ig
     println(io, " I = $I ", i.dims)
-    println(io, " H = $H (", length(p.filter), ") with extrema ", extrema(p.filter))
-    println(io, " P = $P (", length(p.parker_weight), ") with extrema ", extrema(p.parker_weight))
+    println(io, " H = $H ", size(p.filter), " with extrema ", extrema(p.filter))
+    println(io, " P = $P ", size(p.parker_weight), " with extrema ", extrema(p.parker_weight))
 end
