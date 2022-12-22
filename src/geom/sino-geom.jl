@@ -12,7 +12,8 @@ export sino_w, sino_s
 
 dims(sg::SinoGeom) = (sg.nb, sg.na)::NTuple{2,Int}
 
-axes(sg::SinoGeom) = (sino_s(sg), angles(sg)) # use ° because mainly for plots
+# use ° via `angles()` because mainly for plots
+Base.axes(sg::SinoGeom) = (sino_s(sg), angles(sg))
 
 sino_w(sg::SinoGeom) = Toffset((sg.nb-1)/2 + sg.offset)::Toffset
 

@@ -13,7 +13,8 @@ export dims, downsample, oversample, rays, axes
 
 dims(st::CtGeom) = (st.ns, st.nt, st.na)::NTuple{3,Int}
 
-axes(st::CtGeom) = (ct_geom_s(st), ct_geom_t(st), angles(st)) # use ° because mainly for plots
+# use ° via `angles()` because mainly for plots
+Base.axes(st::CtGeom) = (ct_geom_s(st), ct_geom_t(st), angles(st))
 
 ct_geom_ws(st::CtGeom) = ((st.ns-1)//2 + st.offset_s)::Toffset
 ct_geom_wt(st::CtGeom) = ((st.nt-1)//2 + st.offset_t)::Toffset
