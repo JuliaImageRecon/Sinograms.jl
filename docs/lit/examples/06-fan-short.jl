@@ -69,8 +69,7 @@ ig = ImageGeom(MaskCircle(); dims=(128,126), deltas = (2mm,2mm) )
 
 # Use `SinoFanArc` to define the sinogram geometry,
 # with the `:short` option for `orbit` to make a short scan.
-sg = SinoFanArc( ;
-    orbit = :short,
+sg = SinoFanArc( :short, ;
     nb = 130, d = 3.2mm, na = 100, dsd = 400mm, dod = 140mm,
 )
 
