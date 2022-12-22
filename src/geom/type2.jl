@@ -236,12 +236,17 @@ end
 """
     SinoFanArc( ; nb d offset na orbit orbit_start
         source_offset, dsd = 4 * nb * d, dod = nb * d)
+    SinoFanArc(:short ; nb d offset na orbit_start
+        source_offset, dsd = 4 * nb * d, dod = nb * d)
 
 Constructor with named keywords.
 See `?SinoGeom` for documentation.
 
 * `d`, `source_offset`, `dsd`, `dod`
   must all have the same units.
+
+* Use `:short` argument to specify a short scan,
+  in which case `na` will be scaled down proportionally as well.
 
 ```jldoctest
 julia> SinoFanArc()
@@ -274,6 +279,37 @@ function SinoFanArc( ;
     return SinoFanArc(nb, Td(d), Toffset(offset),
         na, To(orbit), To(orbit_start),
         Td(source_offset), Td(dsd), Td(dod),
+    )
+end
+
+
+# :short case
+function SinoFanArc(orbit::Symbol ;
+    nb::Int = 128,
+    d::RealU = 1,
+    offset::Real = 0,
+    na::Int = 2 * floor(Int, nb * π/2 / 2),
+    orbit_start::RealU = 0f0,
+    source_offset::RealU = zero(eltype(d)),
+    dsd::RealU = 4 * nb * d,
+    dod::RealU = nb * d,
+)
+
+    orbit == :short || error("bad orbit $orbit")
+
+    Td = _promoter(d, source_offset, dsd, dod)
+    To = typeof(1f0 * orbit_start)
+    tmp = SinoFanArc(
+        nb, Td(d), Toffset(offset),
+        na, To(360), To(orbit_start),
+        Td(source_offset), Td(dsd), Td(dod),
+    )
+    na = ceil(Int, na * tmp.orbit_short / 360)
+    orbit = To(tmp.orbit_short)
+
+    return SinoFanArc( ;
+        nb, na, d, offset, orbit, orbit_start,
+        source_offset, dsd, dod,
     )
 end
 

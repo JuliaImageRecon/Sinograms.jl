@@ -46,6 +46,9 @@ end
 
     st = @inferred ge1( ; unit = oneunit(d), orbit=:short)
     @test st isa SinoFanArc
+
+    st = SinoFanArc(:short) # @NOTinferred
+    @test st isa SinoFanArc
 end
 
 

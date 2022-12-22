@@ -18,7 +18,7 @@ sino_w(sg::SinoGeom) = Toffset((sg.nb-1)/2 + sg.offset)::Toffset
 #sino_s(sg::SinoGeom) = _lin_range(sg.d, sg.w, sg.nb) # can't infer!?
 function sino_s(
     st::SinoGeom{Td} ;
-    T::DataType = eltype(oneunit(Td) * one(Toffset)),
+    T::Type{<:Number} = eltype(oneunit(Td) * one(Toffset)),
 )::LinRange{T,Int} where {Td}
     return _lin_range(st.d, st.w, st.nb)
 end

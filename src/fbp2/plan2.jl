@@ -30,12 +30,12 @@ struct FBPNormalPlan{
     S <: SinoGeom,
     I <: ImageGeom,
     H <: AbstractVector{<:RealU},
-    P <: AbstractVector{<:Real},
+    P <: Any,
 } <: FBPplan
     sg::S
     ig::I
     filter::H # frequency response Hk of apodized ramp filter, length npad
-    parker_weight::P
+    parker_weight::P # typically a 1D or 2D array of nonnegative reals
 #   moj::Moj # todo
 
 #=
@@ -102,7 +102,7 @@ call `fbp` with the `plan`
 - `window::Window` e.g., `Window(Hamming(), 0.8)`; default `Window()`
 - `npad::Int` # of radial bins after padding; default `nextpow(2, sg.nb + 1)`
 - `decon1::Bool` deconvolve interpolator effect? (default `true`)
--`T::DataType` type of sino elements (default `Float32`)
+- `T::Type{<:Number}` type of `sino` elements (default `Float32`)
 
 # out
 - `plan::FBPplan` initialized plan
@@ -115,7 +115,7 @@ function plan_fbp(
     window::Window = Window(),
     npad::Int = nextpow(2, sg.nb + 1),
     decon1::Bool = true,
-    T::DataType = Float32,
+    T::Type{<:Number} = Float32,
 #   nthread::Int = Threads.nthreads(),
 )
 
@@ -149,7 +149,7 @@ function plan_fbp_normal(
 #   npad::Int,
 #   window::Window,
     filter::AbstractVector{<:RealU},
-#   T::DataType = Float32,
+#   T::Type{<:Number} = Float32,
 )
     weight = parker_weight(sg)
 
@@ -164,7 +164,7 @@ function plan_fbp_normal(
     sg::SinoMoj,
     ig::ImageGeom ;
     window::Window = Window(),
-    T::DataType = Float32,
+    T::Type{<:Number} = Float32,
 )
     weight = ones(T, sg.nb, sg.na)
     if sg.dx == abs(ig.dx)
@@ -186,6 +186,6 @@ function Base.show(io::IO, ::MIME"text/plain", p::FBPNormalPlan{S,I,H,P}) where 
     println(io, "FBPNormalPlan{S,I,H,P} with")
     println(io, " S = $S")
     println(io, " I = $I")
-    println(io, " H = $H with extrema $(extrema(p.filter))")
-    println(io, " P = $P with extrema $(extrema(p.parker_weight))")
+    println(io, " H = $H with extrema ", extrema(p.filter))
+    println(io, " P = $P ", size(p.parker_weight), " with extrema ", extrema(p.parker_weight))
 end

@@ -62,12 +62,14 @@ function fbp(
     ig::ImageGeom,
     sino::AbstractMatrix{<:Number},
     filter::AbstractVector{<:Number},
-    parker_weight::AbstractVector{<:Number} = ones(size(sino,2)),
+    parker_weight::AbstractArray{<:Number} = ones(size(sino,2)),
 )
-    dims(sg) == size(sino) || throw("bad sino size")
-    length(parker_weight) == sg.na || throw("bad parker size")
+    dims(sg) == size(sino) || error("bad sino size")
+    parker = length(parker_weight) == sg.na ? parker_weight' :
+        size(parker_weight) == dims(sg) ? parker_weight :
+        error("bad parker size $(size(parker_weight))")
 
-    sino_filt = sino .* parker_weight'
+    sino_filt = sino .* parker
     sino_filt = fbp_sino_filter(sino_filt, filter)
 
     image = fbp_back(sg, ig, sino_filt)

@@ -69,7 +69,7 @@ end
 function fbp_window(
     w::Window{S},
     N::Int ;
-    T::DataType = eltype(w.shape.v),
+    T::Type{<:Number} = eltype(w.shape.v),
 ) where {S <: WindowVect}
     N == length(w.shape.v) || throw("N mismatch")
     return fftshift(T.(w.shape.v))
