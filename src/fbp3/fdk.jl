@@ -55,8 +55,9 @@ References: Feldkamp, Davis, Kress, JOSA-A, 1(6):612-9, June 1984.
 function fdk(plan::FDKplan, proj::AbstractArray{<:Number,3})
     cg = plan.cg
 
-    # step 1: apply weights
+    # step 1: apply cone-beam weights
     proj = proj .* fdk_weight_cyl(cg) # todo: precompute with plan!
+    proj .*= plan.parker_weight
 
     # step 2: filter each projection view
     proj = fbp_sino_filter(proj, plan.filter)
