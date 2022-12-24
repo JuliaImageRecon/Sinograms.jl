@@ -3,7 +3,7 @@ test/fbp2/plan2.jl
 =#
 
 using Sinograms: plan_fbp, Window, FBPNormalPlan
-using Sinograms: SinoPar
+using Sinograms: SinoPar, SinoFanArc
 using ImageGeoms: ImageGeom
 using Test: @test, @testset, @inferred
 
@@ -19,4 +19,8 @@ using Test: @test, @testset, @inferred
     @test plan isa FBPNormalPlan
 
     show(isinteractive() ? stdout : devnull, MIME("text/plain"), plan)
+
+    sg = SinoFanArc(:short)
+    plan = @inferred plan_fbp(sg, ig)
+    @test plan isa FBPNormalPlan
 end

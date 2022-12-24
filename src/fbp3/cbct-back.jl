@@ -35,7 +35,7 @@ function cbct_back(
         (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
 
     return cbct_back_fan(proj,
-        cg.ar,
+        cg.ar, # "betas"
         cg.dsd, cg.dso,
 #       cg.offset_source::RealU,
         cg.ds, cg.dt,
@@ -129,7 +129,7 @@ function cbct_back_fan!(
     cosβ = cos.(betas)
 
     # scale projections by dβ for Riemann-like integration
-    dβ = diff(betas)
+    dβ = diff(betas) # typically 2π/na for 360° orbit
     dβ = [dβ[1]; dβ] # todo
     proj = proj .* reshape(dβ, 1, 1, :) / 2
 

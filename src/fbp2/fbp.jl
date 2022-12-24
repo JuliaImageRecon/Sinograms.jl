@@ -3,7 +3,7 @@
 export fbp
 
 using ImageGeoms: ImageGeom
-# using Sinograms: SinoGeom, SinoPar, SinoFan, SinoMoj, parker_weight, _reale, FBPplan
+# using Sinograms: SinoGeom, SinoPar, SinoFan, SinoMoj, _reale, FBPplan
 
 
 """
@@ -21,6 +21,8 @@ out
 - `sino_filt::Matrix{<:Number}`   filtered sinogram(s)
 
 """
+fbp
+
 function fbp(
     plan::FBPNormalPlan{<:SinoPar},
     sino::AbstractMatrix{<:Number},
@@ -62,14 +64,11 @@ function fbp(
     ig::ImageGeom,
     sino::AbstractMatrix{<:Number},
     filter::AbstractVector{<:Number},
-    parker_weight::AbstractArray{<:Number} = ones(size(sino,2)),
+    parker_weight::AbstractMatrix{<:Number} = ones(1,1),
 )
     dims(sg) == size(sino) || error("bad sino size")
-    parker = length(parker_weight) == sg.na ? parker_weight' :
-        size(parker_weight) == dims(sg) ? parker_weight :
-        error("bad parker size $(size(parker_weight))")
 
-    sino_filt = sino .* parker
+    sino_filt = sino .* parker_weight
     sino_filt = fbp_sino_filter(sino_filt, filter)
 
     image = fbp_back(sg, ig, sino_filt)

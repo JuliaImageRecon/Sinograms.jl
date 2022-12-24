@@ -133,3 +133,20 @@ jim(axes(ig), err_flat, "Error image (flat)"; clim = (-1,1) .* (0.05μ))
 As expected for CBCT,
 the largest errors are in the end slices.
 =#
+
+
+#=
+## Short scan
+=#
+cg = CtFanFlat(:short ; p...)
+proj_short = radon(rays(cg), ob)
+jim(cg.s, cg.t, proj_short ;
+    title="Shepp-Logan projections (flat,short)", xlabel="s", ylabel="t")
+
+plan_short = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
+fdk_short = fdk(plan_short, proj_short)
+jim(axes(ig), fdk_short, "FDK image (flat,short)"; clim)
+
+#
+err_short = fdk_short - true_image
+jim(axes(ig), err_flat, "Error image (flat,short)"; clim = (-1,1) .* (0.05μ))

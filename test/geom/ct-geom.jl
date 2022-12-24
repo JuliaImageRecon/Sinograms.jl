@@ -47,6 +47,11 @@ end
 
     st = @inferred ge1( ; unit = oneunit(ds), orbit=:short)
     @test st isa CtFanArc
+
+    st = CtFanArc(:short) # @NOTinferred
+    @test st isa CtFanArc
+    st = CtFanFlat(:short) # @NOTinferred
+    @test st isa CtFanFlat
 end
 
 

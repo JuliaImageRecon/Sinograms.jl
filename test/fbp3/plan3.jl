@@ -19,4 +19,8 @@ using Test: @test, @testset, @inferred
     @test plan isa FDKplan
 
     show(isinteractive() ? stdout : devnull, MIME("text/plain"), plan)
+
+    cg = CtFanArc(:short)
+    plan = @inferred plan_fbp(cg, ig)
+    @test plan isa FDKplan
 end

@@ -91,20 +91,20 @@ For fan beam:
 # Notes
 Use `sino_geom()` instead for 2D geometries.
 """
-abstract type CtGeom{Td,To,Ts} <: RayGeom{Td,To} end
+abstract type CtGeom{Td <: RealU, To <: RealU, Ts} <: RayGeom{Td,To} end
 
-abstract type CtParallel{Td,To,Ts} <: CtGeom{Td,To,Ts} end
-abstract type CtFan{Td,To,Ts} <: CtGeom{Td,To,Ts} end
+abstract type CtParallel{Td <: RealU, To <: RealU, Ts} <: CtGeom{Td,To,Ts} end
+abstract type CtFan{Td <: RealU, To <: RealU, Ts} <: CtGeom{Td,To,Ts} end
 
 
 # types
 
 
 """
-    CtPar
+    CtPar{Td,To,Ts}
 3D parallel-beam projection geometry
 """
-struct CtPar{Td,To,Ts} <: CtParallel{Td,To,Ts}
+struct CtPar{Td <: RealU, To <: RealU, Ts} <: CtParallel{Td,To,Ts}
     # detector:
     ns::Int
     nt::Int
@@ -122,11 +122,11 @@ end
 
 #=
 """
-    CtMoj
+    CtMoj{Td,To,Ts}
 3D Mojette
 where `d` means `dx` (square pixel size)
 """
-struct CtMoj{Td,To,Ts} <: CtParallel{Td,To,Ts}
+struct CtMoj{Td <: RealU, To <: RealU, Ts} <: CtParallel{Td,To,Ts}
     # detector:
     ns::Int
     nt::Int
@@ -144,10 +144,10 @@ end
 
 
 """
-   CtFanArc
+    CtFanArc{Td,To,Ts}
 3D CBCT geometry for arc detector
 """
-struct CtFanArc{Td,To,Ts} <: CtFan{Td,To,Ts}
+struct CtFanArc{Td <: RealU, To <: RealU, Ts} <: CtFan{Td,To,Ts}
     # detector:
     ns::Int
     nt::Int
@@ -167,10 +167,10 @@ end
 
 
 """
-   CtFanFlat
+    CtFanFlat{Td,To,Ts}
 3D CTCT geometry for flat detector
 """
-struct CtFanFlat{Td,To,Ts} <: CtFan{Td,To,Ts}
+struct CtFanFlat{Td <: RealU, To <: RealU, Ts} <: CtFan{Td,To,Ts}
     # detector:
     ns::Int
     nt::Int
@@ -282,9 +282,13 @@ end
     CtFanArc( ; ns nt ds dt offset_s offset_t
         na orbit orbit_start
         dsd = 4ns * ds, dod = ns * ds)
+    CtFanArc(:short ; ...)
 
 Constructor with named keywords.
 See `?CtGeom` for documentation.
+
+* Use `:short` argument to specify a short scan,
+  in which case `na` will be scaled down proportionally as well.
 
 ```jldoctest
 julia> CtFanArc()
@@ -312,11 +316,10 @@ function CtFanArc( ;
     offset_s::Real = 0,
     offset_t::Real = 0,
     na::Int = 64,
-#   orbit::Union{Symbol,Real} = 360,
     orbit::RealU = 360,
     orbit_start::RealU = zero(eltype(orbit)),
     source_offset::RealU = zero(eltype(ds)),
-    dsd::RealU = 4ns * ds,
+    dsd::RealU = 4 * ns * ds,
     dod::RealU = ns * ds,
     src::CtSource = CtSourceCircle(),
 )
@@ -331,13 +334,28 @@ function CtFanArc( ;
 end
 
 
+# :short case
+function CtFanArc(orbit::Symbol ;
+    na::Int = 128, orbit_start::To = 0f0, kwargs...,
+) where {To <: RealU}
+    orbit == :short || error("bad orbit $orbit")
+    tmp = CtFanArc( ; orbit=To(360), kwargs...)
+    na = ceil(Int, na * tmp.orbit_short / To(360))
+    return CtFanArc( ; na, orbit = To(tmp.orbit_short), kwargs...)
+end
+
+
 """
     CtFanFlat( ; ns nt ds dt offset_s offset_t
         na orbit orbit_start
         dsd = 4ns * ds, dod = ns * ds)
+    CtFanFlat(:short ; ...)
 
 Constructor with named keywords.
 See `?CtGeom` for documentation.
+
+* Use `:short` argument to specify a short scan,
+  in which case `na` will be scaled down proportionally as well.
 
 ```jldoctest
 julia> CtFanFlat()
@@ -384,12 +402,24 @@ function CtFanFlat( ;
 end
 
 
+# :short case
+function CtFanFlat(orbit::Symbol ;
+    na::Int = 128, orbit_start::To = 0f0, kwargs...,
+) where {To <: RealU}
+    orbit == :short || error("bad orbit $orbit")
+    tmp = CtFanFlat( ; orbit=To(360), kwargs...)
+    na = ceil(Int, na * tmp.orbit_short / To(360))
+    return CtFanFlat( ; na, orbit = To(tmp.orbit_short), kwargs...)
+end
+
+
 """
     CtFanArc(::Val{:ge1} ; kwargs...)
 GE Lightspeed system CT geometry.
 
 # option
 * `unit::RealU = 1` or use `1mm`
+* (see `CtFanArc`)
 
 # out
 * `CtFanArc`
