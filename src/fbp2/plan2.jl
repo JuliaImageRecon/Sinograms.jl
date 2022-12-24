@@ -35,7 +35,7 @@ struct FBPNormalPlan{
     sg::S
     ig::I
     filter::H # frequency response Hk of apodized ramp filter, length npad
-    parker_weight::P # typically a 1D or 2D array of nonnegative reals
+    parker_weight::P # typically a Matrix of nonnegative reals
 #   moj::Moj # todo
 
 #=

@@ -6,7 +6,20 @@ export parker_weight
 using LazyGrids: ndgrid
 
 
-# parallel-beam case: returns a Vector
+"""
+    parker_weight(sg::SinoGeom ; T = Float32)
+Compute Parker weighting for non-360° orbits.
+See http://doi.org/10.1118/1.595078.
+Returns `Matrix{T}` of size:
+- (1,1) for `SinoPar` with typical 180 or 360 orbit
+- (1,na) for `SinoPar` with atypical orbit
+- (1,1) for `SinoFan` with typical 360 orbit
+- (ns,na) for `SinoFan` with typical 360 orbit
+"""
+parker_weight
+
+
+# parallel-beam case
 function parker_weight_par(
     orbit::RealU,
     ad::AbstractVector{<:RealU}, # angles in degrees: sg.ad - sg.orbit_start
@@ -14,20 +27,20 @@ function parker_weight_par(
     T::Type{<:Real} = Float32,
 )
 
-    wt = ones(T, length(ad))
-
     if (orbit ÷ 180) * 180 == orbit
-        return wt # no weighting needed
+        return ones(T, 1, 1) # no weighting needed
     end
 
-    if orbit < 180
+    if abs(orbit) < 180
         @warn("orbit $orbit < 180")
-        return wt # nonuniform weighting would not help
+        return ones(T, 1, 1) # nonuniform weighting would not help
     end
 
+    orbit = abs(orbit)
     orbit > 360 && error("only 180 ≤ |orbit| ≤ 360 supported for Parker weighting")
     extra = orbit - 180 # extra beyond 180
 
+    wt = ones(T, 1, length(ad)) # (1,na)
     ad = abs.(ad)
     ii = ad .< extra
     @. wt[ii] = abs2(sin(ad[ii] / extra * π/2))
@@ -38,17 +51,11 @@ function parker_weight_par(
 end
 
 
-"""
-    parker_weight(sg::SinoGeom ; T = Float32)
-Compute Parker weighting for non-360° orbits.
-Returns `Vector{T}` of length `sg.na` for `SinoPar`.
-Returns `Matrix{T}` of size `dims(sg)` for `SinoFan`.
-"""
-parker_weight(sg::SinoPar ; T::Type{<:Real} = Float32)::Vector{T} =
+parker_weight(sg::SinoPar ; T::Type{<:Real} = Float32)::Matrix{T} =
     parker_weight_par(sg.orbit, sg.ad .- sg.orbit_start ; T)
 
 
-function parker_weight_fan(
+function parker_weight_fan_short(
     nb::Int,
     na::Int,
     orbit::RealU,
@@ -65,7 +72,7 @@ function parker_weight_fan(
         @warn("orbit $orbit is less than a short scan $orbit_short")
 
     orbit > orbit_short + rad2deg(ar[2] - ar[1]) &&
-        @warn("orbit $orbit exeeds short scan $orbit_short by %g views")
+        @warn("orbit $orbit exceeds short scan $orbit_short by %g views")
     #   (orbit - orbit_short) / rad2deg(ar[2] - ar[1]))
 
     bet = ar .- ar[1] # trick: force 0 start, so this ignores orbit_start!
@@ -96,22 +103,47 @@ end
 
 
 function parker_weight(sg::SinoFan; T::Type{<:Real} = Float32)::Matrix{T}
-    wt = ones(T, dims(sg))
     if (sg.orbit ÷ 360) * 360 == sg.orbit
-        return wt
+        return ones(T, 1, 1) # no weighting needed
     end
-    return parker_weight_fan(
+    return parker_weight_fan_short(
         sg.nb, sg.na, sg.orbit, sg.orbit_short,
         sg.ar, sg.gamma, sg.gamma_max; T
     )
 end
 
 
-function parker_weight(sg::SinoMoj ; T::Type{<:Real} = Float32)::Vector{T}
+function parker_weight(sg::SinoMoj ; T::Type{<:Real} = Float32)
     orbit = abs(sg.orbit)
     na = sg.na
     ((sg.orbit ÷ 180) * 180 == orbit) ||
         throw("No Parker weighting for Mojette geometry with orbit=$orbit")
-    wt = ones(T, na)
+    wt = ones(T, 1, 1)
     return wt
+end
+
+
+function parker_weight_fan_short(cg::CtFan; kwargs...)
+    weight = parker_weight_fan_short(
+        cg.ns, cg.na, cg.orbit, cg.orbit_short,
+        cg.ar, cg.gamma, cg.gamma_max; kwargs...,
+    )
+    weight .*= 360 / cg.orbit_short # trick due to scaling in cbct-back
+    return weight
+end
+
+
+"""
+    parker_weight(cg::CtFan; T::Type{<:Real} = Float32, kwargs...)
+For 3D case, return `Array{T,3}` where size is
+- `(1,1,1)` typical fan case with 360° orbit
+- `(ns,1,na)` atypical fan case including short scan
+"""
+function parker_weight(cg::CtFan; T::Type{<:Real} = Float32, kwargs...)
+    if (cg.orbit ÷ 360) * 360 == cg.orbit
+        return ones(T, 1, 1, 1) # (1,1,1) for type stability
+    end
+    weight = parker_weight_fan_short(cg; kwargs...)
+    weight = reshape(weight, dims(cg)[1], 1, dims(cg)[3]) # (ns,1,na)
+    return weight
 end
