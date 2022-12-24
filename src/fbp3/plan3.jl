@@ -35,14 +35,6 @@ struct FDKplan{
 end
 
 
-function parker_weight(cg::CtFan; kwargs...)
-    return parker_weight_fan(
-        cg.ns, cg.na, cg.orbit, cg.orbit_short,
-        cg.ar, cg.gamma, cg.gamma_max; kwargs...,
-    )
-end
-
-
 """
     plan = plan_fbp(cg, ig; window=Window(), ...)
 
