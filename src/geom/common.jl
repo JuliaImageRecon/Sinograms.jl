@@ -12,7 +12,7 @@ export angles
 Base.show(io::IO, ::MIME"text/plain", st::RayGeom) = _show(io,  MIME("text/plain"), st)
 
 
-function _getproperty(st::RayGeom, s::Symbol, arg)
+function _getproperty(st::RayGeom, s::Symbol, arg) # not type stable :(
     d = Dict(arg)
     return haskey(d, s) ? d[s](st) : getfield(st, s)
 end

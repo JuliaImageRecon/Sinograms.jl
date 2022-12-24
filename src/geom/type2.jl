@@ -84,20 +84,20 @@ For fan beam:
 # Notes
 * Use `ct_geom()` instead for 3D axial or helical cone-beam CT.
 """
-abstract type SinoGeom{Td,To} <: RayGeom{Td,To} end
+abstract type SinoGeom{Td <: RealU, To <: RealU} <: RayGeom{Td,To} end
 
-abstract type SinoParallel{Td,To} <: SinoGeom{Td,To} end
-abstract type SinoFan{Td,To} <: SinoGeom{Td,To} end
+abstract type SinoParallel{Td <: RealU, To <: RealU} <: SinoGeom{Td,To} end
+abstract type SinoFan{Td <: RealU, To <: RealU} <: SinoGeom{Td,To} end
 
 
 # types
 
 
 """
-    SinoPar
+    SinoPar{Td,To}
 2D parallel-beam sinogram geometry
 """
-struct SinoPar{Td,To} <: SinoParallel{Td,To}
+struct SinoPar{Td <: RealU, To <: RealU} <: SinoParallel{Td,To}
     # detector:
     nb::Int
     d::Td
@@ -110,11 +110,11 @@ end
 
 
 """
-    SinoMoj
+    SinoMoj{Td,To}
 2D Mojette sinogram geometry
 where `d` means `dx` (square pixel size)
 """
-struct SinoMoj{Td,To} <: SinoParallel{Td,To}
+struct SinoMoj{Td <: RealU, To <: RealU} <: SinoParallel{Td,To}
     # detector:
     nb::Int
     d::Td
@@ -127,10 +127,10 @@ end
 
 
 """
-   SinoFanArc
+    SinoFanArc{Td,To}
 2D fan-beam sinogram geometry for arc detector
 """
-struct SinoFanArc{Td,To} <: SinoFan{Td,To}
+struct SinoFanArc{Td <: RealU, To <: RealU} <: SinoFan{Td,To}
     # detector:
     nb::Int
     d::Td
@@ -146,10 +146,10 @@ end
 
 
 """
-    SinoFanFlat
+    SinoFanFlat{Td,To}
 2D fan-beam sinogram geometry for flat detector
 """
-struct SinoFanFlat{Td,To} <: SinoFan{Td,To}
+struct SinoFanFlat{Td <: RealU, To <: RealU} <: SinoFan{Td,To}
     # detector:
     nb::Int
     d::Td
@@ -236,8 +236,7 @@ end
 """
     SinoFanArc( ; nb d offset na orbit orbit_start
         source_offset, dsd = 4 * nb * d, dod = nb * d)
-    SinoFanArc(:short ; nb d offset na orbit_start
-        source_offset, dsd = 4 * nb * d, dod = nb * d)
+    SinoFanArc(:short ; ...)
 
 Constructor with named keywords.
 See `?SinoGeom` for documentation.
@@ -285,41 +284,25 @@ end
 
 # :short case
 function SinoFanArc(orbit::Symbol ;
-    nb::Int = 128,
-    d::RealU = 1,
-    offset::Real = 0,
-    na::Int = 2 * floor(Int, nb * π/2 / 2),
-    orbit_start::RealU = 0f0,
-    source_offset::RealU = zero(eltype(d)),
-    dsd::RealU = 4 * nb * d,
-    dod::RealU = nb * d,
-)
-
+    na::Int = 128, orbit_start::To = 0f0, kwargs...,
+) where {To <: RealU}
     orbit == :short || error("bad orbit $orbit")
-
-    Td = _promoter(d, source_offset, dsd, dod)
-    To = typeof(1f0 * orbit_start)
-    tmp = SinoFanArc(
-        nb, Td(d), Toffset(offset),
-        na, To(360), To(orbit_start),
-        Td(source_offset), Td(dsd), Td(dod),
-    )
-    na = ceil(Int, na * tmp.orbit_short / 360)
-    orbit = To(tmp.orbit_short)
-
-    return SinoFanArc( ;
-        nb, na, d, offset, orbit, orbit_start,
-        source_offset, dsd, dod,
-    )
+    tmp = SinoFanArc( ; orbit=To(360), kwargs...)
+    na = ceil(Int, na * tmp.orbit_short / To(360))
+    return SinoFanArc( ; na, orbit = To(tmp.orbit_short), kwargs...)
 end
 
 
 """
     SinoFanFlat( ; nb d offset na orbit orbit_start
         source_offset, dsd= 4 * nb * d, dod = nb * d)
+    SinoFanFlat(:short ; ...)
 
 Constructor with named keywords.
 See `?SinoGeom` for documentation.
+
+* Use `:short` argument to specify a short scan,
+  in which case `na` will be scaled down proportionally as well.
 
 ```jldoctest
 julia> SinoFanFlat()
@@ -353,6 +336,17 @@ function SinoFanFlat( ;
         na, To(orbit), To(orbit_start),
         Td(source_offset), Td(dsd), Td(dod),
     )
+end
+
+
+# :short case
+function SinoFanFlat(orbit::Symbol ;
+    na::Int = 128, orbit_start::To = 0f0, kwargs...,
+) where {To <: RealU}
+    orbit == :short || error("bad orbit $orbit")
+    tmp = SinoFanFlat( ; orbit=To(360), kwargs...)
+    na = ceil(Int, na * tmp.orbit_short / To(360))
+    return SinoFanFlat( ; na, orbit = To(tmp.orbit_short), kwargs...)
 end
 
 
