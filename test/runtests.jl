@@ -19,9 +19,8 @@ include("fbp2/parker.jl")
 include("fbp2/sino-plot.jl")
 include("fbp2/back2.jl")
 include("fbp2/plan2.jl")
-
-include("fbp-par.jl")
-include("fbp-fan.jl")
+include("fbp2/fbp-par.jl")
+include("fbp2/fbp-fan.jl")
 
 include("fbp3/plan3.jl")
 include("fbp3/back3.jl")

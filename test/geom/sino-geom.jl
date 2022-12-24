@@ -49,6 +49,8 @@ end
 
     st = SinoFanArc(:short) # @NOTinferred
     @test st isa SinoFanArc
+    st = SinoFanFlat(:short) # @NOTinferred
+    @test st isa SinoFanFlat
 end
 
 
