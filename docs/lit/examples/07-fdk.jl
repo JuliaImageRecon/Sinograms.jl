@@ -67,7 +67,7 @@ clim = (0.95, 1.05) .* μ
 # Here is the ideal phantom image:
 oversample = 3
 true_image = phantom(axes(ig)..., ob, oversample)
-jim(axes(ig), true_image, "True 3D Shepp-Logan phantom image"; clim)
+pt = jim(axes(ig), true_image, "True 3D Shepp-Logan phantom image"; clim)
 
 # Define the system geometry
 # (for some explanation use `?CtGeom`):
@@ -85,7 +85,7 @@ prompt()
 # CBCT projections
 # using `Sinogram.rays` and `ImagePhantoms.radon`:
 proj_arc = radon(rays(cg), ob)
-jim(cg.s, cg.t, proj_arc ;
+pa = jim(cg.s, cg.t, proj_arc ;
     title="Shepp-Logan projections (arc)", xlabel="s", ylabel="t")
 
 
@@ -105,11 +105,12 @@ For illustration we include `Hamming` window.
 
 plan = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
 fdk_arc = fdk(plan, proj_arc)
-jim(axes(ig), fdk_arc, "FDK image (arc)"; clim)
+paf = jim(axes(ig), fdk_arc, "FDK image (arc)"; clim)
 
 #
 err_arc = fdk_arc - true_image
-jim(axes(ig), err_arc, "Error image (arc)"; clim = (-1,1) .* (0.05μ))
+elim = (-1,1) .* (0.02μ)
+pae = jim(axes(ig), err_arc, "Error image (arc)"; clim = elim)
 
 
 #=
@@ -118,16 +119,16 @@ jim(axes(ig), err_arc, "Error image (arc)"; clim = (-1,1) .* (0.05μ))
 
 cg = CtFanFlat( ; p...)
 proj_flat = radon(rays(cg), ob)
-jim(cg.s, cg.t, proj_flat ;
+pfp = jim(cg.s, cg.t, proj_flat ;
     title="Shepp-Logan projections (flat)", xlabel="s", ylabel="t")
 
 plan = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
 fdk_flat = fdk(plan, proj_flat)
-jim(axes(ig), fdk_flat, "FDK image (flat)"; clim)
+pfr = jim(axes(ig), fdk_flat, "FDK image (flat)"; clim)
 
 #
 err_flat = fdk_flat - true_image
-jim(axes(ig), err_flat, "Error image (flat)"; clim = (-1,1) .* (0.05μ))
+pfe = jim(axes(ig), err_flat, "Error image (flat)"; clim = elim)
 
 #=
 As expected for CBCT,
@@ -138,15 +139,20 @@ the largest errors are in the end slices.
 #=
 ## Short scan
 =#
-cg = CtFanFlat(:short ; p...)
+cg = CtFanFlat(:short ; p..., na = 200)
 proj_short = radon(rays(cg), ob)
-jim(cg.s, cg.t, proj_short ;
+psp = jim(cg.s, cg.t, proj_short ;
     title="Shepp-Logan projections (flat,short)", xlabel="s", ylabel="t")
 
+#
 plan_short = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
+psw = jim(cg.s, cg.ad, plan_short.parker_weight[:,1,:], "Parker weights";
+    xlabel="s", ylabel="angle")
+
+#
 fdk_short = fdk(plan_short, proj_short)
-jim(axes(ig), fdk_short, "FDK image (flat,short)"; clim)
+psr = jim(axes(ig), fdk_short, "FDK image (flat,short)"; clim)
 
 #
 err_short = fdk_short - true_image
-jim(axes(ig), err_flat, "Error image (flat,short)"; clim = (-1,1) .* (0.05μ))
+pse = jim(axes(ig), err_flat, "Error image (flat,short)"; clim = elim)
