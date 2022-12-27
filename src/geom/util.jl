@@ -27,7 +27,7 @@ Informative way to show fields of a struct (composite type).
 function _show(io::IO, ::MIME"text/plain", st::Any)
     println(io, "$(typeof(st)) :")
     for f in fieldnames(typeof(st))
-        p = getproperty(st, f)
+        p = getfield(st, f)
         t = (p isa Number) ? _unit_precision(p) : typeof(p)
         println(io, " ", f, "::", t, " ", p)
     end

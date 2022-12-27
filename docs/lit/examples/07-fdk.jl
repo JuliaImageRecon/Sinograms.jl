@@ -105,7 +105,7 @@ For illustration we include `Hamming` window.
 
 plan = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
 fdk_arc = fdk(plan, proj_arc)
-paf = jim(axes(ig), fdk_arc, "FDK image (arc)"; clim)
+par = jim(axes(ig), fdk_arc, "FDK image (arc)"; clim)
 
 #
 err_arc = fdk_arc - true_image
