@@ -85,7 +85,7 @@ prompt()
 # CBCT projections
 # using `Sinogram.rays` and `ImagePhantoms.radon`:
 proj_arc = radon(rays(cg), ob)
-pa = jim(cg.s, cg.t, proj_arc ;
+pa = jim(axes(cg)[1:2], proj_arc ;
     title="Shepp-Logan projections (arc)", xlabel="s", ylabel="t")
 
 
@@ -119,7 +119,7 @@ pae = jim(axes(ig), err_arc, "Error image (arc)"; clim = elim)
 
 cg = CtFanFlat( ; p...)
 proj_flat = radon(rays(cg), ob)
-pfp = jim(cg.s, cg.t, proj_flat ;
+pfp = jim(axes(cg)[1:2], proj_flat ;
     title="Shepp-Logan projections (flat)", xlabel="s", ylabel="t")
 
 plan = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
@@ -141,12 +141,13 @@ the largest errors are in the end slices.
 =#
 cg = CtFanFlat(:short ; p..., na = 200)
 proj_short = radon(rays(cg), ob)
-psp = jim(cg.s, cg.t, proj_short ;
+psp = jim(axes(cg)[1:2], proj_short ;
     title="Shepp-Logan projections (flat,short)", xlabel="s", ylabel="t")
 
 #
 plan_short = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
-psw = jim(cg.s, cg.ad, plan_short.parker_weight[:,1,:], "Parker weights";
+psw = jim(axes(cg)[[1,3]], plan_short.view_weight[:,1,:];
+    title = "View weights (including Parker)",
     xlabel="s", ylabel="angle")
 
 #

@@ -14,7 +14,7 @@ using ImageGeoms: axes
 function ct_geom_plot2!(st::CtGeom)
     plot!(; title = nameof(typeof(st)))
     if st isa CtFan
-        sino_geom_plot_fan!(st.ar, st.rfov, st.dso, st.xds, st.yds)
+        sino_geom_plot_fan!(_ar(st), _rfov(st), _dso(st), _xds(st), _yds(st))
     end
     return plot!(aspect_ratio=1)
 end
@@ -25,7 +25,7 @@ end
 Plot central 2D portion of the CBCT geometry.
 """
 function ct_geom_plot2!(st::CtGeom, ig::ImageGeom)
-    sino_geom_plot_ig!(st.rfov; ig)
+    sino_geom_plot_ig!(_rfov(st); ig)
     ct_geom_plot2!(st)
 end
 
@@ -71,15 +71,15 @@ function ct_geom_plot3(st::CtFan, ig::ImageGeom)
     plot()
     ct_geom_plot_ig!(ig)
 
-    t1 = -st.dso * sin.(st.ar)
-    t2 = st.dso * cos.(st.ar)
-    t3 = st.source_zs
+    t1 = -_dso(st) * sin.(_ar(st))
+    t2 = _dso(st) * cos.(_ar(st))
+    t3 = _source_zs(st)
     plot!(t1, t2, t3, color = :blue, marker = :circle) # source points
 
     r100(x) = _round(maximum(abs, x); digits=2)
     r10(x) = _round(maximum(abs, x); digits=1)
 
-    u = oneunit(st.dso)
+    u = oneunit(_dso(st))
     plot!([-1, 1] * r100(t1), [0,0]*u, [0,0]*u, color=:red) # axes
     plot!([0,0]*u, [-1, 1]*r100(t2), [0,0]*u, color=:red)
     plot!([0,0]*u, [0,0]*u, [-1,1]*r10(t3), color=:red)
@@ -93,13 +93,13 @@ function ct_geom_plot3(st::CtFan, ig::ImageGeom)
         det_cen_loc = src + st.dsd * unit_vec
         plot!(map(x -> [x], det_cen_loc)..., marker=:star, color=:black)
 
-        rot = st.ar[ia]
+        rot = _ar(st)[ia]
         rot = [cos(rot) -sin(rot); sin(rot) cos(rot)]
-        pd = rot * [st.xds'; st.yds']
+        pd = rot * [_xds(st)'; _yds(st)']
 
         color = detcolor[ic]
         for it in 1:st.nt
-            plot!(pd[1,:], pd[2,:], src[3] .+ st.t[it] * ones(st.ns); color)
+            plot!(pd[1,:], pd[2,:], src[3] .+ _t(st)[it] * ones(st.ns); color)
         end
     end
     plot!(aspect_ratio = :equal)

@@ -17,6 +17,7 @@ Base.axes(sg::SinoGeom) = (sino_s(sg), angles(sg))
 
 sino_w(sg::SinoGeom) = Toffset((sg.nb-1)/2 + sg.offset)::Toffset
 
+#_geom_s(sg::SinoGeom) = sg.d * ((0:sg.nb-1) .- sino_w(sg))
 #sino_s(sg::SinoGeom) = sg.d * ((0:sg.nb-1) .- sino_w(sg))
 #sino_s(sg::SinoGeom) = _lin_range(sg.d, sg.w, sg.nb) # can't infer!?
 function sino_s(
@@ -25,6 +26,8 @@ function sino_s(
 )::LinRange{T,Int} where {Td}
     return _lin_range(st.d, st.w, st.nb)
 end
+_geom_s(st::SinoGeom) = sino_s(st) # todo
+_s(st::SinoGeom) = sino_s(st) # todo
 
 sino_dr(sg::SinoGeom) = sg.d
 sino_dr(sg::SinoMoj) = NaN

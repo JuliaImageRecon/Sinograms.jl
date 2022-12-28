@@ -14,12 +14,17 @@ export dims, downsample, oversample, rays, axes
 dims(st::CtGeom) = (st.ns, st.nt, st.na)::NTuple{3,Int}
 
 # use ° via `angles()` because mainly for plots
-Base.axes(st::CtGeom) = (ct_geom_s(st), ct_geom_t(st), angles(st))
+Base.axes(st::CtGeom) = (_s(st), _t(st), angles(st))
 
-ct_geom_ws(st::CtGeom) = ((st.ns-1)//2 + st.offset_s)::Toffset
-ct_geom_wt(st::CtGeom) = ((st.nt-1)//2 + st.offset_t)::Toffset
+_ws(st::CtGeom) = ((st.ns-1)//2 + st.offset_s)
+_wt(st::CtGeom) = ((st.nt-1)//2 + st.offset_t)
+
+_s(st::CtGeom) = st.ds * ((0:st.ns-1) .- _ws(st))
+_t(st::CtGeom) = st.dt * ((0:st.nt-1) .- _wt(st))
 
 #ct_geom_s(st::CtGeom) = st.ds * ((0:st.ns-1) .- st.ws) # can't infer!?
+#ct_geom_s(st::CtGeom) = st.ds * ((0:st.ns-1) .- st.ws) # can't infer!?
+#=
 function ct_geom_s(
     st::CtGeom{Td} ;
     T::Type{<:Number} = eltype(oneunit(Td) * one(Toffset)),
@@ -33,6 +38,7 @@ function ct_geom_t(
 )::LinRange{T,Int} where {Td}
     return _lin_range(st.dt, st.wt, st.nt)
 end
+=#
 
 
 # down/up sampling
@@ -90,6 +96,7 @@ end
 
 
 # type inference help:
+# todo: still needed?
 function _rays_type3(Td,To)
     Tϕ = eltype(oneunit(to_radians([oneunit(To)])[1]))
     return Iterators.ProductIterator{Tuple{
@@ -109,10 +116,11 @@ Return type of `i` is a `ProductIterator` that makes tuples of the form
 To make projections call
 `p = [fun(c...) for c in i]` where `fun` is `radon(...)`.
 """
-function rays(st::CtPar{Td,To})::_rays_type3(Td,To) where {Td,To}
-    u = st.s
-    v = st.t
-    ϕ = st.ar # / oneunit(eltype(st.ar))
+#function rays(st::CtPar{Td,To})::_rays_type3(Td,To) where {Td,To} # todo infer ::
+function rays(st::CtPar)
+    u = _s(st)
+    v = _t(st)
+    ϕ = _ar(st) # / oneunit(eltype(st.ar))
     θ = zero(eltype(ϕ))
     i = Iterators.product(u, v, ϕ, θ)
     return i
@@ -121,14 +129,14 @@ end
 
 function rays(st::CtFan{Td,To}) where {Td,To}
     st.src isa CtSourceCircle || throw("non-circular not done")
-    s = st.s
-    t = st.t
-    β = st.ar # / oneunit(eltype(st.ar))
+    s = _s(st)
+    t = _t(st)
+    β = _ar(st) # / oneunit(eltype(st.ar))
     i = Iterators.product(s, t, β)
     if st isa CtFanArc
-        fun = stb -> cb_arc_to_par(stb..., st.dso, st.dod)
+        fun = stb -> cb_arc_to_par(stb..., _dso(st), st.dod)
     else
-        fun = stb -> cb_flat_to_par(stb..., st.dso, st.dod)
+        fun = stb -> cb_flat_to_par(stb..., _dso(st), st.dod)
     end
     return Iterators.map(fun, i)
 end
@@ -139,10 +147,10 @@ end
 
 
 #ct_geom_cone_angle(st::CtParallel) = 0
-ct_geom_cone_angle(st::CtFan) = atan((st.nt * st.dt)/2 / st.dsd)
+_cone_angle(st::CtFan) = atan((st.nt * st.dt)/2 / st.dsd)
 
-ct_geom_zfov(st::CtParallel) = st.nt * st.dt
-ct_geom_zfov(st::CtFan) = st.dso / st.dsd * st.nt * st.dt
+_zfov(st::CtParallel) = st.nt * st.dt
+_zfov(st::CtFan) = _dso(st) / st.dsd * st.nt * st.dt
 
 
 _source_dz_per_view(src::CtSource, na, orbit, zfov::Td) where {Td <: RealU} = zero(Td)
@@ -151,14 +159,15 @@ function _source_dz_per_view(src::CtSourceHelix, na, orbit, zfov::Td) where {Td 
     return na == 1 ? zero(Td) : src.pitch * zfov / na_per_360
 end
 
-ct_geom_source_dz_per_view(st::CtGeom) =
-    _source_dz_per_view(st.src, st.na, st.orbit, st.zfov)
+#ct_geom_
+_source_dz_per_view(st::CtGeom) =
+    _source_dz_per_view(st.src, st.na, st.orbit, _zfov(st))
 
 
-ct_geom_source_zs(st::CtGeom{Td,To,<:CtSourceCircle}) where {Td,To} = fill(zero(Td), st.na)
-#ct_geom_source_zs(st::CtGeom{Td,To,<:CtSourceUser}) where {Td,To} = st.src.source_zs
+_source_zs(st::CtGeom{Td,To,<:CtSourceCircle}) where {Td,To} = fill(zero(Td), st.na)
+#_source_zs(st::CtGeom{Td,To,<:CtSourceUser}) where {Td,To} = st.src.source_zs
 
-function ct_geom_source_zs(st::CtGeom{Td,To,<:CtSourceHelix}) where {Td,To}
-    source_dz = ct_geom_source_dz_per_view(st)
+function _source_zs(st::CtGeom{Td,To,<:CtSourceHelix}) where {Td,To}
+    source_dz = _source_dz_per_view(st)
     return (0:st.na-1) * source_dz .+ st.src.source_z0
 end

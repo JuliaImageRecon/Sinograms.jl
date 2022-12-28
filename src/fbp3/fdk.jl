@@ -9,6 +9,15 @@ export fdk
 
 # helpers
 
+"""
+    fdk_weight_cyl
+FDK projection weighting providing "exact" CBCT reconstruction
+for cylindrical-like objects that satisfy
+``f(x,y,z) = f(x,y,0) ∀z``.
+The output is a `(ns,nt)` matrix.
+"""
+fdk_weight_cyl
+
 function fdk_weight_cyl_arc(
     s::RealU,
     t::RealU,
@@ -30,14 +39,13 @@ function fdk_weight_cyl_flat(
     return T(dso / sqrt(abs2(s) + abs2(t) + abs2(dsd)))
 end
 
-# (ns,nt) matrix
 fdk_weight_cyl(cg::CtFanArc) =
-    fdk_weight_cyl_arc.(cg.s, cg.t', cg.dsd, cg.dso)::Matrix{Float32}
+    fdk_weight_cyl_arc.(_s(cg), _t(cg)', cg.dsd, _dso(cg)) #::Matrix{Float32} # todo
 #   Iterators.map((st) -> fdk_weight_cyl_arc(st..., cg.dsd, cg.dso),
 #       Iterators.product(ct_geom_s(cg), ct_geom_t(cg))) # eltype = Any !?
 
 fdk_weight_cyl(cg::CtFanFlat) =
-    fdk_weight_cyl_flat.(cg.s, cg.t', cg.dsd, cg.dso)::Matrix{Float32}
+    fdk_weight_cyl_flat.(_s(cg), _t(cg)', cg.dsd, _dso(cg)) #::Matrix{Float32}
 
 
 """
@@ -64,8 +72,8 @@ function fdk(plan::FDKplan, proj::AbstractArray{<:Number,3})
         error("size mismatch $(size(proj)) $(dims(plan.cg))")
 
     # step 1: apply cone-beam weights
-    proj = proj .* fdk_weight_cyl(cg) # todo: precompute with plan!
-    proj .*= plan.parker_weight # todo: before or after filtering?
+#   proj = proj .* fdk_weight_cyl(cg) # todo: precompute with plan!
+    proj = proj .* plan.view_weight # todo: before or after filtering?
 
     # step 2: filter each projection view
     proj = fbp_sino_filter(proj, plan.filter)

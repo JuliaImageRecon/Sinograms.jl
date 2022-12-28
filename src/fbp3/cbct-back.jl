@@ -9,6 +9,15 @@ using ImageGeoms: ImageGeom
 export cbct_back
 
 
+# scale projections by dβ for Riemann-like integration
+function _view_weights(ar::AbstractVector{<:RealU})
+    da = diff(ar) # typically 2π/na for 360° orbit
+#   da1 = betas[begin] - (ar[end] - 2π)
+    da = [da[1]; da] # todo
+    return reshape(da, 1, 1, :) / 2
+end
+
+
 """
     cbct_back(proj, cg, ig)
 
@@ -35,8 +44,8 @@ function cbct_back(
         (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
 
     return cbct_back_fan(proj,
-        cg.ar, # "betas"
-        cg.dsd, cg.dso,
+        _ar(cg), # "betas"
+        cg.dsd, _dso(cg),
 #       cg.offset_source::RealU,
         cg.ds, cg.dt,
         cg.offset_s, cg.offset_t,
@@ -128,11 +137,6 @@ function cbct_back_fan!(
     sinβ = sin.(betas)
     cosβ = cos.(betas)
 
-    # scale projections by dβ for Riemann-like integration
-    dβ = diff(betas) # typically 2π/na for 360° orbit
-    dβ = [dβ[1]; dβ] # todo
-    proj = proj .* reshape(dβ, 1, 1, :) / 2
-
     xc_ds = xc / ds
     yc_ds = yc / ds
     zc_ds = zc / ds
@@ -154,7 +158,7 @@ end
 
 # back-project all views to one voxel
 # at location (xc,yc,zc)
-function cbct_back_fan_voxel(
+@inline function cbct_back_fan_voxel(
     proj::AbstractArray{Tp,3},
     sinβ::AbstractVector{To},
     cosβ::AbstractVector{To},

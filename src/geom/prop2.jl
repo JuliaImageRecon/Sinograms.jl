@@ -22,8 +22,8 @@ const sino_geom_fun_core = (
     (:rfov, _geom_rfov),
     (:taufun, st -> ((x,y) -> sino_geom_tau(st,x,y))),
 
-    (:shape, st -> ((x::AbstractArray) -> reshaper(x, dims(st)))),
-    (:unitv, st -> ((arg...; kwarg...) -> _geom_unitv(st, arg...; kwarg...))),
+    (:shape, st -> ((x::AbstractArray) -> _shape(x, dims(st)))),
+    (:unitv, st -> ((arg...; kwarg...) -> _unitv(st, arg...; kwarg...))),
 )
 
 
@@ -32,10 +32,10 @@ const sino_geom_fun_fan = (
     # fan-specific
     (:dso, st -> st.dsd - st.dod),
     (:dfs, _geom_dfs),
-    (:gamma, _geom_gamma),
+    (:gamma, _gamma),
     (:gamma_s, st -> (ss -> _geom_gamma_s(st, ss))),
-    (:gamma_max, _geom_gamma_max),
-    (:gamma_max_abs, _geom_gamma_max_abs),
+    (:gamma_max, _gamma_max),
+    (:gamma_max_abs, _gamma_max_abs),
     (:orbit_short, _orbit_short),
 )
 

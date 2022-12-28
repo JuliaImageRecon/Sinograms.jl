@@ -107,8 +107,8 @@ function parker_weight(sg::SinoFan; T::Type{<:Real} = Float32)::Matrix{T}
         return ones(T, 1, 1) # no weighting needed
     end
     return parker_weight_fan_short(
-        sg.nb, sg.na, sg.orbit, sg.orbit_short,
-        sg.ar, sg.gamma, sg.gamma_max; T
+        sg.nb, sg.na, sg.orbit, _orbit_short(sg),
+        _ar(sg), _gamma(sg), _gamma_max(sg); T
     )
 end
 
@@ -125,10 +125,10 @@ end
 
 function parker_weight_fan_short(cg::CtFan; kwargs...)
     weight = parker_weight_fan_short(
-        cg.ns, cg.na, cg.orbit, cg.orbit_short,
-        cg.ar, cg.gamma, cg.gamma_max; kwargs...,
+        cg.ns, cg.na, cg.orbit, _orbit_short(cg),
+        _ar(cg), _gamma(cg), _gamma_max(cg); kwargs...,
     )
-    weight .*= 360 / cg.orbit_short # trick due to scaling in cbct-back
+    weight .*= 360 / _orbit_short(cg) # trick due to scaling in cbct-back
     return weight
 end
 

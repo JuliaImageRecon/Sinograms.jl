@@ -35,10 +35,11 @@ end
 
 
 """
-    reshaper(x::AbstractArray, dim:Dims)
-Reshape `x` to size `dim` with `:` only if needed
+    _shape(x::AbstractArray, dim:Dims)
+Reshape `x` to size `dim` with `:` only if needed.
+Not type stable!
 """
-reshaper(x::AbstractArray, dim::Dims) =
+_shape(x::AbstractArray, dim::Dims) =
     (length(x) == prod(dim)) ? reshape(x, dim) : reshape(x, dim..., :)
 
 

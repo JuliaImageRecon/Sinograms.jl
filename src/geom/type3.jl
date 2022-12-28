@@ -340,8 +340,9 @@ function CtFanArc(orbit::Symbol ;
 ) where {To <: RealU}
     orbit == :short || error("bad orbit $orbit")
     tmp = CtFanArc( ; orbit=To(360), kwargs...)
-    na = ceil(Int, na * tmp.orbit_short / To(360))
-    return CtFanArc( ; na, orbit = To(tmp.orbit_short), kwargs...)
+    os = _orbit_short(tmp)
+    na = ceil(Int, na * os / To(360))
+    return CtFanArc( ; na, orbit = To(os), kwargs...)
 end
 
 
@@ -408,8 +409,9 @@ function CtFanFlat(orbit::Symbol ;
 ) where {To <: RealU}
     orbit == :short || error("bad orbit $orbit")
     tmp = CtFanFlat( ; orbit=To(360), kwargs...)
-    na = ceil(Int, na * tmp.orbit_short / To(360))
-    return CtFanFlat( ; na, orbit = To(tmp.orbit_short), kwargs...)
+    os = _orbit_short(tmp)
+    na = ceil(Int, na * os / To(360))
+    return CtFanFlat( ; na, orbit = os, kwargs...)
 end
 
 

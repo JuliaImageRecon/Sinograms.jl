@@ -5,7 +5,6 @@ Test basic cone-beam FBP (aka FDK).
 
 using Sinograms: plan_fbp, fdk, rays
 using Sinograms: CtFanArc, CtFanFlat
-using Sinograms: fdk_weight_cyl
 using ImageGeoms: ImageGeom
 using ImagePhantoms: radon, ellipsoid, volume
 using Test: @test, @testset, @test_broken, @inferred
@@ -20,8 +19,6 @@ using Unitful: mm
 
     for geo in (CtFanArc, CtFanFlat), shorts in [(), (:short,)]
         cg = geo(shorts... ; ns=64, nt=40, ds=1u, dt=1.2u, na=32)
-
-        @inferred fdk_weight_cyl(cg)
 
         proj = radon(rays(cg), [ob])
 

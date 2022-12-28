@@ -6,7 +6,11 @@ using Sinograms: RealU, CtSourceHelix
 using Sinograms: CtGeom, CtParallel, CtFan
 using Sinograms: CtPar, CtFanArc, CtFanFlat
 using Sinograms: dims, ones, zeros, angles, rays, axes, downsample, oversample
-using Sinograms: footprint_size
+using Sinograms: _s, _t, _ws, _wt, _ar, _xds, _yds, _rfov, _zfov
+using Sinograms: _shape, _unitv
+using Sinograms: _gamma, _gamma_max, _gamma_max_abs, _dfs, _dso
+using Sinograms: footprint_size, _source_dz_per_view, _source_zs
+using Sinograms: _orbit_short, _cone_angle
 import Sinograms as SG
 using ImageGeoms: ImageGeom
 using Unitful: mm, °
@@ -61,13 +65,37 @@ function _test_prop(
     orbit = 180.0*oneunit(Td),
 ) where {Td,To}
 
-    @test st.ws isa Real
-    @test st.wt isa Real
     @test st.ds isa RealU
     @test st.dt isa RealU
+#=
+    @test st.ws isa Real
+    @test st.wt isa Real
     @test st.s isa AbstractVector
     @test st.t isa AbstractVector
+=#
 
+    @test (@inferred _ws(st)) isa Real
+    @test (@inferred _wt(st)) isa Real
+    @test (@inferred _s(st)) isa AbstractVector
+    @test (@inferred _t(st)) isa AbstractVector
+
+    @test (@inferred _ar(st)) isa AbstractVector
+    @test (@inferred _xds(st)) isa AbstractVector
+    @test (@inferred _yds(st)) isa AbstractVector
+
+    @test (@inferred _rfov(st)) isa RealU
+    @test (@inferred _zfov(st)) isa RealU
+
+    @test (@inferred _unitv(st)) isa Array
+    @test (@inferred _unitv(st, (1,2,3))) isa Array
+
+    @test (@inferred _source_dz_per_view(st)) isa RealU
+    @test (@inferred _source_zs(st)) isa AbstractVector
+
+    show(isinteractive() ? stdout : devnull, st)
+    show(isinteractive() ? stdout : devnull, MIME("text/plain"), st)
+
+#= todo xx
     @test st.ad isa AbstractVector
     @test st.ar isa AbstractVector
     @test st.xds isa AbstractVector
@@ -76,9 +104,7 @@ function _test_prop(
     @test st.zfov isa RealU
     @test st.unitv() isa Array
     @test st.unitv((1,2,3)) isa Array
-
-    show(isinteractive() ? stdout : devnull, st)
-    show(isinteractive() ? stdout : devnull, MIME("text/plain"), st)
+=#
 
     # common methods
     D = length(dims(st))
@@ -87,8 +113,9 @@ function _test_prop(
     @test (@inferred angles(st)) isa AbstractVector
     @test (@inferred ones(st)) isa Array{Float32,D}
     @test (@inferred zeros(st)) isa Array{Float32,D}
-    @test st.shape(vec(ones(st))) == ones(st)
+    @test _shape(st, vec(ones(st))) == ones(st) # NOTinferred
 
+#= todo xx
     @test (@inferred SG.ct_geom_ws(st)) isa SG.Toffset
     @test (@inferred SG.ct_geom_wt(st)) isa SG.Toffset
     @test (@inferred SG.ct_geom_s(st)) isa LinRange
@@ -98,19 +125,32 @@ function _test_prop(
     @test st.source_zs isa AbstractVector
 
     @test (@inferred propertynames(st)) isa NTuple
+=#
 
     if st isa CtFan
+        @test st.dsd isa RealU
+        @test st.dod isa RealU
+        @test (@inferred _dfs(st)) isa RealU
+        @test (@inferred _dso(st)) isa RealU
+
+        @test (@inferred _orbit_short(st)) isa RealU
+        @test (@inferred _cone_angle(st)) isa RealU
+
+        @test (@inferred _gamma(st)) isa AbstractVector
+        @test (@inferred _gamma(st, _s(st)[1:2:end])) isa AbstractVector
+        @test (@inferred _gamma_max(st)) isa Real
+        @test (@inferred _gamma_max_abs(st)) isa Real
+#= todo xx
         @test st.gamma isa AbstractVector
         @test st.gamma_s(st.s) isa AbstractVector
         @test st.gamma_max isa RealU
         @test st.gamma_max_abs isa Real
         @test st.orbit_short isa RealU
-        @test st.dsd isa RealU
-        @test st.dfs isa RealU
         @test st.dso isa RealU
-        @test st.dod isa RealU
+        @test st.dfs isa RealU
 
         @test st.cone_angle isa Real
+=#
     end
 
 
@@ -118,7 +158,7 @@ function _test_prop(
         rs = @inferred rays(st)
         @test rs isa Base.Iterators.ProductIterator
     else
-        rs = rays(st) # @NOTinferred because of "fun" closure
+        rs = @inferred rays(st) # @NOTinferred because of "fun" closure
         @test rs isa Base.Generator{<:Base.Iterators.ProductIterator}
     end
 
@@ -150,5 +190,5 @@ end
 @testset "pitch" begin
     src = @inferred CtSourceHelix(; pitch = 2)
     st = @inferred CtFanArc( ; src)
-    @test st.source_dz_per_view isa RealU
+    @test _source_dz_per_view(st) isa RealU
 end
