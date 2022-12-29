@@ -27,7 +27,7 @@ This page was generated from a single Julia file:
 using Unitful: mm, °
 using Plots # these 2 must precede 'using Sinograms' for sino_plot_rays to work
 using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat, SinoFan
-using Sinograms: sino_plot_rays, rays
+using Sinograms: sino_plot_rays, rays, angles
 using MIRTjim: jim, prompt
 using InteractiveUtils: versioninfo
 
@@ -95,7 +95,7 @@ Everything is a named keyword argument with sensible default values.
   `orbit_start + (0:(nb-1))/nb * orbit`.
 =#
 
-sg = SinoPar( ;
+rg = SinoPar( ;
     nb = 64, # number of radial samples ("bins")
     na = 30, # number of angular samples
     d = 2mm, # detector spacing
@@ -105,20 +105,20 @@ sg = SinoPar( ;
 )
 
 #=
-The struct `sg` has numerous useful properties;
+The struct `rg` has numerous useful properties;
 type `?SinoGeom` to see the full list.
 
 For example,
 to access the angular samples in degrees
-type `sg.ad`
+type `angles(rg)`
 =#
 
-sg.ad
+angles(rg)
 
 
 # The following function visualizes the sampling pattern.
 
-sino_plot_rays(sg; ylims=(0,180), yticks=(0:90:180), widen=true, title="Parallel")
+sino_plot_rays(rg; ylims=(0,180), yticks=(0:90:180), widen=true, title="Parallel")
 
 #
 prompt()
@@ -144,15 +144,15 @@ These numbers are published in
 [IEEE T-MI Oct. 2006, p.1272-1283](http://doi.org/10.1109/TMI.2006.882141).
 =#
 
-sg = SinoFanArc( ; nb=888, na=984,
+rg = SinoFanArc( ; nb=888, na=984,
     d=1.0239mm, offset=1.25, dsd=949.075mm, dod=408.075mm)
 
 
 # Here is a smaller example for plotting the rays.
 
-sg = SinoFanArc( ; nb=64, na=30,
+rg = SinoFanArc( ; nb=64, na=30,
     d=20mm, offset=0.25, dsd=900mm, dod=400mm)
-sino_plot_rays(sg; ylims=(-50,400), yticks=(0:180:360), widen=true,
+sino_plot_rays(rg; ylims=(-50,400), yticks=(0:180:360), widen=true,
     title="Fan-beam for arc detector")
 
 #
@@ -166,12 +166,12 @@ This geometry is the same as the arc detector
 except that `dfs=Inf`.
 =#
 
-sg = SinoFanFlat( ; nb=64, na=30,
+rg = SinoFanFlat( ; nb=64, na=30,
     d=20mm, offset=0.25, dsd=900mm, dod=400mm)
 
 
 # Here is its sampling plot
-sino_plot_rays(sg; ylims=(-50,400), yticks=(0:180:360), widen=true,
+sino_plot_rays(rg; ylims=(-50,400), yticks=(0:180:360), widen=true,
     title="Fan-beam for flat detector")
 
 #
@@ -184,10 +184,10 @@ This is a specialized sampling geometry
 that is currently incompletely supported.
 =#
 
-sg = SinoMoj( ; nb=60, na=30)
+rg = SinoMoj( ; nb=60, na=30)
 
 # Here is its sampling plot
-sino_plot_rays(sg; ylims=(0,180), yticks=(0:90:180), widen=true,
+sino_plot_rays(rg; ylims=(0,180), yticks=(0:90:180), widen=true,
     title="Mojette sampling")
 
 #=
@@ -212,7 +212,7 @@ plot_ray!(r, ϕ) = plot!(
     color = :blue,
 )
 ia = 4 # pick an angle
-i = rays(sg) # iterator
+i = rays(rg) # iterator
 rs = [i[1] for i in i] # radial samples
 ϕs = [i[2] for i in i] # projection angle
 r = rs[:,ia]

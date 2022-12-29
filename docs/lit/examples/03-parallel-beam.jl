@@ -55,21 +55,21 @@ but units are optional.
 ig = ImageGeom(MaskCircle(); dims=(128,126), deltas = (2mm,2mm) )
 
 # Use `SinoPar` to define the sinogram geometry.
-sg = SinoPar( ; nb = 130, d = 2mm, na = 100)
+rg = SinoPar( ; nb = 130, d = 2mm, na = 100)
 
 # Ellipse parameters for Shepp-Logan phantom:
 μ = 0.01 / mm # typical linear attenuation coefficient
 ob = shepp_logan(SheppLogan(); fovs = fovs(ig), u = (1, 1, μ))
 
 # Radon transform of Shepp-Logan phantom:
-sino = radon(rays(sg), ob)
-jim(axes(sg), sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
+sino = radon(rays(rg), ob)
+jim(axes(rg), sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
 
 ## Image reconstruction via FBP
 # Here we start with a "plan",
 # which would save work if we were reconstructing many images.
 
-plan = plan_fbp(sg, ig)
+plan = plan_fbp(rg, ig)
 fbp_image, sino_filt = fbp(plan, sino)
 
 

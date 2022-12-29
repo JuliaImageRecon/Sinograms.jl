@@ -72,11 +72,11 @@ pt = jim(axes(ig), true_image, "True 3D Shepp-Logan phantom image"; clim)
 # Define the system geometry
 # (for some explanation use `?CtGeom`):
 p = (ns = 130, ds = 0.3cm, nt = 80, dt = 0.4cm, na = 50, dsd = 200cm, dod = 40cm)
-cg = CtFanArc( ; p...)
+rg = CtFanArc( ; p...)
 
 # Examine the geometry to verify the FOV
 # (this is more interesting when interacting via other Plot backends):
-ct_geom_plot3(cg, ig)
+ct_geom_plot3(rg, ig)
 
 #
 prompt()
@@ -84,8 +84,8 @@ prompt()
 
 # CBCT projections
 # using `Sinogram.rays` and `ImagePhantoms.radon`:
-proj_arc = radon(rays(cg), ob)
-pa = jim(axes(cg)[1:2], proj_arc ;
+proj_arc = radon(rays(rg), ob)
+pa = jim(axes(rg)[1:2], proj_arc ;
     title="Shepp-Logan projections (arc)", xlabel="s", ylabel="t")
 
 
@@ -103,7 +103,7 @@ which would save work if we were reconstructing many images.
 For illustration we include `Hamming` window.
 =#
 
-plan = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
+plan = plan_fbp(rg, ig; window = Window(Hamming(), 1.0))
 fdk_arc = fdk(plan, proj_arc)
 par = jim(axes(ig), fdk_arc, "FDK image (arc)"; clim)
 
@@ -117,12 +117,12 @@ pae = jim(axes(ig), err_arc, "Error image (arc)"; clim = elim)
 ## Repeat with flat detector geometry
 =#
 
-cg = CtFanFlat( ; p...)
-proj_flat = radon(rays(cg), ob)
-pfp = jim(axes(cg)[1:2], proj_flat ;
+rg = CtFanFlat( ; p...)
+proj_flat = radon(rays(rg), ob)
+pfp = jim(axes(rg)[1:2], proj_flat ;
     title="Shepp-Logan projections (flat)", xlabel="s", ylabel="t")
 
-plan = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
+plan = plan_fbp(rg, ig; window = Window(Hamming(), 1.0))
 fdk_flat = fdk(plan, proj_flat)
 pfr = jim(axes(ig), fdk_flat, "FDK image (flat)"; clim)
 
@@ -139,14 +139,14 @@ the largest errors are in the end slices.
 #=
 ## Short scan
 =#
-cg = CtFanFlat(:short ; p..., na = 200)
-proj_short = radon(rays(cg), ob)
-psp = jim(axes(cg)[1:2], proj_short ;
+rg = CtFanFlat(:short ; p..., na = 200)
+proj_short = radon(rays(rg), ob)
+psp = jim(axes(rg)[1:2], proj_short ;
     title="Shepp-Logan projections (flat,short)", xlabel="s", ylabel="t")
 
 #
-plan_short = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
-psw = jim(axes(cg)[[1,3]], plan_short.view_weight[:,1,:];
+plan_short = plan_fbp(rg, ig; window = Window(Hamming(), 1.0))
+psw = jim(axes(rg)[[1,3]], plan_short.view_weight[:,1,:];
     title = "View weights (including Parker)",
     xlabel="s", ylabel="angle")
 

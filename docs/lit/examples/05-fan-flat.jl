@@ -60,11 +60,11 @@ but units are optional.
 ig = ImageGeom(MaskCircle(); dims=(128,126), deltas = (0.2cm,0.2cm) )
 
 # Use `SinoFanFlat` to define the sinogram geometry.
-sg = SinoFanFlat( ; nb = 130, d = 0.3cm, na = 100, dsd = 50cm, dod = 14cm)
+rg = SinoFanFlat( ; nb = 130, d = 0.3cm, na = 100, dsd = 50cm, dod = 14cm)
 
 # Examine the geometry to verify the FOV:
 jim(axes(ig), ig.mask; prompt=false)
-sino_geom_plot!(sg, ig)
+sino_geom_plot!(rg, ig)
 
 #
 prompt()
@@ -74,8 +74,8 @@ prompt()
 ob = shepp_logan(SheppLogan(); fovs = fovs(ig), u = (1, 1, μ))
 
 # Arc fan-beam sinogram for Shepp-Logan phantom:
-sino = radon(rays(sg), ob)
-jim(axes(sg), sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
+sino = radon(rays(rg), ob)
+jim(axes(rg), sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
 
 
 #=
@@ -85,7 +85,7 @@ which would save work if we were reconstructing many images.
 For illustration we include `Hamming` window.
 =#
 
-plan = plan_fbp(sg, ig; window = Window(Hamming(), 1.0))
+plan = plan_fbp(rg, ig; window = Window(Hamming(), 1.0))
 fbp_image, sino_filt = fbp(plan, sino)
 
 
