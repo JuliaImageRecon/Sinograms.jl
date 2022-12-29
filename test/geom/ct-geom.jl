@@ -61,6 +61,16 @@ end
 end
 
 
+@testset "tau" begin
+    rg = CtPar()
+    x = 1:3
+    @inferred _tau(rg, x, 2x)
+    @inferred _taufun(rg)(x, 2x)
+    x = ones(1,1) # Array
+    @inferred _taufun(rg)(x, 2x)
+end
+
+
 function _test_prop(
     rg::CtGeom{Td,To} ;
     d = 2*oneunit(Td),

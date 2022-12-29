@@ -7,7 +7,8 @@ using Sinograms: SinoGeom, SinoParallel, SinoFan
 using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat
 using Sinograms: dims, ones, zeros, angles, rays, axes, downsample, oversample
 using Sinograms: _ar, _xds, _yds, _rfov, footprint_size, _orbit_short
-using Sinograms: _r, _s, _w, _ds, _dr, _tau, _taufun, _d_moj, _d_ang
+using Sinograms: _r, _s, _w, _tau, _taufun, _d_moj, _d_ang
+# using Sinograms: _ds, _dr
 using Sinograms: _shape, _unitv
 using Sinograms: _gamma, _gamma_max, _gamma_max_abs, _dfs, _dso
 using ImageGeoms: ImageGeom
@@ -52,9 +53,9 @@ end
     rg = @inferred ge1( ; unit = oneunit(d), orbit=:short)
     @test rg isa SinoFanArc
 
-    rg = SinoFanArc(:short) # @NOTinferred
+    rg = @inferred SinoFanArc(:short)
     @test rg isa SinoFanArc
-    rg = SinoFanFlat(:short) # @NOTinferred
+    rg = @inferred SinoFanFlat(:short)
     @test rg isa SinoFanFlat
 end
 
@@ -66,12 +67,14 @@ end
         (SinoPar(; d = 2mm, na = 5), (1:3)mm),
         (SinoPar(; d = 2.0mm, na = 5), (1:3)mm),
     )
-    for tmp in geoms
-        rg = tmp[1]
-        x = tmp[2]
+    for (rg, x) in geoms
         @inferred _tau(rg, x, 2x)
-        @inferred _taufun(rg)(x, 2*x)
+        @inferred _taufun(rg)(x, 2x)
     end
+
+    rg = SinoPar()
+    x = ones(1,1) # Array
+    @inferred _taufun(rg)(x, 2x)
 end
 
 
@@ -82,8 +85,8 @@ function _test_prop(
 ) where {Td,To}
 
     @test (@inferred _w(rg)) isa RealU
-    @test (@inferred _dr(rg)) isa RealU
-    @test (@inferred _ds(rg)) isa RealU
+#   @test (@inferred _dr(rg)) isa RealU
+#   @test (@inferred _ds(rg)) isa RealU
     @test (@inferred _r(rg)) isa AbstractVector
     @test (@inferred _s(rg)) isa AbstractVector
 
@@ -139,9 +142,6 @@ function _test_prop(
     end
 
     @test collect(rs) isa Array{<:Tuple} # @NOTinferred
-
-    x = (1:4) * oneunit(d)
-    @inferred _taufun(rg)(x, 2*x)
 
     ig = ImageGeom( (5,7), (1,1) .* d)
     @test (@inferred footprint_size(rg, ig)) isa Float32
