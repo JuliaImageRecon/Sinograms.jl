@@ -47,26 +47,6 @@ and `t` denotes the axial direction (along `z`).
 * `ds`, `dt`, `source_offset`, `dsd`, `dod`
   must all be unitless or have the same units.
 
-# Derived values (non-exported helper functions):
-
-* `_s (ns) s` sample locations
-* `_t (nt) t` sample locations
-* `_ws = (ns-1)/2 + offset_s` "middle" sample position
-* `_wt = (nt-1)/2 + offset_t`
-* `_ar (na)` source angles [radians]
-* `_rfov` max radius within FOV
-* `_zfov` axial FOV
-
-For fan beam:
-
-* `_dso = dsd - dod` distance from source to origin (Inf for parallel beam)
-* `_dfs` distance from source to detector focal spot
-        (0 for 3rd gen CT, `Inf` for flat detectors)
-* `_gamma(rg [,s]) (ns)` gamma sample values `radians`, optionally given `s` values
-* `_gamma_max` half of fan angle `radians`, if `offset_s` == 0
-* `_gamma_max_abs` half of fan angle `radians` - recommended
-* `_cone_angle` (half) cone angle on axis (s=0): +/- angle
-
 # Basic methods
 
 * `angles` (na) in degrees
@@ -76,13 +56,32 @@ For fan beam:
 * `rays` iterator of `(u,v,ϕ,θ)` samples
 * `downsample(st, down)` reduce sampling by integer factor
 * `oversample(st, over)`
-* `geom_plot!` plot system geometry
+* `ct_geom_plot3` plot system geometry
 
-# Methods
+# Non-exported helper functions for developers:
 
-* `_shape(rg,proj)` reshape `proj` into array `(ns,nt,na,:)`
+* `_s (ns) s` sample locations
+* `_t (nt) t` sample locations
+* `_ws = (ns-1)/2 + offset_s` "middle" sample position
+* `_wt = (nt-1)/2 + offset_t`
+* `_ar (na)` source angles [radians]
+* `_rfov` max radius within FOV
+* `_zfov` axial FOV
+* `_xds (nb)` center of detector elements (beta=0)
+* `_yds (nb)` ""
+* `_tau(rg, x, y)` projected s/ds for each `(x,y)` pair `(length(x), na)`
+* `_shape(rg, proj [,:])` reshape `proj` into array `(ns,nt,na[,:])`
 * `_unitv(rg [, (is,it,ia)])`
   unit 'vector' with single nonzero element
+
+For fan beam:
+
+* `_dso = dsd - dod` distance from source to origin (Inf for parallel beam)
+* `_dfs` distance from source to detector focal spot
+        (0 for 3rd gen CT, `Inf` for flat detectors)
+* `_gamma(rg [,s]) (ns)` gamma sample values `radians`, optionally given `s` values
+* `_gamma_max = max(|γ|)` half of fan angle `radians`, if `offset_s` == 0
+* `_cone_angle` (half) cone angle on axis (s=0): +/- angle
 
 # Notes
 Use `sino_geom()` instead for 2D geometries.

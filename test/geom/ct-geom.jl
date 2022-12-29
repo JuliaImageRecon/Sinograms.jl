@@ -2,16 +2,15 @@
 test/geom/ct-geom.jl
 =#
 
-using Sinograms: RealU, CtSourceHelix
+using Sinograms: RealU
 using Sinograms: CtGeom, CtParallel, CtFan
 using Sinograms: CtPar, CtFanArc, CtFanFlat
 using Sinograms: dims, ones, zeros, angles, rays, axes, downsample, oversample
-using Sinograms: _ar, _xds, _yds, _rfov, footprint_size, _orbit_short
+using Sinograms: _ds, _ar, _xds, _yds, _rfov, footprint_size, _orbit_short
 using Sinograms: _s, _t, _ws, _wt
-using Sinograms: _tau, _taufun
-using Sinograms: _shape, _unitv
-using Sinograms: _gamma, _gamma_max, _gamma_max_abs, _dfs, _dso
-using Sinograms: _source_dz_per_view, _source_zs, _zfov, _cone_angle
+using Sinograms: _tau, _shape, _unitv
+using Sinograms: _gamma, _gamma_max, _dfs, _dso
+using Sinograms: _source_dz_per_view, _source_zs, _zfov, _cone_angle, CtSourceHelix
 using ImageGeoms: ImageGeom
 using Unitful: mm, °
 using Test: @test, @testset, @test_throws, @inferred
@@ -29,8 +28,8 @@ end
 function _test_construct(geo ; ds=2mm, orbit=180.0°)
     rg = @inferred geo(; ds, orbit)
     args = values(rg)
-    Td = eltype(ds)
-    To = eltype(orbit)
+    Td = typeof(ds)
+    To = typeof(orbit)
     Ts = eltype(rg.src)
 
     @inferred geo{Td,To,Ts}(args...)
@@ -66,23 +65,17 @@ end
     rg = CtPar()
     x = 1:3
     @inferred _tau(rg, x, 2x)
-    @inferred _taufun(rg)(x, 2x)
+    @inferred _tau(rg)(x, 2x)
     x = ones(1,1) # Array
-    @inferred _taufun(rg)(x, 2x)
+    @inferred _tau(rg)(x, 2x)
 end
 
 
-function _test_prop(
-    rg::CtGeom{Td,To} ;
-    d = 2*oneunit(Td),
-    orbit = 180.0*oneunit(Td),
-) where {Td,To}
-
-    @test rg.ds isa RealU
-    @test rg.dt isa RealU
+function _test_prop(rg::CtGeom{Td,To}) where {Td,To}
 
     @test (@inferred _ws(rg)) isa Real
     @test (@inferred _wt(rg)) isa Real
+
     @test (@inferred _s(rg)) isa AbstractVector
     @test (@inferred _t(rg)) isa AbstractVector
 
@@ -109,9 +102,12 @@ function _test_prop(
     @test (@inferred angles(rg)) isa AbstractVector
     @test (@inferred ones(rg)) isa Array{Float32,D}
     @test (@inferred zeros(rg)) isa Array{Float32,D}
-    @test _shape(rg, vec(ones(rg))) == ones(rg) # NOTinferred
+    @test (@inferred _shape(rg, vec(ones(rg)))) == ones(rg)
+    @test (@inferred _shape(rg, vec(ones(dims(rg)...,2)), :)) == ones(dims(rg)...,2)
 
     if rg isa CtFan
+        @test (@inferred _ds(rg)) isa RealU
+
         @test rg.dsd isa RealU
         @test rg.dod isa RealU
         @test (@inferred _dfs(rg)) isa RealU
@@ -123,7 +119,6 @@ function _test_prop(
         @test (@inferred _gamma(rg)) isa AbstractVector
         @test (@inferred _gamma(rg, _s(rg)[1:2:end])) isa AbstractVector
         @test (@inferred _gamma_max(rg)) isa Real
-        @test (@inferred _gamma_max_abs(rg)) isa Real
     end
 
 
@@ -131,16 +126,16 @@ function _test_prop(
         rs = @inferred rays(rg)
         @test rs isa Base.Iterators.ProductIterator
     else
-        rs = @inferred rays(rg) # @NOTinferred because of "fun" closure
+        rs = @inferred rays(rg)
         @test rs isa Base.Generator{<:Base.Iterators.ProductIterator}
     end
 
-    @test collect(rs) isa Array{<:Tuple} # @NOTinferred
+    @test collect(rs) isa Array{<:Tuple}
 
-    x = (1:4) * oneunit(d)
-    @inferred _taufun(rg)(x, 2x)
+    x = (1:4) * oneunit(Td)
+    @inferred _tau(rg)(x, 2x)
 
-    ig = ImageGeom((9,9,9), (1,1,1) .* rg.ds)
+    ig = ImageGeom((5,5,5), (1,1,1) .* oneunit(Td))
     @test (@inferred footprint_size(rg, ig)) isa Float32
 
     true

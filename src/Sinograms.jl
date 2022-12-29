@@ -14,7 +14,7 @@ include("geom/type3.jl")
 include("geom/sino-geom.jl")
 include("geom/ct-geom.jl")
 include("geom/common.jl")
-#include("geom/prop2.jl") # todo
+include("geom/tau.jl")
 
 include("fbp/reale.jl")
 include("fbp/window.jl")

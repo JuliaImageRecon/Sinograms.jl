@@ -32,12 +32,3 @@ function _show(io::IO, ::MIME"text/plain", st::Any)
         println(io, " ", f, "::", t, " ", p)
     end
 end
-
-
-"""
-    _shape(x::AbstractArray, dim:Dims)
-Reshape `x` to size `dim` with `:` only if needed.
-Not type stable!
-"""
-_shape(x::AbstractArray, dim::Dims) =
-    (length(x) == prod(dim)) ? reshape(x, dim) : reshape(x, dim..., :)

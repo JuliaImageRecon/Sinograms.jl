@@ -84,16 +84,15 @@ _gamma(rg::Union{SinoFanArc,CtFanArc}, ss::AbstractArray) = ss / rg.dsd
 _gamma(rg::Union{SinoFanFlat,CtFanFlat}, ss::AbstractArray) = @. atan(ss / rg.dsd)
 _gamma(rg::Union{SinoFan, CtFan}) = _gamma(rg, _s(rg))
 
-_gamma_max(rg::RayGeom) = maximum(_gamma(rg))
-_gamma_max_abs(rg::RayGeom) = maximum(abs, _gamma(rg))
+_gamma_max(rg::RayGeom) = maximum(abs, _gamma(rg))
 
 
 """
-    _shape(rg, x::AbstractArray)
+    _shape(rg, x::AbstractArray [, :])
 Reshape `x` to `dims(rg)` or `(dims(rg)..., :)`.
-Not type stable.
 """
-_shape(rg::RayGeom, x::AbstractArray) = _shape(x, dims(rg))
+_shape(rg::RayGeom, x::AbstractArray) = reshape(x, dims(rg))
+_shape(rg::RayGeom, x::AbstractArray, Colon) = reshape(x, dims(rg)..., :)
 
 
 """
@@ -111,10 +110,8 @@ function _unitv(
     return out
 end
 
-_unitv(rg::RayGeom, args... ; kwargs...) = _unitv(Float32, rg, args... ; kwargs...)
+_unitv(rg::RayGeom, args... ; kw...) = _unitv(Float32, rg, args... ; kw...)
 
-
-_taufun(rg::RayGeom) = (x,y) -> _tau(rg, x, y)
 
 _d_moj(rg::SinoMoj) = ar -> rg.d * max(abs(cos(ar)), abs(sin(ar)))
 _d_ang(rg::SinoMoj) = _d_moj(rg).(_ar(rg))
