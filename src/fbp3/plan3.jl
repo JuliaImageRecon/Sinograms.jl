@@ -22,7 +22,7 @@ struct FDKplan{
     H <: AbstractVector{<:RealU},
     V <: AbstractArray{<:RealU},
 }
-    cg::C
+    rg::C
     ig::I
     filter::H # frequency response Hk of apodized ramp filter, length npad
     view_weight::V
@@ -30,7 +30,7 @@ end
 
 
 """
-    plan = plan_fbp(cg, ig; window=Window(), ...)
+    plan = plan_fbp(rg, ig; window=Window(), ...)
 
 Plan FDK 3D CBCT image reconstruction,
 with either flat or arc detector.
@@ -43,48 +43,45 @@ call `fbp` with the `plan`
 (perhaps numerous times for the same geometry).
 
 # in
-- `cg::CtGeom`
+- `rg::CtGeom`
 - `ig::ImageGeom` only reconstruct pixels within `ig.mask`.
 
 # options
 - `window::Window` e.g., `Window(Hamming(), 0.8)`; default `Window()`
-- `npad::Int` # of radial bins after padding; default `nextpow(2, cg.ns + 1)`
+- `npad::Int` # of radial bins after padding; default `nextpow(2, rg.ns + 1)`
 - `decon1::Bool` deconvolve interpolator effect? (default `true`)
--`T::Type{<:Number}` type of sino elements (default `Float32`)
 
 # out
 - `plan::FDKplan` initialized plan
 
 """
 function plan_fbp(
-    cg::CtGeom,
+    rg::CtGeom,
     ig::ImageGeom,
     ;
     window::Window = Window(),
-    npad::Int = nextpow(2, cg.ns + 1),
+    npad::Int = nextpow(2, rg.ns + 1),
     decon1::Bool = true,
-    filter::AbstractVector{<:RealU} = fbp_filter(cg ; npad, window, decon1),
-    T::Type{<:Number} = Float32,
+    filter::AbstractVector{<:RealU} = fbp_filter(rg ; npad, window, decon1),
 )
 
-    weight = _fdk_weights(cg)
-    return FDKplan(cg, ig, filter, weight)
+    weight = _fdk_weights(rg)
+    return FDKplan(rg, ig, filter, weight)
 end
 
 
-function _fdk_weights(cg::CtGeom{Td,To}) where {Td,To}
-    weight = parker_weight(cg)
-    weight = weight .* _view_weights(_ar(cg))
-    weight = weight .* fdk_weight_cyl(cg)
-    Tw = typeof(1f0 * oneunit(To))
-    return weight::Array{Tw,3}
+function _fdk_weights(rg::CtGeom)
+    weight = parker_weight(rg)
+    weight = weight .* _view_weights(_ar(rg))
+    weight = weight .* fdk_weight_cyl(rg)
+    return weight
 end
 
 
 function Base.show(io::IO, ::MIME"text/plain", p::FDKplan{C,I,H,V}) where {C,I,H,V}
-    c = p.cg
+    rg = p.rg
     println(io, "FDKplan{C,I,H,V} with")
-    println(io, " C = $C ", (c.ns, c.nt, c.na))
+    println(io, " C = $C ", (rg.ns, rg.nt, rg.na))
     i = p.ig
     println(io, " I = $I ", i.dims)
     println(io, " H = $H ", size(p.filter), " with extrema ", extrema(p.filter))

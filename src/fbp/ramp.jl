@@ -6,42 +6,42 @@ export fbp_ramp, ramp_flat, ramp_arc
 
 
 """
-    h, n = fbp_ramp(sg::SinoGeom, N::Int)
+    h, n = fbp_ramp(rg::SinoGeom, N::Int)
 'ramp-like' filters for parallel-beam and fan-beam FBP reconstruction.
 This sampled band-limited approach avoids the aliasing that would be
 caused by sampling the ramp directly in the frequency domain.
 
 in
-- `sg::SinoGeom`
+- `rg::SinoGeom`
 - `N::Int` : # of samples (must be even)
 
 out
 - `h::Vector{<:RealU}` : samples of band-limited ramp filter
 - `n::UnitRange{Int64}` : -(N÷2):(N÷2-1)
 """
-function fbp_ramp(sg::SinoPar{Td}, N::Int) where Td
+function fbp_ramp(rg::SinoPar{Td}, N::Int) where Td
     R = _ramp_type(Td)
     T = Tuple{Vector{R}, UnitRange{Int64}}
-    return ramp_flat(N, sg.d)::T
+    return ramp_flat(N, rg.d)::T
 end
 
 # for Mojette, `dr` varies with projection angle
-function fbp_ramp(sg::SinoMoj{Td}, N::Int ; dr::Td = sg.d) where Td
+function fbp_ramp(rg::SinoMoj{Td}, N::Int ; dr::Td = rg.d) where Td
     R = _ramp_type(Td)
     T = Tuple{Vector{R}, UnitRange{Int64}}
     return ramp_flat(N, dr)::T
 end
 
-function fbp_ramp(sg::Union{SinoFanFlat{Td},CtFanFlat{Td}}, N::Int) where Td
+function fbp_ramp(rg::Union{SinoFanFlat{Td},CtFanFlat{Td}}, N::Int) where Td
     R = _ramp_type(Td)
     T = Tuple{Vector{R}, UnitRange{Int64}}
-    return ramp_flat(N, sg isa SinoGeom ? sg.d : sg.ds)::T
+    return ramp_flat(N, rg isa SinoGeom ? rg.d : rg.ds)::T
 end
 
-function fbp_ramp(sg::Union{SinoFanArc{Td},CtFanArc{Td}}, N::Int) where Td
+function fbp_ramp(rg::Union{SinoFanArc{Td},CtFanArc{Td}}, N::Int) where Td
     R = _ramp_type(Td)
     T = Tuple{Vector{R}, UnitRange{Int64}}
-   return ramp_arc(N, sg isa SinoGeom ? sg.d : sg.ds, sg.dsd)::T
+    return ramp_arc(N, rg isa SinoGeom ? rg.d : rg.ds, rg.dsd)::T # todo
 end
 
 function _ramp_type(arg...)

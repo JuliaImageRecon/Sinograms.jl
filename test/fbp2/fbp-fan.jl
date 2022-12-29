@@ -4,6 +4,7 @@ Test fan-beam FBP
 =#
 
 using Sinograms: plan_fbp, fbp, SinoFanArc, SinoFanFlat, rays
+using Sinograms: _rfov
 using ImageGeoms: ImageGeom, MaskCircle, circle
 using Test: @test, @testset, @inferred
 using Unitful: mm
@@ -15,19 +16,19 @@ using Unitful: mm
     proj1 = r -> abs(r) < 1 ? 2 * sqrt(1 - r^2) : zero(r) # unit disk sinogram
     proj2 = (r, ϕ, x, y, w) -> proj1((r - (x * cos(ϕ) + y * sin(ϕ)))/w) # shifted
     for geom in (SinoFanArc, SinoFanFlat), shorts in [(), (:short,)]
-        sg = geom(shorts... ; d = 0.1f0mm)
+        rg = geom(shorts... ; d = 0.1f0mm)
         ig = ImageGeom(MaskCircle() ; deltas = (1,1) .* 0.1f0mm)
-        mask = circle(ig ; r = sg.rfov)
+        mask = circle(ig ; r = _rfov(rg))
         ig = ImageGeom(ig.dims, ig.deltas, ig.offsets, mask)
-#       r, ϕ = rays(sg)
-        i = rays(sg)
+#       r, ϕ = rays(rg)
+        i = rays(rg)
         rad = 2mm
         fun(rϕ) = rad * proj2.(rϕ..., 2mm, 1mm, rad)
 #       sino = rad * proj2.(r, ϕ, 2mm, 1mm, rad)
         sino = [fun(i) for i in i]
-#       jim(axes(sg), sino, "$geom $shorts")
+#       jim(axes(rg), sino, "$geom $shorts")
 
-        plan = @inferred plan_fbp(sg, ig)
+        plan = @inferred plan_fbp(rg, ig)
 
         recon, sino_filt = @inferred fbp(plan, sino)
         @test recon isa Matrix

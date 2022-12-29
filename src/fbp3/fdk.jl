@@ -23,10 +23,8 @@ function fdk_weight_cyl_arc(
     t::RealU,
     dsd::RealU,
     dso::RealU,
-#   T::Type{<:AbstractFloat} = Float32,
 )
-    T = Float32
-    return T((dso/dsd) * cos(s / dsd) / sqrt(abs2(t / dsd) + 1))
+    return (dso/dsd) * cos(s / dsd) / sqrt(abs2(t / dsd) + 1)
 end
 
 function fdk_weight_cyl_flat(
@@ -35,17 +33,16 @@ function fdk_weight_cyl_flat(
     dsd::RealU,
     dso::RealU,
 )
-    T = Float32
-    return T(dso / sqrt(abs2(s) + abs2(t) + abs2(dsd)))
+    return dso / sqrt(abs2(s) + abs2(t) + abs2(dsd))
 end
 
-fdk_weight_cyl(cg::CtFanArc) =
-    fdk_weight_cyl_arc.(_s(cg), _t(cg)', cg.dsd, _dso(cg)) #::Matrix{Float32} # todo
-#   Iterators.map((st) -> fdk_weight_cyl_arc(st..., cg.dsd, cg.dso),
-#       Iterators.product(ct_geom_s(cg), ct_geom_t(cg))) # eltype = Any !?
+fdk_weight_cyl(rg::CtFanArc) =
+    fdk_weight_cyl_arc.(_s(rg), _t(rg)', rg.dsd, _dso(rg))
+#   Iterators.map((rg) -> fdk_weight_cyl_arc(rg..., rg.dsd, rg.dso),
+#       Iterators.product(ct_geom_s(rg), ct_geom_t(rg)))
 
-fdk_weight_cyl(cg::CtFanFlat) =
-    fdk_weight_cyl_flat.(_s(cg), _t(cg)', cg.dsd, _dso(cg)) #::Matrix{Float32}
+fdk_weight_cyl(rg::CtFanFlat) =
+    fdk_weight_cyl_flat.(_s(rg), _t(rg)', rg.dsd, _dso(rg))
 
 
 """
@@ -66,20 +63,19 @@ via FDK method.
 References: Feldkamp, Davis, Kress, JOSA-A, 1(6):612-9, June 1984.
 """
 function fdk(plan::FDKplan, proj::AbstractArray{<:Number,3})
-    cg = plan.cg
+    rg = plan.rg
 
-    size(proj) == dims(plan.cg) ||
-        error("size mismatch $(size(proj)) $(dims(plan.cg))")
+    size(proj) == dims(plan.rg) ||
+        error("size mismatch $(size(proj)) $(dims(plan.rg))")
 
     # step 1: apply cone-beam weights
-#   proj = proj .* fdk_weight_cyl(cg) # todo: precompute with plan!
     proj = proj .* plan.view_weight # todo: before or after filtering?
 
     # step 2: filter each projection view
     proj = fbp_sino_filter(proj, plan.filter)
 
     # step 3: cone-beam backprojection
-    image = cbct_back(proj, cg, plan.ig)
+    image = cbct_back(proj, rg, plan.ig)
 
     return image
 end

@@ -4,54 +4,55 @@ test/fbp2/parker.jl
 
 using Sinograms: SinoPar, SinoFanArc, SinoMoj
 using Sinograms: CtFanArc
+using Sinograms: angles, _ar, _gamma, _gamma_max, _orbit_short
 using Sinograms: parker_weight, parker_weight_fan_short, parker_weight_par, dims
 using Test: @test, @test_throws, @testset, @inferred
 
 
 @testset "parker-par" begin
-    sg = SinoPar()
-    pw = @inferred parker_weight_par(sg.orbit, sg.ad)
+    rg = SinoPar()
+    pw = @inferred parker_weight_par(rg.orbit, angles(rg))
     @test pw == ones(1,1)
 
-    pw = @inferred parker_weight(sg)
+    pw = @inferred parker_weight(rg)
 
-    sg = SinoPar( ; orbit = 90)
-    pw = @inferred parker_weight(sg) # warns
+    rg = SinoPar( ; orbit = 90)
+    pw = @inferred parker_weight(rg) # warns
 
-    sg = SinoPar( ; orbit = 361)
-    @test_throws ErrorException parker_weight(sg)
+    rg = SinoPar( ; orbit = 361)
+    @test_throws ErrorException parker_weight(rg)
 
-    sg = SinoPar( ; orbit = 270)
-    pw = @inferred parker_weight(sg)
-    @test size(pw) == (1, sg.na)
+    rg = SinoPar( ; orbit = 270)
+    pw = @inferred parker_weight(rg)
+    @test size(pw) == (1, rg.na)
     @test pw isa Matrix{Float32}
     @test pw[1] == 0 # todo: suboptimal?
     @test sum(pw)/length(pw) ≈ 1
 
-    sg = SinoMoj()
-    pw = @inferred parker_weight(sg)
+    rg = SinoMoj()
+    pw = @inferred parker_weight(rg)
     @test pw == ones(1,1)
 end
 
 
 @testset "parker-fan" begin
-    sg = SinoFanArc(Val(:ge1), orbit=:short)
+    rg = SinoFanArc(Val(:ge1), orbit=:short)
     pw = @inferred parker_weight_fan_short(
-        sg.nb, sg.na, sg.orbit, sg.orbit_short,
-        sg.ar, sg.gamma, sg.gamma_max,
+        rg.nb, rg.na, rg.orbit, _orbit_short(rg),
+        _ar(rg), _gamma(rg), _gamma_max(rg),
     )
     @test pw isa Matrix{Float32}
     tmp = sum(pw; dims=2)
     tmp = 1 - minimum(tmp)/maximum(tmp)
     @test abs(tmp) < 0.002 # should be nearly uniform
 
-    sg = SinoFanArc(; orbit = 360)
-    pw = @inferred parker_weight(sg)
+    rg = SinoFanArc(; orbit = 360)
+    pw = @inferred parker_weight(rg)
     @test pw isa Matrix{Float32}
     @test pw == ones(1,1)
 
-    sg = SinoFanArc( ; orbit = 90)
-    pw = @inferred parker_weight(sg) # warns
+    rg = SinoFanArc( ; orbit = 90)
+    pw = @inferred parker_weight(rg) # warns
     @test pw isa Matrix{Float32}
 end
 

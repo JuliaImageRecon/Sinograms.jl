@@ -39,47 +39,45 @@ for a 2D parallel or fan-beam system.
 * `d`, `source_offset`, `dsd`, `dod`
   must all have the same units.
 
-# Derived values (available by `getproperty`), i.e., `st.?`
+# Derived values (non-exported helper functions):
 
-* `.ds|dr` radial sample spacing (`NaN` for `:moj`)
-* `.s (nb) s` sample locations
-* `.w = (nb-1)/2 + offset` "middle" sample position
-* `.ad (na)` source angles `degrees`
-* `.ar (na)` source angles `radians`
-* `.rfov` radial FOV
-* `.xds (nb)` center of detector elements (beta=0)
-* `.yds (nb)` ""
+* `_ds|dr` radial sample spacing (`NaN` for `:moj`)
+* `_s (nb) s` sample locations
+* `_w = (nb-1)/2 + offset` "middle" sample position
+* `_ar (na)` source angles `radians`
+* `_rfov` radial FOV
+* `_xds (nb)` center of detector elements (beta=0)
+* `_yds (nb)` ""
 
 For mojette:
 
-* `.d_ang (na)` angle-dependent radial spacing
+* `_d_ang (na)` angle-dependent radial spacing
 
 For fan beam:
 
-* `dso = dsd - dod` distance from source to origin (Inf for parallel beam)
-* `dfs` distance from source to detector focal spot
+* `_dso = dsd - dod` distance from source to origin (Inf for parallel beam)
+* `_dfs` distance from source to detector focal spot
         (0 for 3rd gen CT, `Inf` for flat detectors)
-* `.gamma (nb)` gamma sample values `radians`
-* `.gamma_max` half of fan angle `radians`, if offset=0
+* `_gamma(rg [,s]) (nb)` gamma sample values `radians`, optionally given `s` values
+* `.gamma_max` half of fan angle `radians`, if `offset` == 0
 
 # Basic methods
 
+* `angles` (na) in degrees
 * `dims (nb, na)`
-* `sino_s (nb) s` sample locations
-* `sino_w = (nb-1)/2 + offset` ('middle' sample position)
-* `rays` iterator of `(r, ϕ)` parallel-beam coordinate tuples of size `(nb, na)`
 * `ones = ones(Float32, nb, na)`
 * `zeros = zeros(Float32, nb, na)`
-* `downsample(st, down)`
+* `rays` iterator of `(r, ϕ)` parallel-beam coordinate tuples of size `(nb, na)`
+* `downsample(st, down)` reduce sampling by integer factor
 * `oversample(st, over)`
-* `angles` (na) in degrees
-* `sino_geom_plot!` plot system geometry
+* `geom_plot!` plot system geometry
 
 # Methods
 
-* `.shape(sino)` reshape sinograms into array `(nb,na,:)`
-* `.unitv(;ib,ia)` unit 'vector' with single nonzero element
-* `.taufun(x,y)` projected s/ds for each (x,y) pair `(numel(x),na)`
+* `_shape(rg,sino)` reshape sinograms into array `(nb,na,:)`
+* `_unitv(rg [, (ib,ia)])`
+  unit 'vector' with single nonzero element
+* `_taufun(rg,x,y)` projected s/ds for each (x,y) pair `(numel(x),na)`
 
 # Notes
 * Use `ct_geom()` instead for 3D axial or helical cone-beam CT.
@@ -288,8 +286,8 @@ function SinoFanArc(orbit::Symbol ;
 ) where {To <: RealU}
     orbit == :short || error("bad orbit $orbit")
     tmp = SinoFanArc( ; orbit=To(360), kwargs...)
-    na = ceil(Int, na * tmp.orbit_short / To(360))
-    return SinoFanArc( ; na, orbit = To(tmp.orbit_short), kwargs...)
+    na = ceil(Int, na * _orbit_short(tmp) / To(360))
+    return SinoFanArc( ; na, orbit = To(_orbit_short(tmp)), kwargs...)
 end
 
 
@@ -345,8 +343,8 @@ function SinoFanFlat(orbit::Symbol ;
 ) where {To <: RealU}
     orbit == :short || error("bad orbit $orbit")
     tmp = SinoFanFlat( ; orbit=To(360), kwargs...)
-    na = ceil(Int, na * tmp.orbit_short / To(360))
-    return SinoFanFlat( ; na, orbit = To(tmp.orbit_short), kwargs...)
+    na = ceil(Int, na * _orbit_short(tmp) / To(360))
+    return SinoFanFlat( ; na, orbit = To(_orbit_short(tmp)), kwargs...)
 end
 
 

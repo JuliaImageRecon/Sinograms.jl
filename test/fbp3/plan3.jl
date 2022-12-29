@@ -4,31 +4,28 @@ test/fbp3/plan3.jl
 
 using Sinograms: plan_fbp, Window, FDKplan
 using Sinograms: CtFanArc, CtFanFlat, angles
-using Sinograms: _view_weights, _fdk_weights, fdk_weight_cyl
+using Sinograms: _view_weights, _fdk_weights, fdk_weight_cyl, _ar
 using ImageGeoms: ImageGeom
 using Test: @test, @testset, @inferred
 
-#   @code_warntype angles(cg) # todo - needs work due to get property
-#   @code_warntype fdk_weight_cyl(cg) # todo
-
 @testset "fbp3/plan3" begin
-    cg = CtFanArc()
-    ig = ImageGeom( ; dims=(32,30,10) )
+    rg = @inferred CtFanArc()
+    ig = @inferred ImageGeom( ; dims=(32,30,10) )
 
-    tmp = @inferred fdk_weight_cyl(cg)
-    ar = cg.ar
+    tmp = @inferred fdk_weight_cyl(rg)
+    ar = @inferred _ar(rg)
     da = @inferred _view_weights(ar)
-    tmp = @inferred _fdk_weights(cg)
+    tmp = @inferred _fdk_weights(rg)
 
-    plan = @inferred FDKplan(cg, ig, ones(cg.na), ones(2cg.ns))
+    plan = @inferred FDKplan(rg, ig, ones(rg.na), ones(2rg.ns))
     @test plan isa FDKplan
 
-    plan = @inferred plan_fbp(cg, ig)
+    plan = @inferred plan_fbp(rg, ig)
     @test plan isa FDKplan
 
     show(isinteractive() ? stdout : devnull, MIME("text/plain"), plan)
 
-    cg = CtFanArc(:short)
-    plan = @inferred plan_fbp(cg, ig)
+    rg = @inferred CtFanArc(:short)
+    plan = @inferred plan_fbp(rg, ig)
     @test plan isa FDKplan
 end

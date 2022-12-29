@@ -7,7 +7,7 @@ using LazyGrids: ndgrid
 
 
 """
-    parker_weight(sg::SinoGeom ; T = Float32)
+    parker_weight(rg::SinoGeom ; T = Float32)
 Compute Parker weighting for non-360° orbits.
 See http://doi.org/10.1118/1.595078.
 Returns `Matrix{T}` of size:
@@ -22,7 +22,7 @@ parker_weight
 # parallel-beam case
 function parker_weight_par(
     orbit::RealU,
-    ad::AbstractVector{<:RealU}, # angles in degrees: sg.ad - sg.orbit_start
+    ad::AbstractVector{<:RealU}, # angles in degrees: angles(rg) - rg.orbit_start
     ;
     T::Type{<:Real} = Float32,
 )
@@ -51,8 +51,8 @@ function parker_weight_par(
 end
 
 
-parker_weight(sg::SinoPar ; T::Type{<:Real} = Float32)::Matrix{T} =
-    parker_weight_par(sg.orbit, sg.ad .- sg.orbit_start ; T)
+parker_weight(rg::SinoPar ; T::Type{<:Real} = Float32)::Matrix{T} =
+    parker_weight_par(rg.orbit, angles(rg) .- rg.orbit_start ; T)
 
 
 function parker_weight_fan_short(
@@ -102,21 +102,21 @@ function parker_weight_fan_short(
 end
 
 
-function parker_weight(sg::SinoFan; T::Type{<:Real} = Float32)::Matrix{T}
-    if (sg.orbit ÷ 360) * 360 == sg.orbit
+function parker_weight(rg::SinoFan; T::Type{<:Real} = Float32)::Matrix{T}
+    if (rg.orbit ÷ 360) * 360 == rg.orbit
         return ones(T, 1, 1) # no weighting needed
     end
     return parker_weight_fan_short(
-        sg.nb, sg.na, sg.orbit, _orbit_short(sg),
-        _ar(sg), _gamma(sg), _gamma_max(sg); T
+        rg.nb, rg.na, rg.orbit, _orbit_short(rg),
+        _ar(rg), _gamma(rg), _gamma_max(rg); T
     )
 end
 
 
-function parker_weight(sg::SinoMoj ; T::Type{<:Real} = Float32)
-    orbit = abs(sg.orbit)
-    na = sg.na
-    ((sg.orbit ÷ 180) * 180 == orbit) ||
+function parker_weight(rg::SinoMoj ; T::Type{<:Real} = Float32)
+    orbit = abs(rg.orbit)
+    na = rg.na
+    ((rg.orbit ÷ 180) * 180 == orbit) ||
         throw("No Parker weighting for Mojette geometry with orbit=$orbit")
     wt = ones(T, 1, 1)
     return wt

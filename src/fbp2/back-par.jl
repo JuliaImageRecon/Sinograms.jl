@@ -9,12 +9,12 @@ using ImageGeoms: ImageGeom, embed
 
 
 """
-    img = fbp_back(sg, ig, sino ; ia_skip)
+    img = fbp_back(rg, ig, sino ; ia_skip)
 
 2D pixel-driven backprojection for FBP.
 
 # in
-- `sg::SinoGeom`
+- `rg::SinoGeom`
 - `ig::ImageGeom`
 - `sino::AbstractArray{<:Number}` sinogram(s) (line integrals), usually ramp filtered
 
@@ -28,23 +28,23 @@ fbp_back
 
 # parallel-beam case
 function fbp_back(
-    sg::SinoPar{Td, To},
+    rg::SinoPar{Td, To},
     ig::ImageGeom,
     sino::AbstractMatrix{Ts} ;
     ia_skip::Int = 1,
 #   do_r_mask::Bool = false
 ) where {Td, To, Ts <: Number}
 
-    dims(sg) == size(sino) || throw("sino size")
+    dims(rg) == size(sino) || throw("sino size")
 
     # type inference help:
-    Toffset = Float32 # eltype(sg.offset)
+    Toffset = Float32 # eltype(rg.offset)
     T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
 
     return fbp_back_par(
-        sino, sg.ar,
-        sg.ds, sg.offset,
-#       sg.rfov,
+        sino, _ar(rg),
+        rg.d, rg.offset,
+#       _rfov(rg),
 #       ndgrid(axes(ig)...)...,
         axes(ig)...,
         ig.mask ; ia_skip,

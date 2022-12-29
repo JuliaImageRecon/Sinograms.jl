@@ -18,11 +18,11 @@ using Unitful: mm
     ig = ImageGeom( (30, 28, 26), (1,1,1) .* 1u )
 
     for geo in (CtFanArc, CtFanFlat), shorts in [(), (:short,)]
-        cg = geo(shorts... ; ns=64, nt=40, ds=1u, dt=1.2u, na=32)
+        rg = @inferred geo(shorts... ; ns=64, nt=40, ds=1u, dt=1.2u, na=32)
 
-        proj = radon(rays(cg), [ob])
+        proj = @inferred radon(rays(rg), [ob])
 
-        plan = @inferred plan_fbp(cg, ig)
+        plan = @inferred plan_fbp(rg, ig)
         recon = @inferred fdk(plan, proj)
         @test recon isa Array{<:Number, 3}
 #       jim(recon; prompt=false, gui=true)

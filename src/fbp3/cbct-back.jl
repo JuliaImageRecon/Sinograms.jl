@@ -19,13 +19,13 @@ end
 
 
 """
-    cbct_back(proj, cg, ig)
+    cbct_back(proj, rg, ig)
 
 Cone-beam backprojector for feldkamp.jl
 
 # in
 * `proj` (ns,nt,na)     cone-beam projection views
-* `cg::CtGeom`
+* `rg::CtGeom`
 * `ig::ImageGeom`
 
 # out
@@ -33,23 +33,23 @@ Cone-beam backprojector for feldkamp.jl
 """
 function cbct_back(
     proj::AbstractArray{Ts,3},
-    cg::CtFan{Td, To},
+    rg::CtFan{Td, To},
     ig::ImageGeom{3} ;
     ia_skip::Int = 1,
 ) where {Ts <:Number, Td, To}
 
     # type inference help:
-    Toffset = Float32 # eltype(cg.offset_s)
+    Toffset = Float32 # eltype(rg.offset_s)
     T = eltype(oneunit(Ts) *
         (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
 
     return cbct_back_fan(proj,
-        _ar(cg), # "betas"
-        cg.dsd, _dso(cg),
-#       cg.offset_source::RealU,
-        cg.ds, cg.dt,
-        cg.offset_s, cg.offset_t,
-        cg isa CtFanArc, # is_arc
+        _ar(rg), # "betas"
+        rg.dsd, _dso(rg),
+#       rg.offset_source::RealU,
+        rg.ds, rg.dt,
+        rg.offset_s, rg.offset_t,
+        rg isa CtFanArc, # is_arc
 #       source_zs = zeros(na),
         axes(ig)...,
         ig.mask ;

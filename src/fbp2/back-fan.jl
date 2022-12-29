@@ -9,26 +9,26 @@ using ImageGeoms: ImageGeom, embed
 
 # fan-beam case
 function fbp_back(
-    sg::SinoFan{Td, To},
+    rg::SinoFan{Td, To},
     ig::ImageGeom,
     sino::AbstractMatrix{Ts} ;
     ia_skip::Int = 1,
 ) where {Td, To, Ts <: Number}
 
-    dims(sg) == size(sino) || throw("sino size")
+    dims(rg) == size(sino) || throw("sino size")
 
-    is_arc = iszero(sg.dfs) ? true : isinf(sg.dfs) ? false : throw("bad dfs")
+    is_arc = iszero(_dfs(rg)) ? true : isinf(_dfs(rg)) ? false : throw("bad dfs")
 
     # type inference help:
-    Toffset = Float32 # eltype(sg.offset)
+    Toffset = Float32 # eltype(rg.offset)
     T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
 
     return fbp_back_fan(
-        sino, sg.ar,
-        sg.dsd, sg.dso,
-        sg.source_offset, is_arc,
-        sg.ds, sg.offset,
-#       sg.rfov,
+        sino, _ar(rg),
+        rg.dsd, _dso(rg),
+        rg.source_offset, is_arc,
+        rg.d, rg.offset,
+#       _rfov(rg),
 #       ndgrid(axes(ig)...)...,
         axes(ig)...,
         ig.mask ; ia_skip,

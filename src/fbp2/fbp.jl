@@ -27,7 +27,7 @@ function fbp(
     plan::FBPNormalPlan{<:SinoPar},
     sino::AbstractMatrix{<:Number},
 )
-    return fbp(plan.sg, plan.ig, sino, plan.filter, plan.parker_weight)
+    return fbp(plan.rg, plan.ig, sino, plan.filter, plan.parker_weight)
 end
 
 
@@ -35,11 +35,11 @@ function fbp(
     plan::FBPNormalPlan{<:SinoFan},
     sino::AbstractMatrix{Ts},
 ) where {Ts <: Number}
-    sino = sino .* fbp_sino_weight(plan.sg) # fan-beam weighting
+    sino = sino .* fbp_sino_weight(plan.rg) # fan-beam weighting
     Th = eltype(plan.filter)
     Tp = eltype(plan.parker_weight)
     To = eltype(oneunit(Ts) * oneunit(Th) * oneunit(Tp))
-    out = fbp(plan.sg, plan.ig, sino, plan.filter, plan.parker_weight)
+    out = fbp(plan.rg, plan.ig, sino, plan.filter, plan.parker_weight)
     return out[1]::Matrix{To}, out[2]::Matrix{To}
 end
 
@@ -60,18 +60,18 @@ end
 
 # FBP for geometries that do not need angle-dependent filters (all but Moj)
 function fbp(
-    sg::SinoGeom,
+    rg::SinoGeom,
     ig::ImageGeom,
     sino::AbstractMatrix{<:Number},
     filter::AbstractVector{<:Number},
     parker_weight::AbstractMatrix{<:Number} = ones(1,1),
 )
-    dims(sg) == size(sino) || error("bad sino size")
+    dims(rg) == size(sino) || error("bad sino size")
 
     sino_filt = sino .* parker_weight
     sino_filt = fbp_sino_filter(sino_filt, filter)
 
-    image = fbp_back(sg, ig, sino_filt)
+    image = fbp_back(rg, ig, sino_filt)
     return image, sino_filt
 end
 
@@ -82,7 +82,7 @@ function fbp(
     sino::AbstractMatrix{<:Number},
 )
 
-    dfs = plan.sg.dfs
+    dfs = plan.rg.dfs
     dfs != 0 && ~isinf(dfs) && throw("only arc or flat fan done")
 =#
 
@@ -94,14 +94,14 @@ function fbp(
 
     sino = fbp2_apply_sino_filter_moj(sino, plan.moj.H)
 
-    if plan.sg.dx == abs(plan.ig.dx)
+    if plan.rg.dx == abs(plan.ig.dx)
         image = plan.moj.G' * sino # backproject
-        image = image * (pi / plan.sg.na) # account for "dphi" in integral
+        image = image * (pi / plan.rg.na) # account for "dphi" in integral
     else # revert to conventional pixel driven
         ig = plan.ig
-        sg = plan.sg
+        rg = plan.rg
         arg1 = [uint8(ig.mask), ig.dx, ig.dy, ig.offset_x, sign(ig.dy) * ig.offset_y] # trick: old backproject
-        arg2 = [sg.d(1:sg.na), sg.offset, sg.orbit, sg.orbit_start]
+        arg2 = [rg.d(1:rg.na), rg.offset, rg.orbit, rg.orbit_start]
 # todo  image = jf_mex("back2", arg1[:], arg2[:], int32(arg.nthread), single(sino))
         image = image .* plan.ig.mask
     end
@@ -127,7 +127,7 @@ end
 # todo: needs broadcasts?
 function fbp_make_sino_filter_moj(nb, na, dx, orbit, orbit_start, window)
     ang = deg2rad(orbit_start .+ (0:na-1)./na .* orbit)
-    npad = nextpow(2, sg.nb + 1) # padded size
+    npad = nextpow(2, rg.nb + 1) # padded size
 
 
     dr = dx * max(abs(cos(ang)), abs(sin(ang)))
@@ -153,7 +153,7 @@ end
 
 function fbp2_apply_sino_filter_moj(sino, H)
     nb = size(sino,1)
-    npad = nextpow(2, sg.nb + 1) # padded size
+    npad = nextpow(2, rg.nb + 1) # padded size
     sinopad = [sino; zeros(npad-nb,size(sino,2))] # padded sinogram
     sino = _reale(ifft(fft(sinopad, 1) .* H), 1)
     sino = sino[1:nb,:]

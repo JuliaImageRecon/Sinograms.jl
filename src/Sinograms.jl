@@ -14,14 +14,11 @@ include("geom/type3.jl")
 include("geom/sino-geom.jl")
 include("geom/ct-geom.jl")
 include("geom/common.jl")
-include("geom/prop2.jl")
-include("geom/prop3.jl")
+#include("geom/prop2.jl") # todo
 
 include("fbp/reale.jl")
 include("fbp/window.jl")
 
-#include("fbp3/ct-geom.jl")
-#include("fbp2/sino-geom.jl")
 include("fbp/ramp.jl")
 include("fbp/filter.jl")
 
@@ -32,7 +29,8 @@ include("fbp2/back-fan.jl")
 include("fbp2/plan2.jl")
 include("fbp2/fbp.jl")
 
-include("fbp-par.jl")
+include("fbp2/fbp-par.jl")
+#include("fbp2/fbp-axis.jl")
 
 include("fbp3/plan3.jl")
 include("fbp3/cb_arc_to_par.jl")

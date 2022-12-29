@@ -77,11 +77,11 @@ function fbp!(
 )
     nb, na = size(sino)
     nx, ny = size(image)
-    sg = SinoPar( ; nb, na, d = dr, orbit, orbit_start)
+    rg = SinoPar( ; nb, na, d = dr, orbit, orbit_start)
     ig = ImageGeom(; dims=(nx, ny), deltas, offsets)
-    mask = circle(ig ; r = (rmax == zero(dr)) ? sg.rfov : rmax)
+    mask = circle(ig ; r = (rmax == zero(dr)) ? _rfov(rg) : rmax)
     ig = ImageGeom(ig.dims, ig.deltas, ig.offsets, mask)
-    plan = plan_fbp(sg, ig ; kwargs...)
+    plan = plan_fbp(rg, ig ; kwargs...)
 #   fbp!(image, sino, plan) # todo
     tmp, _ = fbp(plan, sino) # todo: integrate better!
     copyto!(image, tmp)
