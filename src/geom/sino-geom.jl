@@ -20,10 +20,10 @@ _w(rg::SinoGeom) = (rg.nb-1)/2 + rg.offset
 _s(rg::SinoGeom) = rg.d * ((0:rg.nb-1) .- _w(rg))
 _r = _s
 
-_dr(rg::SinoGeom) = rg.d
-_ds(rg::SinoGeom) = rg.d
-_dr(::SinoMoj) = NaN
-_ds(::SinoMoj) = NaN
+#_dr(rg::SinoGeom) = rg.d
+#_ds(rg::SinoGeom) = rg.d
+#_dr(::SinoMoj) = NaN
+#_ds(::SinoMoj) = NaN
 
 
 # down/up sampling
@@ -143,7 +143,7 @@ function _tau(
     x::AbstractVector,
     y::AbstractVector,
 )
-    return _tau.(_ar(rg)', x, y, rg.d) # outer-product
+    return _tau.(_ar(rg)', x, y, rg isa SinoPar ? rg.d : rg.ds) # outer-product
 end
 
 # this one may not be useful but it helps unify tests
