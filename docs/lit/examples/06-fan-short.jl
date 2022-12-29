@@ -105,7 +105,7 @@ which would save work if we were reconstructing many images.
 plan = plan_fbp(rg, ig)
 
 # Examine Parker weights:
-jim(axes(rg), plan.view_weight; title = "Parker weights",
+jim(axes(rg), plan.parker_weight; title = "Parker weights",
     xlabel="r", ylabel="ϕ")
 
 # Finally perform FBP:
