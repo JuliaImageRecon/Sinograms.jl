@@ -7,7 +7,8 @@ using Sinograms: SinoGeom, SinoParallel, SinoFan
 using Sinograms: SinoPar, SinoMoj, SinoFanArc, SinoFanFlat
 using Sinograms: dims, ones, zeros, angles, rays, axes, downsample, oversample
 using Sinograms: _ar, _xds, _yds, _rfov, footprint_size, _orbit_short
-using Sinograms: _r, _s, _w, _tau, _taufun, _d_moj, _d_ang
+using Sinograms: _r, _s, _w, _d_moj, _d_ang
+using Sinograms: _tau, _taufun
 # using Sinograms: _ds, _dr
 using Sinograms: _shape, _unitv
 using Sinograms: _gamma, _gamma_max, _gamma_max_abs, _dfs, _dso
@@ -60,7 +61,7 @@ end
 end
 
 
-@testset "taufun" begin
+@testset "tau" begin
     geoms = (
         (SinoPar(; d = 2, na = 5), (1:3)),
         (SinoPar(; d = 2, na = 5), (1:3) * 1.0),
@@ -142,6 +143,9 @@ function _test_prop(
     end
 
     @test collect(rs) isa Array{<:Tuple} # @NOTinferred
+
+    x = (1:4) * oneunit(d)
+    @inferred _taufun(rg)(x, 2x)
 
     ig = ImageGeom( (5,7), (1,1) .* d)
     @test (@inferred footprint_size(rg, ig)) isa Float32

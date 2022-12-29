@@ -29,10 +29,10 @@ function fbp_ramp(rg::SinoMoj{Td}, N::Int ; dr::Td = rg.d) where Td
 end
 
 fbp_ramp(rg::Union{SinoFanFlat,CtFanFlat}, N::Int) =
-    ramp_flat(N, rg isa SinoGeom ? rg.d : rg.ds)
+    ramp_flat(N, _ds(rg))
 
 fbp_ramp(rg::Union{SinoFanArc,CtFanArc}, N::Int) =
-    ramp_arc(N, rg isa SinoGeom ? rg.d : rg.ds, rg.dsd)
+    ramp_arc(N, _ds(rg))
 
 function _ramp_type(arg...)
     R = promote_type(arg...)

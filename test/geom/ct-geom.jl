@@ -8,6 +8,7 @@ using Sinograms: CtPar, CtFanArc, CtFanFlat
 using Sinograms: dims, ones, zeros, angles, rays, axes, downsample, oversample
 using Sinograms: _ar, _xds, _yds, _rfov, footprint_size, _orbit_short
 using Sinograms: _s, _t, _ws, _wt
+using Sinograms: _tau, _taufun
 using Sinograms: _shape, _unitv
 using Sinograms: _gamma, _gamma_max, _gamma_max_abs, _dfs, _dso
 using Sinograms: _source_dz_per_view, _source_zs, _zfov, _cone_angle
@@ -137,7 +138,7 @@ function _test_prop(
     @test collect(rs) isa Array{<:Tuple} # @NOTinferred
 
     x = (1:4) * oneunit(d)
-#   @inferred _taufun(rg)(x, 2*x) # todo
+    @inferred _taufun(rg)(x, 2x)
 
     ig = ImageGeom((9,9,9), (1,1,1) .* rg.ds)
     @test (@inferred footprint_size(rg, ig)) isa Float32

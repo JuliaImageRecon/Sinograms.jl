@@ -21,9 +21,13 @@ _s(rg::SinoGeom) = rg.d * ((0:rg.nb-1) .- _w(rg))
 _r = _s
 
 #_dr(rg::SinoGeom) = rg.d
-#_ds(rg::SinoGeom) = rg.d
 #_dr(::SinoMoj) = NaN
-#_ds(::SinoMoj) = NaN
+
+# This helps unify SinoGeom and CtGeom cases:
+_ds(rg::SinoGeom) = rg.d
+_ds(::SinoMoj) = error("undefined")
+_ds(rg::CtGeom) = rg.ds
+#_ds(::CtMoj) = error("undefined")
 
 
 # down/up sampling
@@ -143,7 +147,7 @@ function _tau(
     x::AbstractVector,
     y::AbstractVector,
 )
-    return _tau.(_ar(rg)', x, y, rg isa SinoPar ? rg.d : rg.ds) # outer-product
+    return _tau.(_ar(rg)', x, y, _ds(rg)) # outer-product
 end
 
 # this one may not be useful but it helps unify tests
@@ -157,9 +161,9 @@ _tau_arc(dsd::RealU, ds::RealU, tangam::Real) =
 _tau_flat(dsd::RealU, ds::RealU, tangam::Real) =
     dsd / ds * tangam
 _tau(rg::Union{SinoFanArc,CtFanArc}, tangam) =
-    _tau_arc.(rg.dsd, rg.d, tangam)
+    _tau_arc.(rg.dsd, _ds(rg), tangam)
 _tau(rg::Union{SinoFanFlat,CtFanFlat}, tangam) =
-    _tau_flat.(rg.dsd, rg.d, tangam)
+    _tau_flat.(rg.dsd, _ds(rg), tangam)
 
 function _tau(
     rg::Union{SinoFan,CtFan},

@@ -31,7 +31,7 @@ out
 function fbp_filter(
     rg::RayGeom{Td} = SinoPar() ;
     npad::Int = nextpow(2, rg.nb + 1),
-    ds::Td = rg isa SinoGeom ? rg.d : rg.ds,
+    ds::Td = _ds(rg),
     decon1::Bool = true,
     window::Window = Window(),
 ) where {Td <: RealU}
