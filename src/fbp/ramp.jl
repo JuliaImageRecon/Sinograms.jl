@@ -19,56 +19,51 @@ out
 - `h::Vector{<:RealU}` : samples of band-limited ramp filter
 - `n::UnitRange{Int64}` : -(N÷2):(N÷2-1)
 """
-function fbp_ramp(rg::SinoPar{Td}, N::Int) where Td
-    R = _ramp_type(Td)
-    T = Tuple{Vector{R}, UnitRange{Int64}}
-    return ramp_flat(N, rg.d)::T
-end
+fbp_ramp
+
+fbp_ramp(rg::SinoPar, N::Int) = ramp_flat(N, rg.d)
 
 # for Mojette, `dr` varies with projection angle
 function fbp_ramp(rg::SinoMoj{Td}, N::Int ; dr::Td = rg.d) where Td
-    R = _ramp_type(Td)
-    T = Tuple{Vector{R}, UnitRange{Int64}}
-    return ramp_flat(N, dr)::T
+    return ramp_flat(N, dr)
 end
 
-function fbp_ramp(rg::Union{SinoFanFlat{Td},CtFanFlat{Td}}, N::Int) where Td
-    R = _ramp_type(Td)
-    T = Tuple{Vector{R}, UnitRange{Int64}}
-    return ramp_flat(N, rg isa SinoGeom ? rg.d : rg.ds)::T
-end
+fbp_ramp(rg::Union{SinoFanFlat,CtFanFlat}, N::Int) =
+    ramp_flat(N, rg isa SinoGeom ? rg.d : rg.ds)
 
-function fbp_ramp(rg::Union{SinoFanArc{Td},CtFanArc{Td}}, N::Int) where Td
-    R = _ramp_type(Td)
-    T = Tuple{Vector{R}, UnitRange{Int64}}
-    return ramp_arc(N, rg isa SinoGeom ? rg.d : rg.ds, rg.dsd)::T # todo
-end
+fbp_ramp(rg::Union{SinoFanArc,CtFanArc}, N::Int) =
+    ramp_arc(N, rg isa SinoGeom ? rg.d : rg.ds, rg.dsd)
 
 function _ramp_type(arg...)
     R = promote_type(arg...)
-    R = promote_type(R, eltype(1f0 * oneunit(R))) # at least Float32
+    R = promote_type(R, typeof(1f0 * oneunit(R))) # at least Float32
     R = eltype(1 / oneunit(R)^2)
     return R
 end
 
 function _ramp_arc(n::Int, ds::RealU, dsd::RealU)
     R = _ramp_type(eltype(ds), eltype(dsd))
-    h = n == 0 ? 0.25 / abs2(ds) :
-        isodd(n) ? -1 / abs2(π * dsd * sin(n * ds / dsd)) :
-        zero(1 / abs2(ds))
+    h = n == 0 ? R(0.25 / abs2(ds)) :
+        isodd(n) ? R(-1 / abs2(π * dsd * sin(n * ds / dsd))) :
+        zero(R)
     return R(h)
 end
-
 
 function _ramp_flat(n::Int, ds::RealU)
     R = _ramp_type(eltype(ds))
-    h = n == 0 ? 0.25 / abs2(ds) :
-        isodd(n) ? -1 / abs2(π * n * ds) :
-        zero(1 / abs2(ds))
-    return R(h)
+    h = n == 0 ? R(0.25 / abs2(ds)) :
+        isodd(n) ? R(-1 / abs2(π * n * ds)) :
+        zero(R)
+    return h
 end
 
 
+"""
+    (h, n) = ramp_arc(N::Int, ds::RealU, dsd::RealU)
+Ramp filter samples for arc fan geometry,
+for `n = -(N÷2):(N÷2-1)`.
+- `N` must be even.
+"""
 function ramp_arc(N::Int, ds::RealU, dsd::RealU)
     isodd(N) && throw("N must be even")
 
@@ -82,6 +77,12 @@ function ramp_arc(N::Int, ds::RealU, dsd::RealU)
 end
 
 
+"""
+    (h, n) = ramp_flat(N::Int, ds::RealU)
+Ramp filter samples for flat fan geometry,
+for `n = -(N÷2):(N÷2-1)`.
+- `N` must be even.
+"""
 function ramp_flat(N::Int, ds::RealU)
     isodd(N) && throw("N must be even")
     n = -(N÷2):(N÷2-1)
