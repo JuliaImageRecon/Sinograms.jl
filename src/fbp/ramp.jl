@@ -32,7 +32,7 @@ fbp_ramp(rg::Union{SinoFanFlat,CtFanFlat}, N::Int) =
     ramp_flat(N, _ds(rg))
 
 fbp_ramp(rg::Union{SinoFanArc,CtFanArc}, N::Int) =
-    ramp_arc(N, _ds(rg))
+    ramp_arc(N, _ds(rg), rg.dsd)
 
 function _ramp_type(arg...)
     R = promote_type(arg...)
