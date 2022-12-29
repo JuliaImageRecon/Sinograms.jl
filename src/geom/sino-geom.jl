@@ -105,7 +105,6 @@ end
 
 _moj_to_par(s, ϕ) = (s * maximum(abs, sincos(ϕ)), ϕ)
 _moj_to_par(sϕ::Tuple) = _moj_to_par(sϕ...)
-_moj_rays_type2(Td,To) = Base.Generator{_rays_type2(Td,To), typeof(_moj_to_par)}
 
 function rays(rg::SinoMoj)
     s = _s(rg)

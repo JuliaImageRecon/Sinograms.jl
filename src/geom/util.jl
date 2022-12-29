@@ -41,13 +41,3 @@ Not type stable!
 """
 _shape(x::AbstractArray, dim::Dims) =
     (length(x) == prod(dim)) ? reshape(x, dim) : reshape(x, dim..., :)
-
-
-# detector centers: d * ((0:nb-1) .- w)
-# seems to be needed to help with type inference
-function _lin_range(
-    d::Td, w::Toffset, n::Int ;
-    T::Type{<:Number} = eltype(oneunit(Td) * one(Toffset)),
-)::LinRange{T,Int} where {Td <: RealU}
-    return d * LinRange(-w, n - 1 - w, n)
-end
