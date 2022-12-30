@@ -13,8 +13,8 @@ include("../helper.jl")
         rg = @inferred SinoPar(; d)
         Hk = @inferred fbp_filter(rg)
 
-        fun(rg::SinoGeom{Td}) where Td = Td
-        T = eltype(one(1f0 * d) / oneunit(fun(rg)))
+        fun(::SinoGeom{Td}) where Td = Td
+        T = typeof(one(1f0 * d) / oneunit(fun(rg)))
         @test Hk isa Vector{T}
         @test length(Hk) == 2 * rg.nb
     end

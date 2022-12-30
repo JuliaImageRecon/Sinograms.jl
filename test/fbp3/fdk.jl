@@ -9,7 +9,7 @@ using ImageGeoms: ImageGeom
 using ImagePhantoms: radon, ellipsoid, volume
 using Test: @test, @testset, @test_broken, @inferred
 using Unitful: mm
-using MIRTjim: jim; jim(:prompt, true) # debug only
+#using MIRTjim: jim; jim(:prompt, true) # debug only
 
 
 @testset "fdk" begin
@@ -26,7 +26,7 @@ using MIRTjim: jim; jim(:prompt, true) # debug only
         plan = @inferred plan_fbp(rg, ig)
         recon = @inferred fdk(plan, proj)
         @test recon isa Array{<:Number, 3}
-        jim(recon; prompt=false, gui=true, title="$geo $shorts")
+#       jim(recon; prompt=false, gui=true, title="$geo $shorts")
 
         vol_hat = sum(recon) * prod(ig.deltas)
         vol_true = volume(ob)
