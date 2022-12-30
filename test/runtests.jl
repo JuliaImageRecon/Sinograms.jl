@@ -11,11 +11,12 @@ include("geom/types.jl")
 include("geom/sino-geom.jl")
 include("geom/ct-geom.jl")
 
+include("fbp/d-angle.jl")
 include("fbp/filter.jl")
+include("fbp/parker.jl")
 include("fbp/ramp.jl")
 include("fbp/window.jl")
 
-include("fbp2/parker.jl")
 include("fbp2/sino-plot.jl")
 include("fbp2/back2.jl")
 include("fbp2/plan2.jl")
