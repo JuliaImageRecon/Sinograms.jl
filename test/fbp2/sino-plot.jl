@@ -12,13 +12,13 @@ function _test_sino_plot_rays(geo ; nb::Int = 60, na::Int = 20, d=2mm)
     orbit = 180.0°
     ud = oneunit(d)
     arg = geo() isa SinoFan ? (; dod=120ud, dsd=300ud, d=2d) : (;)
-    sg = geo(; d, orbit, nb, na, arg...)
-    p1 = sino_plot_rays(sg)
+    rg = geo(; d, orbit, nb, na, arg...)
+    p1 = sino_plot_rays(rg)
     @test p1 isa Plot
 
     plot()
     ig = ImageGeom( ; dims = (64, 62), deltas = (1,1) .* d)
-    p2 = sino_geom_plot!(sg, ig)
+    p2 = sino_geom_plot!(rg, ig)
     @test p2 isa Plot
 
     return plot(p1, p2, layout = (2,1))
@@ -26,10 +26,10 @@ end
 
 
 @testset "sino_plot" begin
-#   sg = SinoFanArc(Val(:ge1))
-    sg_list = (SinoPar, SinoFanArc, SinoFanFlat, SinoMoj)
-    p = Array{Any}(undef, length(sg_list))
-    for (i, geo) in enumerate(sg_list)
+#   rg = SinoFanArc(Val(:ge1))
+    rg_list = (SinoPar, SinoFanArc, SinoFanFlat, SinoMoj)
+    p = Array{Any}(undef, length(rg_list))
+    for (i, geo) in enumerate(rg_list)
         p[i] = _test_sino_plot_rays(geo)
         @test p[i] isa Plot
     end

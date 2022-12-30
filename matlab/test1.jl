@@ -20,10 +20,10 @@ ig = ig.down(down)
 
 mat"ig = image_geom('nx', $(ig.nx), 'ny', $(ig.ny), 'fov', $fov, 'dy', 'dx');"
 
-sg = sino_geom(:par, nb=888, na=984, offset=0.25, d=541/959)
-sg = sg.down(down)
+rg = sino_geom(:par, nb=888, na=984, offset=0.25, d=541/959)
+rg = rg.down(down)
 
-mat"sg = sino_geom('par', 'nb', $(sg.nb), 'na', $(sg.na), 'dr', $(sg.d), 'strip_width', 'd');"
+mat"rg = sino_geom('par', 'nb', $(rg.nb), 'na', $(rg.na), 'dr', $(rg.d), 'strip_width', 'd');"
 
 ell = [30. 0 120 100 0 1]
 ell = [0. 0 200 100 0 1]
@@ -37,11 +37,11 @@ mat"im_mat = ellipse_im(ig, ell)"
 
 @mget im_mat
 
-plot(jim(im_julia, "julia"), jim(im_mat, "matlab"), jim(im_mat - im_julia))
+jim(jim(im_julia, "julia"), jim(im_mat, "matlab"), jim(im_mat - im_julia))
 
-sino_julia = ellipse_sino(sg, ell)
+sino_julia = ellipse_sino(rg, ell)
 
-mat"[sino_mat, pos, ang] = ellipse_sino(sg, ell)"
+mat"[sino_mat, pos, ang] = ellipse_sino(rg, ell)"
 mat"sizeof(sino_mat)"
 @mget sino_mat
 

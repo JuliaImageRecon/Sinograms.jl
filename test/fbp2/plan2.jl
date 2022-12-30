@@ -20,7 +20,7 @@ using Test: @test, @testset, @inferred
 
     show(isinteractive() ? stdout : devnull, MIME("text/plain"), plan)
 
-    rg = SinoFanArc(:short)
+    rg = @inferred SinoFanArc(:short)
     plan = @inferred plan_fbp(rg, ig)
     @test plan isa FBPNormalPlan
 end

@@ -1,7 +1,7 @@
 # test/fbp3/ct-plot.jl
 
-using Plots: plot, plot!, gui, Plot
 using Unitful: mm #, °
+using Plots: plot, plot!, gui, Plot
 using Sinograms: CtPar, CtFanArc, CtFanFlat, CtFan
 using Sinograms: CtSourceCircle, CtSourceHelix
 using Sinograms: ct_geom_plot2!
@@ -20,20 +20,20 @@ function _test_ct_plot(geo ;
 )
 
     arg = geo() isa CtFan ? (; dod=120mm, dsd=300mm, ds=2d) : (; ds=d)
-    sg = geo(; ns, nt, na, orbit, src, arg...)
+    rg = geo(; ns, nt, na, orbit, src, arg...)
 
     plot()
     ig = ImageGeom( ; dims = (64, 62, 30), deltas = (1,1,1) .* d)
-    p = ct_geom_plot2!(sg, ig)
-    p = ct_geom_plot3(sg, ig)
-    plot!(p; title = nameof(typeof(sg)))
+    p = ct_geom_plot2!(rg, ig)
+    p = ct_geom_plot3(rg, ig)
+    plot!(p; title = nameof(typeof(rg)))
 
     return p
 end
 
 
 @testset "fbp3/ct-plot" begin
-#   sg = SinoFan(Val(:ge1))
+#   rg = CtFanArc(Val(:ge1))
     list = (CtFanArc, CtFanFlat) # CtPar
     p = Array{Any}(undef, length(list))
     for (i, geo) in enumerate(list)

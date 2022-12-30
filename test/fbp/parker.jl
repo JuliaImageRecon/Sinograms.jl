@@ -1,5 +1,5 @@
 #=
-test/fbp2/parker.jl
+test/fbp/parker.jl
 =#
 
 using Sinograms: SinoPar, SinoFanArc, SinoMoj
@@ -27,7 +27,7 @@ using Test: @test, @test_throws, @testset, @inferred
     @test size(pw) == (1, rg.na)
     @test pw isa Matrix{Float32}
     @test pw[1] == 0 # todo: suboptimal?
-    @test sum(pw)/length(pw) ≈ 1
+    @test sum(pw)/length(pw) ≈ 2/3
 
     rg = SinoMoj()
     pw = @inferred parker_weight(rg)
@@ -58,14 +58,14 @@ end
 
 
 @testset "parker-ct" begin
-    cg = CtFanArc()
-#   @inferred parker_weight_fan_short(cg)
-    pw = @inferred parker_weight(cg)
+    rg = CtFanArc()
+#   @inferred parker_weight_fan_short(rg)
+    pw = @inferred parker_weight(rg)
     @test pw isa Array{Float32,3}
     @test size(pw) == (1,1,1)
 
-    cg = CtFanArc(:short)
-    pw = @inferred parker_weight(cg)
+    rg = CtFanArc(:short)
+    pw = @inferred parker_weight(rg)
     @test pw isa Array{Float32,3}
     @test size(pw,2) == 1
 end

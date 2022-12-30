@@ -44,8 +44,8 @@ end
                 orbit_ in (90, 90f0, 90.0),
                 ou in (1, 1°)
 
-            sg = shape( ; d = d_ * du, orbit = orbit_ * ou)
-            h, n = @inferred fbp_ramp(sg, N)
+            rg = shape( ; d = d_ * du, orbit = orbit_ * ou)
+            h, n = @inferred fbp_ramp(rg, N)
             @test h isa Vector
             @test length(h) == N
             @test length(n) == N

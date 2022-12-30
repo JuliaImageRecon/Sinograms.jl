@@ -4,7 +4,7 @@ test/fbp3/plan3.jl
 
 using Sinograms: plan_fbp, Window, FDKplan
 using Sinograms: CtFanArc, CtFanFlat, angles
-using Sinograms: _view_weights, _fdk_weights, fdk_weight_cyl, _ar
+using Sinograms: _fdk_weights, fdk_weight_cyl, _ar
 using ImageGeoms: ImageGeom
 using Test: @test, @testset, @inferred
 
@@ -14,7 +14,6 @@ using Test: @test, @testset, @inferred
 
     tmp = @inferred fdk_weight_cyl(rg)
     ar = @inferred _ar(rg)
-    da = @inferred _view_weights(ar)
     tmp = @inferred _fdk_weights(rg)
 
     plan = @inferred FDKplan(rg, ig, ones(rg.na), ones(2rg.ns))

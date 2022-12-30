@@ -31,5 +31,6 @@ using Unitful: mm
     area_hat = sum(recon) * dr^2
     area_true = π * rad^2
     area_err = abs(area_hat - area_true) / area_true
+#   @show area_true area_hat area_err
     @test area_err < 2e-4
 end
