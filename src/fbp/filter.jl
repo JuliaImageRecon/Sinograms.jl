@@ -29,14 +29,14 @@ out
 - `Hk::Vector` apodized ramp filter frequency response
 """
 function fbp_filter(
-    rg::RayGeom{Td} = SinoPar() ;
+    rg::RayGeom{Td} = SinoPar(),
+    ;
     npad::Int = nextpow(2, rg.nb + 1),
     ds::Td = _ds(rg),
     decon1::Bool = true,
     window::Window = Window(),
 ) where {Td <: RealU}
 
-#   U = eltype(1 / oneunit(Td))
     hn, nn = fbp_ramp(rg, npad)
 
     unit = oneunit(eltype(hn)) # handle units
@@ -52,7 +52,7 @@ function fbp_filter(
         Hk ./= fftshift(sinc.(nn / npad).^2)
     end
 
-    return Hk#::Vector{U}
+    return Hk
 end
 
 
@@ -81,7 +81,7 @@ function fbp_sino_filter(
 
     npad = length(filter)
     nb = size(sino,1)
-    nb + extra > npad && throw("nb=$nb + extra=$extra > npad=$npad")
+    nb + extra > npad && error("nb=$nb + extra=$extra > npad=$npad")
 
     dimpadding = collect(size(sino))
     dimpadding[1] = npad - dimpadding[1]
@@ -106,7 +106,7 @@ function fbp_sino_filter(
     sino[(nb+1):(nb+extra), :] .= zero(eltype(sino))
     sino = reshape(sino, nb, :, dimpadding[3:end]...) # for >2D sinogram array
 
-    U = eltype(unit_s * unit_f)
+    U = typeof(unit_s * unit_f) # todo
     return sino::Array{U, N}
 end
 
@@ -120,7 +120,7 @@ function fbp_sino_filter(
     fun(sino) = fbp_sino_filter(sino, filter; kwargs...)
     unit_s = oneunit(Ts)
     unit_f = oneunit(Tf)
-    U = eltype(unit_s * unit_f)
+    U = typeof(unit_s * unit_f)
     out = mapslices(fun, aa, dims=[1,2])
     return out::Array{U,N}
 end

@@ -25,30 +25,25 @@ Moj() = Moj{AbstractMatrix{<:Real},AbstractMatrix{<:Real}}(zeros(Real,1,1),zeros
 """
     FBPNormalPlan{S,I,H,P}
 Struct type for storing "normal" FBP plan.
+
+The `view_weight` can include (products of)
+- Parker weighting for short scans
+- view-wise weighting from `fbp_sino_weight` todo
+- `dβ` weighting for possibly nonuniform angles from `_angle_weights`
 """
 struct FBPNormalPlan{
     S <: SinoGeom,
     I <: ImageGeom,
     H <: AbstractVector{<:RealU},
-    P <: Any,
+#   P <: Any,
+    V <: AbstractArray{<:RealU},
 } <: FBPplan
     rg::S
     ig::I
     filter::H # frequency response Hk of apodized ramp filter, length npad
-    parker_weight::P # typically a Matrix of nonnegative reals
+#   parker_weight::P # typically a Matrix of nonnegative reals
+    view_weight::V
 #   moj::Moj # todo
-
-#=
-    function FBPNormalPlan(
-        rg::S,
-        ig::I,
-        window::W,
-        parker_weight::P,
-    ) where {S <: SinoGeom, I <: ImageGeom,
-        W <: Window, P <: AbstractMatrix{<:Real}}
-        return FBPNormalPlan{S,I,W,P}(rg, ig, window, parker_weight) #, Moj())
-    end
-=#
 end
 
 
@@ -84,12 +79,13 @@ Plan FBP 2D tomographic image reconstruction
 for parallel-beam & fan-beam cases,
 with either flat or arc detector for fan-beam case.
 
-To use this, you first call it with the sinogram and image geometry.
+To use this method,
+you first call it with the sinogram geometry
+and image geometry.
 The routine returns the initialized `plan`.
 Thereafter, to to perform FBP reconstruction,
 call `fbp` with the `plan`
 (perhaps numerous times for the same geometry).
-
 
 # in
 - `rg::SinoGeom`
@@ -100,7 +96,8 @@ call `fbp` with the `plan`
     * `:normal` default
     * `:mojette` use mojette rebinning and Gtomo2_table
 - `window::Window` e.g., `Window(Hamming(), 0.8)`; default `Window()`
-- `npad::Int` # of radial bins after padding; default `nextpow(2, rg.nb + 1)`
+- `npad::Int` # of radial bins after padding;
+  default `nextpow(2, rg.nb + 1)`
 - `decon1::Bool` deconvolve interpolator effect? (default `true`)
 - `T::Type{<:Number}` type of `sino` elements (default `Float32`)
 
@@ -110,17 +107,18 @@ call `fbp` with the `plan`
 """
 function plan_fbp(
     rg::SinoGeom,
-    ig::ImageGeom ;
+    ig::ImageGeom,
+    ;
     how::Symbol = :normal,
     window::Window = Window(),
     npad::Int = nextpow(2, rg.nb + 1),
     decon1::Bool = true,
+    filter::AbstractVector{<:RealU} = fbp_filter(rg ; npad, window, decon1),
     T::Type{<:Number} = Float32,
 #   nthread::Int = Threads.nthreads(),
 )
 
-    weight = parker_weight(rg)
-    filter = fbp_filter(rg ; npad, window, decon1)
+    weight = _fbp_weights(rg)
 
 #   if how === :normal
         return FBPNormalPlan(rg, ig, filter, weight)
@@ -139,6 +137,13 @@ function plan_fbp(
 #   end
 
 #   return plan
+end
+
+
+function _fbp_weights(rg::SinoGeom)
+    weight = parker_weight(rg) .*
+        _angle_weights(_ar(rg))
+    return weight
 end
 
 
@@ -182,10 +187,13 @@ end
 =#
 
 
-function Base.show(io::IO, ::MIME"text/plain", p::FBPNormalPlan{S,I,H,P}) where {S,I,H,P}
-    println(io, "FBPNormalPlan{S,I,H,P} with")
-    println(io, " S = $S")
-    println(io, " I = $I")
+function Base.show(io::IO, ::MIME"text/plain", p::FBPNormalPlan{S,I,H,V}) where {S,I,H,V}
+    rg = p.rg
+    println(io, "FBPNormalPlan{S,I,H,V} with")
+    println(io, " S = $S ", (rg.nb, rg.na))
+    ig = p.ig
+    println(io, " I = $I ", ig.dims)
     println(io, " H = $H with extrema ", extrema(p.filter))
-    println(io, " P = $P ", size(p.parker_weight), " with extrema ", extrema(p.parker_weight))
+#   println(io, " P = $P ", size(p.parker_weight), " with extrema ", extrema(p.parker_weight))
+    println(io, " V = $V ", size(p.view_weight), " with extrema ", extrema(p.view_weight))
 end

@@ -37,12 +37,12 @@ fbp_ramp(rg::Union{SinoFanArc,CtFanArc}, N::Int) =
 function _ramp_type(arg...)
     R = promote_type(arg...)
     R = promote_type(R, typeof(1f0 * oneunit(R))) # at least Float32
-    R = eltype(1 / oneunit(R)^2)
+    R = typeof(1 / oneunit(R)^2)
     return R
 end
 
 function _ramp_arc(n::Int, ds::RealU, dsd::RealU)
-    R = _ramp_type(eltype(ds), eltype(dsd))
+    R = _ramp_type(typeof(ds), typeof(dsd))
     h = n == 0 ? R(0.25 / abs2(ds)) :
         isodd(n) ? R(-1 / abs2(π * dsd * sin(n * ds / dsd))) :
         zero(R)
@@ -50,7 +50,7 @@ function _ramp_arc(n::Int, ds::RealU, dsd::RealU)
 end
 
 function _ramp_flat(n::Int, ds::RealU)
-    R = _ramp_type(eltype(ds))
+    R = _ramp_type(typeof(ds))
     h = n == 0 ? R(0.25 / abs2(ds)) :
         isodd(n) ? R(-1 / abs2(π * n * ds)) :
         zero(R)

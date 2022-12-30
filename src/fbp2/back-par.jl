@@ -38,8 +38,8 @@ function fbp_back(
     dims(rg) == size(sino) || throw("sino size")
 
     # type inference help:
-    Toffset = Float32 # eltype(rg.offset)
-    T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
+    Toffset = Float32 # typeof(rg.offset)
+    T = typeof(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
 
     return fbp_back_par(
         sino, _ar(rg),
@@ -68,7 +68,7 @@ function fbp_back_par_old(
 ) where {Tds <: RealU, Tc <: RealU, Toffset <: Real, Ts <: Number, To <: RealU}
 
     Td = promote_type(Tds, Tc)
-    T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
+    T = typeof(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
 
     nb, na = size(sino)
 
@@ -167,7 +167,7 @@ function fbp_back_par(
     yc::AbstractArray{Tc},
     mask::AbstractMatrix{Bool} ;
     ia_skip::Int = 1,
-    T = eltype(oneunit(Ts) * (oneunit(To) * oneunit(Tc) / oneunit(Tds) + oneunit(Toffset)))
+    T = typeof(oneunit(Ts) * (oneunit(To) * oneunit(Tc) / oneunit(Tds) + oneunit(Toffset)))
 ) where {Ts <: Number, To <: RealU, Tds <: RealU, Toffset <: Real, Tc <: RealU}
 
     image = zeros(T, size(mask)) # need zero(T) outside mask
@@ -281,7 +281,7 @@ function fbp_back_par_xy(
     wb::Tb, # (nb+1)/2 + offset
     x_ds::Tx, # xc / ds
     y_ds::Tx ;
-    T::Type{<:Number} = eltype(oneunit(Ts) * one(To) * one(Tb) * one(Tx)),
+    T::Type{<:Number} = typeof(oneunit(Ts) * one(To) * one(Tb) * one(Tx)),
 ) where {Ts <: Number, To <: Real, Tb <: Real, Tx <: Real}
 
     nb = size(sino,1)
@@ -311,5 +311,5 @@ function fbp_back_par_xy(
         end
     end
 
-    return pixel * (π / na_subset)
+    return pixel # * (π / na_subset) # todo
 end

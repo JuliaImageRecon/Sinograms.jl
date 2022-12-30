@@ -4,7 +4,7 @@ export FDKplan, plan_fbp
 
 using ImageGeoms: ImageGeom
 # using Sinograms: CtGeom Window fbp_filter
-# using Sinograms: parker_weight _view_weights fdk_weight_cyl
+# using Sinograms: parker_weight _angle_weights fdk_weight_cyl
 
 
 """
@@ -14,7 +14,7 @@ Struct type for storing FDK plan.
 The `view_weight` can include (products of)
 - Parker weighting for short scans
 - view-wise CBCT weighting from `fdk_weight_cyl`
-- `dβ` weighting for possibly nonuniform angles
+- `dβ` weighting for possibly nonuniform angles from `_angle_weights`
 """
 struct FDKplan{
     C <: CtGeom,
@@ -36,7 +36,8 @@ Plan FDK 3D CBCT image reconstruction,
 with either flat or arc detector.
 
 To use this method,
-you first call it with the CT geometry and image geometry.
+you first call it with the CT geometry
+and image geometry.
 The routine returns the initialized `plan`.
 Thereafter, to to perform FDK reconstruction,
 call `fbp` with the `plan`
@@ -48,7 +49,8 @@ call `fbp` with the `plan`
 
 # options
 - `window::Window` e.g., `Window(Hamming(), 0.8)`; default `Window()`
-- `npad::Int` # of radial bins after padding; default `nextpow(2, rg.ns + 1)`
+- `npad::Int` # of radial bins after padding;
+  default `nextpow(2, rg.ns + 1)`
 - `decon1::Bool` deconvolve interpolator effect? (default `true`)
 
 # out
@@ -71,9 +73,9 @@ end
 
 
 function _fdk_weights(rg::CtGeom)
-    weight = parker_weight(rg)
-    weight = weight .* _view_weights(_ar(rg))
-    weight = weight .* fdk_weight_cyl(rg)
+    weight = parker_weight(rg) .*
+        fdk_weight_cyl(rg) .*
+        _angle_weights(_ar(rg))
     return weight
 end
 
@@ -82,8 +84,8 @@ function Base.show(io::IO, ::MIME"text/plain", p::FDKplan{C,I,H,V}) where {C,I,H
     rg = p.rg
     println(io, "FDKplan{C,I,H,V} with")
     println(io, " C = $C ", (rg.ns, rg.nt, rg.na))
-    i = p.ig
-    println(io, " I = $I ", i.dims)
+    ig = p.ig
+    println(io, " I = $I ", ig.dims)
     println(io, " H = $H ", size(p.filter), " with extrema ", extrema(p.filter))
     println(io, " V = $V ", size(p.view_weight), " with extrema ", extrema(p.view_weight))
 end

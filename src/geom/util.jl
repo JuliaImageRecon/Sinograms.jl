@@ -14,8 +14,8 @@ abstract type RayGeom{Td,To} end
 # promote_type version that checks for compatible units
 function _promoter(xs::RealU...)
     all(==(oneunit(xs[1])), oneunit.(xs)) || throw("incompatible units")
-    T = promote_type(eltype.(xs)...)
-    T = promote_type(T, eltype(1f0 * oneunit(T))) # at least Float32
+    T = promote_type(typeof.(xs)...)
+    T = promote_type(T, typeof(1f0 * oneunit(T))) # at least Float32
 end
 
 

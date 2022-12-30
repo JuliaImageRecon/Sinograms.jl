@@ -15,7 +15,7 @@ dims(rg::SinoGeom) = (rg.nb, rg.na)
 # use ° via `angles()` because mainly for plots
 Base.axes(rg::SinoGeom) = (_s(rg), angles(rg))
 
-_w(rg::SinoGeom) = (rg.nb-1)/2 + rg.offset
+_w(rg::SinoGeom) = (rg.nb-1) // 2 + rg.offset
 
 _s(rg::SinoGeom) = rg.d * ((0:rg.nb-1) .- _w(rg))
 #_r = _s

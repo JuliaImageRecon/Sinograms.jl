@@ -19,7 +19,6 @@ in
 out
 - `image::Matrix{<:Number}`       reconstructed image(s)
 - `sino_filt::Matrix{<:Number}`   filtered sinogram(s)
-
 """
 fbp
 
@@ -27,20 +26,17 @@ function fbp(
     plan::FBPNormalPlan{<:SinoPar},
     sino::AbstractMatrix{<:Number},
 )
-    return fbp(plan.rg, plan.ig, sino, plan.filter, plan.parker_weight)
+    return fbp(plan.rg, plan.ig, sino, plan.filter, plan.view_weight)
 end
 
 
 function fbp(
     plan::FBPNormalPlan{<:SinoFan},
-    sino::AbstractMatrix{Ts},
-) where {Ts <: Number}
+    sino::AbstractMatrix{<:Number},
+)
     sino = sino .* fbp_sino_weight(plan.rg) # fan-beam weighting
-    Th = eltype(plan.filter)
-    Tp = eltype(plan.parker_weight)
-    To = eltype(oneunit(Ts) * oneunit(Th) * oneunit(Tp))
-    out = fbp(plan.rg, plan.ig, sino, plan.filter, plan.parker_weight)
-    return out[1]::Matrix{To}, out[2]::Matrix{To}
+    out = fbp(plan.rg, plan.ig, sino, plan.filter, plan.view_weight)
+    return out[1], out[2]
 end
 
 
@@ -50,11 +46,11 @@ function fbp(
     aa::AbstractArray{Ts, D},
 ) where {Ts <: Number, D}
     Th = eltype(plan.filter)
-    Tp = eltype(plan.parker_weight)
-    To = eltype(oneunit(Ts) * oneunit(Th) * oneunit(Tp))
+    Tp = eltype(plan.view_weight)
+    To = typeof(oneunit(Ts) * oneunit(Th) * oneunit(Tp))
     fun(sino2) = fbp(plan, sino2)[1] # discard sino_filt!
     out = mapslices(fun, aa, dims = [1,2])
-    return out::Array{To,D}
+    return out::Array{To,D} # todo
 end
 
 
@@ -64,11 +60,11 @@ function fbp(
     ig::ImageGeom,
     sino::AbstractMatrix{<:Number},
     filter::AbstractVector{<:Number},
-    parker_weight::AbstractMatrix{<:Number} = ones(1,1),
+    view_weight::AbstractMatrix{<:Number} = ones(1,1),
 )
     dims(rg) == size(sino) || error("bad sino size")
 
-    sino_filt = sino .* parker_weight
+    sino_filt = sino .* view_weight
     sino_filt = fbp_sino_filter(sino_filt, filter)
 
     image = fbp_back(rg, ig, sino_filt)

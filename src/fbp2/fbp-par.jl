@@ -30,7 +30,7 @@ function fbp(
     deltas::NTuple{2,Td} = (dx, dy),
     kwargs...
 ) where {Ts <: Number, Td <: RealU}
-    U = eltype(1f0 * oneunit(Ts) / oneunit(Td))
+    U = typeof(1f0 * oneunit(Ts) / oneunit(Td))
     image = zeros(U, nx, ny)
     fbp!(image, sino; dr, dx, dy, deltas, kwargs...)
 end

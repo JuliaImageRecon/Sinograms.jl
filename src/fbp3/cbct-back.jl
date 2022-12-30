@@ -9,39 +9,26 @@ using ImageGeoms: ImageGeom
 export cbct_back
 
 
-# scale projections by dβ for Riemann-like integration
-function _view_weights(ar::AbstractVector{<:RealU})
-    da = diff(ar) # typically 2π/na for 360° orbit
-#   da1 = betas[begin] - (ar[end] - 2π)
-    da = [da[1]; da] # todo
-    return reshape(da, 1, 1, :) / 2
-end
-
-
 """
     cbct_back(proj, rg, ig)
 
 Cone-beam backprojector for feldkamp.jl
 
 # in
-* `proj` (ns,nt,na)     cone-beam projection views
+* `proj (ns,nt,na)` cone-beam projection views
 * `rg::CtGeom`
 * `ig::ImageGeom`
 
 # out
-* `img` (nx,ny,nz) back-projection result
+* `img (nx,ny,nz)` back-projection result
 """
 function cbct_back(
-    proj::AbstractArray{Ts,3},
-    rg::CtFan{Td, To},
-    ig::ImageGeom{3} ;
+    proj::AbstractArray{<:Number,3},
+    rg::CtFan,
+    ig::ImageGeom{3},
+    ;
     ia_skip::Int = 1,
-) where {Ts <:Number, Td, To}
-
-    # type inference help:
-    Toffset = Float32 # eltype(rg.offset_s)
-    T = eltype(oneunit(Ts) *
-        (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
+)
 
     return cbct_back_fan(proj,
         _ar(rg), # "betas"
@@ -54,12 +41,12 @@ function cbct_back(
         axes(ig)...,
         ig.mask ;
         ia_skip,
-    )::Array{T,3}
+    )
 end
 
 
 function cbct_back_fan(
-    proj::AbstractArray{<:Ts,3},
+    proj::AbstractArray{Ts,3},
     betas::AbstractVector{To},
     dsd::RealU,
     dso::RealU,
@@ -70,14 +57,15 @@ function cbct_back_fan(
     offset_t::Toffset,
     is_arc::Bool,
 #   source_zs = zeros(na),
-    xc::AbstractVector{<:Tc},
-    yc::AbstractVector{<:Tc},
-    zc::AbstractVector{<:Tc},
-    mask::AbstractArray{Bool,3} ;
+    xc::AbstractVector{Tc},
+    yc::AbstractVector{Tc},
+    zc::AbstractVector{Tc},
+    mask::AbstractArray{Bool,3},
+    ;
     ia_skip::Int = 1,
-    T::Type{<:Number} = eltype(oneunit(Ts)
-        * (oneunit(To) * oneunit(Tc) / oneunit(Tds) + oneunit(Toffset))),
-)::Array{T,3} where {
+    T::Type{<:Number} = typeof(oneunit(Ts) *
+        (oneunit(To) * oneunit(Tc) / oneunit(Tds) + oneunit(Toffset))),
+) where {
     Ts <: Number,
     To <: RealU,
     Tds <: RealU,
@@ -107,7 +95,7 @@ This should work even for non-uniformly spaced source angles
 function cbct_back_fan!(
     image::Array{T,3},
     proj::AbstractArray{<:Number,3},
-    betas::AbstractVector{To},
+    betas::AbstractVector{<:RealU},
     dsd::RealU,
     dso::RealU,
 #   offset_source::RealU,
@@ -120,9 +108,10 @@ function cbct_back_fan!(
     xc::AbstractVector{<:RealU},
     yc::AbstractVector{<:RealU},
     zc::AbstractVector{<:RealU},
-    mask::AbstractArray{Bool,3} ;
+    mask::AbstractArray{Bool,3},
+    ;
     ia_skip::Int = 1,
-) where {T <: Number, To <: RealU, Toffset <: Real}
+) where {T <: Number, Toffset <: Real}
 
     length.((xc,yc,zc)) == size(image) == size(mask) || throw("size mismatch")
 
@@ -147,8 +136,7 @@ function cbct_back_fan!(
             proj, sinβ, cosβ, dt / ds, ws, wt,
 #           offset_source / ds,
             dsd / ds, dso / ds, is_arc,
-            xc_ds[c[1]], yc_ds[c[2]], zc_ds[c[3]] ;
-            T
+            xc_ds[c[1]], yc_ds[c[2]], zc_ds[c[3]]
         )
     end
 
@@ -158,6 +146,7 @@ end
 
 # back-project all views to one voxel
 # at location (xc,yc,zc)
+# Output voxel has same units as `proj`.
 @inline function cbct_back_fan_voxel(
     proj::AbstractArray{Tp,3},
     sinβ::AbstractVector{To},
@@ -172,8 +161,7 @@ end
 #   source_zs = zeros(na) #for some reason in matlab this array is all zeros
     x_ds::Tx,
     y_ds::Tx,
-    z_ds::Tx ;
-    T::Type{<:Number} = eltype(oneunit(Tp) * one(To) * one(Tw) * one(Tx)),
+    z_ds::Tx,
 ) where {Tp <: Number, To <: Real, Tw <: Real, Tx <: Real}
 
     voxel = zero(Tp)

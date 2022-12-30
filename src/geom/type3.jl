@@ -217,7 +217,7 @@ function CtPar( ;
     offset_t::Real = 0,
     na::Int = 60,
     orbit::RealU = 180,
-    orbit_start::RealU = zero(eltype(orbit)),
+    orbit_start::RealU = zero(typeof(orbit)),
 )
 
     To = _promoter(orbit, orbit_start)
@@ -260,7 +260,7 @@ function CtMoj( ;
     offset_t::Real = 0,
     na::Int = 60,
     orbit::RealU = 180,
-    orbit_start::RealU = zero(eltype(orbit)),
+    orbit_start::RealU = zero(typeof(orbit)),
 )
 
     To = _promoter(orbit, orbit_start)
@@ -312,8 +312,8 @@ function CtFanArc( ;
     offset_t::Real = 0,
     na::Int = 64,
     orbit::RealU = 360,
-    orbit_start::RealU = zero(eltype(orbit)),
-    source_offset::RealU = zero(eltype(ds)),
+    orbit_start::RealU = zero(typeof(orbit)),
+    source_offset::RealU = zero(typeof(ds)),
     dsd::RealU = 4 * ns * ds,
     dod::RealU = ns * ds,
     src::CtSource = CtSourceCircle(),
@@ -380,8 +380,8 @@ function CtFanFlat( ;
     offset_t::Real = 0,
     na::Int = 64,
     orbit::RealU = 360,
-    orbit_start::RealU = zero(eltype(orbit)),
-    source_offset::RealU = zero(eltype(ds)),
+    orbit_start::RealU = zero(typeof(orbit)),
+    source_offset::RealU = zero(typeof(ds)),
     dsd::RealU = 4ns * ds,
     dod::RealU = ns * ds,
     src::CtSource = CtSourceCircle(),

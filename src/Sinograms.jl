@@ -19,10 +19,11 @@ include("geom/tau.jl")
 include("fbp/reale.jl")
 include("fbp/window.jl")
 
+include("fbp/d-angle.jl")
 include("fbp/ramp.jl")
 include("fbp/filter.jl")
+include("fbp/parker.jl")
 
-include("fbp2/parker.jl")
 include("fbp2/sino-weight.jl")
 include("fbp2/back-par.jl")
 include("fbp2/back-fan.jl")

@@ -16,8 +16,8 @@ dims(rg::CtGeom) = (rg.ns, rg.nt, rg.na)
 # use ° via `angles()` because mainly for plots
 Base.axes(rg::CtGeom) = (_s(rg), _t(rg), angles(rg))
 
-_ws(rg::CtGeom) = ((rg.ns-1)//2 + rg.offset_s)
-_wt(rg::CtGeom) = ((rg.nt-1)//2 + rg.offset_t)
+_ws(rg::CtGeom) = (rg.ns-1) // 2 + rg.offset_s
+_wt(rg::CtGeom) = (rg.nt-1) // 2 + rg.offset_t
 
 _s(rg::CtGeom) = rg.ds * ((0:rg.ns-1) .- _ws(rg))
 _t(rg::CtGeom) = rg.dt * ((0:rg.nt-1) .- _wt(rg))

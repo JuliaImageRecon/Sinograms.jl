@@ -19,7 +19,7 @@ julia> Window(Hamming(), 0.8)
 Window{Hamming, Float64}(Hamming(), 0.8)
 ```
 """
-struct Window{S,T}
+struct Window{S <: AbstractWindowShape, T <: Real}
     shape::S
     cutoff::T
     function Window(
@@ -38,11 +38,8 @@ A user-specified window vector, constructed via `WindowVect(v::V)`,
 where `v` is a `AbstractVector`.
 Caution: `length(v)` must be appropriate for the padded sinogram size.
 """
-struct WindowVect{V} <: AbstractWindowShape
+struct WindowVect{V <: AbstractVector{<:Real}} <: AbstractWindowShape
     v::V
-    function WindowVect(v::V) where {V <: AbstractVector{<:Real}}
-         new{V}(v)
-    end
 end
 
 
