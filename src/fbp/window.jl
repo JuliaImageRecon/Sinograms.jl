@@ -57,10 +57,11 @@ julia> fbp_window(Window(Hamming()), 4)
  0.54
 ```
 """
-function fbp_window(w::Window, N::Int ; T = Float32)
+function fbp_window(w::Window, N::Int ; T::Type{<:AbstractFloat} = Float32)
     width = w.cutoff * N
-    win = [T(window(w, width, n)) for n in (0:N-1) .- N÷2]
-    return fftshift(win)::Vector{T}
+    win = Vector{T}(undef, N) # helps type inference for following line:
+    win .= [window(w, width, n) for n in (0:N-1) .- N÷2]
+    return fftshift(win)
 end
 
 function fbp_window(
