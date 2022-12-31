@@ -91,7 +91,7 @@ call `fbp` with the `plan`
 - `rg::SinoGeom`
 - `ig::ImageGeom` only reconstruct pixels within `ig.mask`.
 
-# options
+# option
 - `how::Symbol` how to reconstruct
     * `:normal` default
     * `:mojette` use mojette rebinning and Gtomo2_table

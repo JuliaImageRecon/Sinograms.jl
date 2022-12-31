@@ -18,7 +18,7 @@ using ImageGeoms: ImageGeom, embed
 - `ig::ImageGeom`
 - `sino::AbstractArray{<:Number}` sinogram(s) (line integrals), usually ramp filtered
 
-# options
+# option
 - `ia_skip::Int` downsample in angle to save time for quick tests (default: 1)
 
 # out
@@ -28,18 +28,15 @@ fbp_back
 
 # parallel-beam case
 function fbp_back(
-    rg::SinoPar{Td, To},
+    rg::SinoPar,
     ig::ImageGeom,
-    sino::AbstractMatrix{Ts} ;
+    sino::AbstractMatrix{<:Number},
+    ;
     ia_skip::Int = 1,
 #   do_r_mask::Bool = false
-) where {Td, To, Ts <: Number}
+)
 
     dims(rg) == size(sino) || throw("sino size")
-
-    # type inference help:
-    Toffset = Float32 # typeof(rg.offset)
-    T = typeof(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
 
     return fbp_back_par(
         sino, _ar(rg),
@@ -48,7 +45,7 @@ function fbp_back(
 #       ndgrid(axes(ig)...)...,
         axes(ig)...,
         ig.mask ; ia_skip,
-    )::Matrix{T}
+    )
 end
 
 
@@ -126,7 +123,7 @@ function fbp_back_par_old(
     end
 
     img .*= (π * ia_skip / na)
-    return embed(img, mask)::Matrix{T}
+    return embed(img, mask)
 end
 =#
 
@@ -165,7 +162,8 @@ function fbp_back_par(
     offset::Toffset,
     xc::AbstractArray{Tc},
     yc::AbstractArray{Tc},
-    mask::AbstractMatrix{Bool} ;
+    mask::AbstractMatrix{Bool},
+    ;
     ia_skip::Int = 1,
     T = typeof(oneunit(Ts) * (oneunit(To) * oneunit(Tc) / oneunit(Tds) + oneunit(Toffset)))
 ) where {Ts <: Number, To <: RealU, Tds <: RealU, Toffset <: Real, Tc <: RealU}
@@ -214,7 +212,8 @@ function fbp_back_par!(
     offset::Toffset,
     xc::AbstractArray{<:RealU},
     yc::AbstractArray{<:RealU},
-    mask::AbstractMatrix{Bool} ;
+    mask::AbstractMatrix{Bool},
+    ;
     ia_skip::Int = 1,
 ) where {T <: Number, Toffset <: Real}
 
@@ -280,7 +279,8 @@ function fbp_back_par_xy(
     cosϕ::AbstractVector{To}, # cos.(angles) (na_subset)
     wb::Tb, # (nb+1)/2 + offset
     x_ds::Tx, # xc / ds
-    y_ds::Tx ;
+    y_ds::Tx,
+    ;
     T::Type{<:Number} = typeof(oneunit(Ts) * one(To) * one(Tb) * one(Tx)),
 ) where {Ts <: Number, To <: Real, Tb <: Real, Tx <: Real}
 
@@ -311,5 +311,5 @@ function fbp_back_par_xy(
         end
     end
 
-    return pixel # * (π / na_subset) # todo
+    return pixel
 end

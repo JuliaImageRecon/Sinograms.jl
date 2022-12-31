@@ -7,18 +7,16 @@ using ImageGeoms: ImageGeom
 
 
 """
-    image, sino_filt = fbp(plan, sino)
+    fbp(plan, sino)
 
-Filtered back-projection (FBP) reconstruction,
-returning image and filtered sinogram.
+Filtered back-projection (FBP) reconstruction.
 
-in
+# in
 - `plan::FBPplan`
-- `sino::AbstractMatrix{<:Number}`
+- `sino::AbstractArray{<:Number} (nb,na,...)` sinogram(s)
 
-out
-- `image::Matrix{<:Number}`       reconstructed image(s)
-- `sino_filt::Matrix{<:Number}`   filtered sinogram(s)
+# out
+- `image::Matrix{<:Number} (nx,ny,...)` reconstructed image(s)
 """
 fbp
 
@@ -35,22 +33,37 @@ function fbp(
     sino::AbstractMatrix{<:Number},
 )
     sino = sino .* fbp_sino_weight(plan.rg) # fan-beam weighting
-    out = fbp(plan.rg, plan.ig, sino, plan.filter, plan.view_weight)
-    return out[1], out[2]
+    return fbp(plan.rg, plan.ig, sino, plan.filter, plan.view_weight)
 end
 
 
-# 3D stack of sinograms
+#=
+3D stack of sinograms
+It seems that `mapslices` is not type stable (in v1.8),
+so I resort to manual type inference and a loop.
+=#
 function fbp(
     plan::FBPNormalPlan{<:SinoGeom},
-    aa::AbstractArray{Ts, D},
-) where {Ts <: Number, D}
+    aa::AbstractArray{Ts},
+) where {Ts <: Number}
+
+    # manual way:
     Th = eltype(plan.filter)
     Tp = eltype(plan.view_weight)
-    To = typeof(oneunit(Ts) * oneunit(Th) * oneunit(Tp))
-    fun(sino2) = fbp(plan, sino2)[1] # discard sino_filt!
+    To = typeof(1f0 * oneunit(Ts) * oneunit(Th) * oneunit(Tp))
+    out = Array{To}(undef, size(plan.ig)..., size(aa)[3:end]...)
+    sino3 = reshape(aa, size(aa)[1:2]..., :) # (nb,na,:)
+    for iz in 1:prod(size(aa)[3:end])
+       reshape(out, size(out)[1:2]..., :)[:,:,iz] .= fbp(plan, @view sino3[:,:,iz])#[1]
+    end
+
+#=
+    # simpler way that is not type stable:
+    fun = Base.Fix1(fbp, plan)
     out = mapslices(fun, aa, dims = [1,2])
-    return out::Array{To,D} # todo
+=#
+
+    return out
 end
 
 
@@ -68,7 +81,7 @@ function fbp(
     sino_filt = fbp_sino_filter(sino_filt, filter)
 
     image = fbp_back(rg, ig, sino_filt)
-    return image, sino_filt
+    return image
 end
 
 
@@ -98,11 +111,11 @@ function fbp(
         rg = plan.rg
         arg1 = [uint8(ig.mask), ig.dx, ig.dy, ig.offset_x, sign(ig.dy) * ig.offset_y] # trick: old backproject
         arg2 = [rg.d(1:rg.na), rg.offset, rg.orbit, rg.orbit_start]
-# todo  image = jf_mex("back2", arg1[:], arg2[:], int32(arg.nthread), single(sino))
+#       image = jf_mex("back2", arg1[:], arg2[:], int32(arg.nthread), single(sino))
         image = image .* plan.ig.mask
     end
 
-    return image, sino
+    return image
 end
 =#
 

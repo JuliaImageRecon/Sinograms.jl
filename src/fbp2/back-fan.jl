@@ -9,19 +9,15 @@ using ImageGeoms: ImageGeom, embed
 
 # fan-beam case
 function fbp_back(
-    rg::SinoFan{Td, To},
+    rg::SinoFan,
     ig::ImageGeom,
-    sino::AbstractMatrix{Ts} ;
+    sino::AbstractMatrix{<:Number} ;
     ia_skip::Int = 1,
-) where {Td, To, Ts <: Number}
+)
 
     dims(rg) == size(sino) || throw("sino size")
 
     is_arc = iszero(_dfs(rg)) ? true : isinf(_dfs(rg)) ? false : throw("bad dfs")
-
-    # type inference help:
-    Toffset = Float32 # typeof(rg.offset)
-    T = typeof(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
 
     return fbp_back_fan(
         sino, _ar(rg),
@@ -32,7 +28,7 @@ function fbp_back(
 #       ndgrid(axes(ig)...)...,
         axes(ig)...,
         ig.mask ; ia_skip,
-    )::Matrix{T}
+    )
 end
 
 
@@ -124,7 +120,7 @@ function fbp_back_fan_old(
     end
 
     img .*= (π * ia_skip / na)
-    return embed(img, mask)::Matrix{T}
+    return embed(img, mask)
 end
 =#
 
@@ -170,7 +166,8 @@ function fbp_back_fan(
     offset::Toffset,
     xc::AbstractArray{Tc},
     yc::AbstractArray{Tc},
-    mask::AbstractMatrix{Bool} ;
+    mask::AbstractMatrix{Bool},
+    ;
     ia_skip::Int = 1,
     T::Type{<:Number} = typeof(oneunit(Ts) *
         (oneunit(To) * oneunit(Tc) / oneunit(Tds) + oneunit(Toffset))),
@@ -335,5 +332,5 @@ function fbp_back_fan_xy(
         end
     end
 
-    return pixel # * (π / na_subset) todo
+    return pixel
 end

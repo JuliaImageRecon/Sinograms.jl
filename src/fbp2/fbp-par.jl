@@ -83,7 +83,7 @@ function fbp!(
     ig = ImageGeom(ig.dims, ig.deltas, ig.offsets, mask)
     plan = plan_fbp(rg, ig ; kwargs...)
 #   fbp!(image, sino, plan) # todo
-    tmp, _ = fbp(plan, sino) # todo: integrate better!
+    tmp = fbp(plan, sino) # todo: integrate better!
     copyto!(image, tmp)
     return image
 end
@@ -95,7 +95,7 @@ function fbp!(
     sino::AbstractMatrix{<:Number},
     plan::FBPNormalPlan,
 )
-    tmp, _ = fbp(plan, sino) # todo: integrate better!
+    tmp = fbp(plan, sino) # todo: integrate better!
     copyto!(image, tmp)
     return image
 end
