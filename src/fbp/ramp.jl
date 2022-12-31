@@ -11,11 +11,11 @@ export fbp_ramp, ramp_flat, ramp_arc
 This sampled band-limited approach avoids the aliasing that would be
 caused by sampling the ramp directly in the frequency domain.
 
-in
+# in
 - `rg::SinoGeom`
 - `N::Int` : # of samples (must be even)
 
-out
+# out
 - `h::Vector{<:RealU}` : samples of band-limited ramp filter
 - `n::UnitRange{Int64}` : -(N÷2):(N÷2-1)
 """
