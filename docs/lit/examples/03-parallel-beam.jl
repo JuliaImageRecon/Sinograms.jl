@@ -24,7 +24,7 @@ This page was generated from a single Julia file:
 
 # Packages needed here.
 
-using Sinograms: SinoPar, rays, plan_fbp, fbp
+using Sinograms: SinoPar, rays, plan_fbp, fbp, fbp_sino_filter
 using ImageGeoms: ImageGeom, fovs, MaskCircle
 using ImagePhantoms: SheppLogan, shepp_logan, radon, phantom
 using Unitful: mm
@@ -70,7 +70,7 @@ jim(axes(rg), sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
 # which would save work if we were reconstructing many images.
 
 plan = plan_fbp(rg, ig)
-fbp_image, sino_filt = fbp(plan, sino)
+fbp_image = fbp(plan, sino)
 
 
 # A narrow color window is needed to see the soft tissue structures:
@@ -80,3 +80,7 @@ jim(axes(ig), fbp_image, "FBP image"; clim)
 # For comparison, here is the ideal phantom image
 true_image = phantom(axes(ig)..., ob, 2)
 jim(axes(ig)..., true_image, "True phantom image"; clim)
+
+# For fun, here is the filtered sinogram:
+sino_filt = fbp_sino_filter(sino, plan.filter)
+jim(axes(rg), sino_filt; title="Filtered sinogram", xlabel="r", ylabel="ϕ")

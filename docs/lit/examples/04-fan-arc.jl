@@ -89,7 +89,7 @@ which would save work if we were reconstructing many images.
 =#
 
 plan = plan_fbp(rg, ig)
-fbp_image, sino_filt = fbp(plan, sino)
+fbp_image = fbp(plan, sino)
 
 
 # A narrow color window is needed to see the soft tissue structures:

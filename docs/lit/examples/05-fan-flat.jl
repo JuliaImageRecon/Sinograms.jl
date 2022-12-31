@@ -86,7 +86,7 @@ For illustration we include `Hamming` window.
 =#
 
 plan = plan_fbp(rg, ig; window = Window(Hamming(), 1.0))
-fbp_image, sino_filt = fbp(plan, sino)
+fbp_image = fbp(plan, sino)
 
 
 # A narrow color window is needed to see the soft tissue structures:

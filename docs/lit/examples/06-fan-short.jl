@@ -109,7 +109,7 @@ jim(axes(rg), plan.view_weight; title = "Parker weights",
     xlabel="r", ylabel="ϕ")
 
 # Finally perform FBP:
-fbp_image, sino_filt = fbp(plan, sino);
+fbp_image = fbp(plan, sino);
 
 # A narrow color window is needed to see the soft tissue structures:
 clim = (0.9, 1.1) .* μ
