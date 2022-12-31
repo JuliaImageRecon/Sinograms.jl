@@ -57,16 +57,16 @@ end
 
 
 """
-    fft_filter(data::Array, filter::Vector [, dim=1])
+    fft_filter(data::Array, filter::Vector [, dim])
 
-Apply filter to first dimension of array `data` using FFT.
+Apply filter to selected dimensions of array `data` using FFT.
 
 # in
 - `data::AbstractArray{<:Number} (n, (L))`
 - `filter::AbstractVector (n)` apodized ramp filter frequency response
 
 # option
-- `dim` todo: non-singleton dims of filter
+- `dim` non-singleton dimensions of `filter` (typically `1`)
 
 # out
 - `out::AbstractArray` data filtered along dimension `dim`
@@ -81,25 +81,23 @@ fft_filter
 function _fft_filter(
     data::AbstractArray{<:Number},
     filter::AbstractArray,
-    dim = 1,
+    dim = findall(!=(1), size(filter)),
 )
     return ifft(fft(data, dim) .* filter, dim)
 end
 
 function fft_filter(
     data::AbstractArray{<:Complex},
-    filter::AbstractArray,
-    dim = 1,
+    args...
 )
-    return _fft_filter(data, filter, dim)
+    return _fft_filter(data, args...)
 end
 
 function fft_filter(
     data::AbstractArray{<:Real},
-    filter::AbstractArray,
-    dim = 1,
+    args...
 )
-    return _reale(_fft_filter(data, filter, dim))
+    return _reale(_fft_filter(data, args...))
 end
 
 
