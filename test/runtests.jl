@@ -5,8 +5,6 @@ using Test: @test, @testset, detect_ambiguities
 
 include("units.jl")
 
-include("helper.jl")
-
 include("geom/types.jl")
 include("geom/sino-geom.jl")
 include("geom/ct-geom.jl")

@@ -6,7 +6,6 @@ using FFTW: fft
 using Unitful: mm
 using Test: @test, @testset, @test_throws, @inferred
 
-include("../helper.jl")
 
 @testset "fbp/filter" begin
     for d_ in (2, 2f0, 2.0), du in (1, 1mm)
