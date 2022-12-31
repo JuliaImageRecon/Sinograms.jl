@@ -106,7 +106,7 @@ function fbp_sino_filter(
     sino[(nb+1):(nb+extra), :] .= zero(eltype(sino))
     sino = reshape(sino, nb, :, dimpadding[3:end]...) # for >2D sinogram array
 
-    U = typeof(unit_s * unit_f) # todo
+    U = typeof(unit_s * unit_f)
     return sino::Array{U, N}
 end
 
