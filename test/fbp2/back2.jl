@@ -18,39 +18,39 @@ using Sinograms: fbp_back_fan_old
 
 #   ig = @inferred ImageGeom(MaskCircle(), dims=(32,30), deltas=(1mm,1mm) )
     ig = @inferred ImageGeom(dims=(32,30), deltas=(1mm,1mm) )
-#   sg = SinoPar( ; nb = 12, d=2mm) # intentionally small FOV
-    sg = SinoPar( ; nb = 36, d=1mm)
-    sg = SinoFanArc( ; nb = 36, d=1mm)
+#   rg = SinoPar( ; nb = 12, d=2mm) # intentionally small FOV
+    rg = SinoPar( ; nb = 36, d=1mm)
+    rg = SinoFanArc( ; nb = 36, d=1mm)
 
     seed!(0)
     xc, yc = axes(ig)
-    sino = randn(Float32, sg.dim)
+    sino = randn(Float32, rg.dim)
 
-  if sg isa SinoPar
-    f1 = sino -> fbp_back_par_old(sino, sg.ar, sg.ds, sg.offset, # sg.rfov,
+  if rg isa SinoPar
+    f1 = sino -> fbp_back_par_old(sino, rg.ar, rg.ds, rg.offset, # rg.rfov,
          ndgrid(xc, yc)..., ig.mask ; warned=true)
-    f2 = sino -> fbp_back_par(sino, sg.ar, sg.ds, sg.offset,
+    f2 = sino -> fbp_back_par(sino, rg.ar, rg.ds, rg.offset,
          xc, yc, ig.mask)
-    sang = sin.(sg.ar)
-    cang = cos.(sg.ar)
+    sang = sin.(rg.ar)
+    cang = cos.(rg.ar)
     f3! = (image, sino) -> fbp_back_par!(image, sino, sang, cang,
-         sg.ds, sg.offset, xc, yc, ig.mask)
+         rg.ds, rg.offset, xc, yc, ig.mask)
 
   else # fan
-    is_arc = sg isa SinoFanArc
-    f1 = sino -> fbp_back_fan_old(sino, sg.ar,
-         sg.dsd, sg.dso, sg.source_offset, is_arc,
-         sg.ds, sg.offset, # sg.rfov,
+    is_arc = rg isa SinoFanArc
+    f1 = sino -> fbp_back_fan_old(sino, rg.ar,
+         rg.dsd, rg.dso, rg.source_offset, is_arc,
+         rg.ds, rg.offset, # rg.rfov,
          ndgrid(xc, yc)..., ig.mask ; warned=true)
-    f2 = sino -> fbp_back_fan(sino, sg.ar,
-         sg.dsd, sg.dso, sg.source_offset, is_arc,
-         sg.ds, sg.offset,
+    f2 = sino -> fbp_back_fan(sino, rg.ar,
+         rg.dsd, rg.dso, rg.source_offset, is_arc,
+         rg.ds, rg.offset,
          xc, yc, ig.mask)
-    sβ = sin.(sg.ar)
-    cβ = cos.(sg.ar)
+    sβ = sin.(rg.ar)
+    cβ = cos.(rg.ar)
     f3! = (image, sino) -> fbp_back_fan!(image, sino, sβ, cβ,
-         sg.dsd, sg.dso, sg.source_offset, is_arc,
-         sg.ds, sg.offset, xc, yc, ig.mask)
+         rg.dsd, rg.dso, rg.source_offset, is_arc,
+         rg.ds, rg.offset, xc, yc, ig.mask)
   end
 
     b1 = f1(sino)
@@ -60,9 +60,9 @@ using Sinograms: fbp_back_fan_old
     @test b1 ≈ b2 ≈ b3
 
 #=
-    x = xc[10] / sg.d
-    y = yc[10] / sg.d
-    f4 = sino -> fbp_back_par_xy(sino, sang, cang, sg.w,
+    x = xc[10] / rg.d
+    y = yc[10] / rg.d
+    f4 = sino -> fbp_back_par_xy(sino, sang, cang, rg.w,
           x, y ; T = Float32)
     f4(sino); # warm up
 
@@ -78,8 +78,8 @@ using Sinograms: fbp_back_fan_old
 @testset "fbp2/back2" begin
     ig = @inferred ImageGeom( dims=(32,30), deltas=(1mm,1mm) )
     for geom in (SinoPar, SinoFanArc, SinoFanFlat)
-        sg = geom( ; nb = 12, d=2mm) # intentionally small FOV
-        back = @inferred fbp_back(sg, ig, ones(sg) * 3mm; ia_skip = 2)
+        rg = geom( ; nb = 12, d=2mm) # intentionally small FOV
+        back = @inferred fbp_back(rg, ig, ones(rg) * 3mm; ia_skip = 2)
         @test back isa Matrix
     end
 end

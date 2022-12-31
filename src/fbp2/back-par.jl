@@ -9,16 +9,16 @@ using ImageGeoms: ImageGeom, embed
 
 
 """
-    img = fbp_back(sg, ig, sino ; ia_skip)
+    img = fbp_back(rg, ig, sino ; ia_skip)
 
 2D pixel-driven backprojection for FBP.
 
 # in
-- `sg::SinoGeom`
+- `rg::SinoGeom`
 - `ig::ImageGeom`
 - `sino::AbstractArray{<:Number}` sinogram(s) (line integrals), usually ramp filtered
 
-# options
+# option
 - `ia_skip::Int` downsample in angle to save time for quick tests (default: 1)
 
 # out
@@ -28,27 +28,24 @@ fbp_back
 
 # parallel-beam case
 function fbp_back(
-    sg::SinoPar{Td, To},
+    rg::SinoPar,
     ig::ImageGeom,
-    sino::AbstractMatrix{Ts} ;
+    sino::AbstractMatrix{<:Number},
+    ;
     ia_skip::Int = 1,
 #   do_r_mask::Bool = false
-) where {Td, To, Ts <: Number}
+)
 
-    dims(sg) == size(sino) || throw("sino size")
-
-    # type inference help:
-    Toffset = Float32 # eltype(sg.offset)
-    T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
+    dims(rg) == size(sino) || throw("sino size")
 
     return fbp_back_par(
-        sino, sg.ar,
-        sg.ds, sg.offset,
-#       sg.rfov,
+        sino, _ar(rg),
+        rg.d, rg.offset,
+#       _rfov(rg),
 #       ndgrid(axes(ig)...)...,
         axes(ig)...,
         ig.mask ; ia_skip,
-    )::Matrix{T}
+    )
 end
 
 
@@ -68,7 +65,7 @@ function fbp_back_par_old(
 ) where {Tds <: RealU, Tc <: RealU, Toffset <: Real, Ts <: Number, To <: RealU}
 
     Td = promote_type(Tds, Tc)
-    T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
+    T = typeof(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
 
     nb, na = size(sino)
 
@@ -126,7 +123,7 @@ function fbp_back_par_old(
     end
 
     img .*= (π * ia_skip / na)
-    return embed(img, mask)::Matrix{T}
+    return embed(img, mask)
 end
 =#
 
@@ -165,9 +162,10 @@ function fbp_back_par(
     offset::Toffset,
     xc::AbstractArray{Tc},
     yc::AbstractArray{Tc},
-    mask::AbstractMatrix{Bool} ;
+    mask::AbstractMatrix{Bool},
+    ;
     ia_skip::Int = 1,
-    T = eltype(oneunit(Ts) * (oneunit(To) * oneunit(Tc) / oneunit(Tds) + oneunit(Toffset)))
+    T = typeof(oneunit(Ts) * (oneunit(To) * oneunit(Tc) / oneunit(Tds) + oneunit(Toffset)))
 ) where {Ts <: Number, To <: RealU, Tds <: RealU, Toffset <: Real, Tc <: RealU}
 
     image = zeros(T, size(mask)) # need zero(T) outside mask
@@ -214,7 +212,8 @@ function fbp_back_par!(
     offset::Toffset,
     xc::AbstractArray{<:RealU},
     yc::AbstractArray{<:RealU},
-    mask::AbstractMatrix{Bool} ;
+    mask::AbstractMatrix{Bool},
+    ;
     ia_skip::Int = 1,
 ) where {T <: Number, Toffset <: Real}
 
@@ -280,8 +279,9 @@ function fbp_back_par_xy(
     cosϕ::AbstractVector{To}, # cos.(angles) (na_subset)
     wb::Tb, # (nb+1)/2 + offset
     x_ds::Tx, # xc / ds
-    y_ds::Tx ;
-    T::Type{<:Number} = eltype(oneunit(Ts) * one(To) * one(Tb) * one(Tx)),
+    y_ds::Tx,
+    ;
+    T::Type{<:Number} = typeof(oneunit(Ts) * one(To) * one(Tb) * one(Tx)),
 ) where {Ts <: Number, To <: Real, Tb <: Real, Tx <: Real}
 
     nb = size(sino,1)
@@ -311,5 +311,5 @@ function fbp_back_par_xy(
         end
     end
 
-    return pixel * (π / na_subset)
+    return pixel
 end

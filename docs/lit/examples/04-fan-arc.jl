@@ -64,11 +64,11 @@ but units are optional.
 ig = ImageGeom(MaskCircle(); dims=(128,126), deltas = (2mm,2mm) )
 
 # Use `SinoFanArc` to define the sinogram geometry.
-sg = SinoFanArc( ; nb = 130, d = 3.2mm, na = 100, dsd = 400mm, dod = 140mm)
+rg = SinoFanArc( ; nb = 130, d = 3.2mm, na = 100, dsd = 400mm, dod = 140mm)
 
 # Examine the geometry to verify the FOV:
 jim(axes(ig), ig.mask; prompt=false)
-sino_geom_plot!(sg, ig)
+sino_geom_plot!(rg, ig)
 
 #
 prompt()
@@ -78,8 +78,8 @@ prompt()
 ob = shepp_logan(SheppLogan(); fovs = fovs(ig), u = (1, 1, μ))
 
 # Arc fan-beam sinogram for Shepp-Logan phantom:
-sino = radon(rays(sg), ob)
-jim(axes(sg), sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
+sino = radon(rays(rg), ob)
+jim(axes(rg), sino; title="Shepp-Logan sinogram", xlabel="r", ylabel="ϕ")
 
 
 #=
@@ -88,8 +88,8 @@ Here we start with a "plan",
 which would save work if we were reconstructing many images.
 =#
 
-plan = plan_fbp(sg, ig)
-fbp_image, sino_filt = fbp(plan, sino)
+plan = plan_fbp(rg, ig)
+fbp_image = fbp(plan, sino)
 
 
 # A narrow color window is needed to see the soft tissue structures:

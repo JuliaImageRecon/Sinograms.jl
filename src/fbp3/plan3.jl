@@ -3,87 +3,89 @@
 export FDKplan, plan_fbp
 
 using ImageGeoms: ImageGeom
-# using Sinograms: CtGeom Window fbp_filter parker_weight_fan
+# using Sinograms: CtGeom Window fbp_filter
+# using Sinograms: parker_weight _angle_weights fdk_weight_cyl
 
 
 """
-    FDKplan{C,I,H,P}
+    FDKplan{C,I,H,V}
 Struct type for storing FDK plan.
+
+The `view_weight` can include (products of)
+- Parker weighting for short scans
+- view-wise CBCT weighting from `fdk_weight_cyl`
+- `dβ` weighting for possibly nonuniform angles from `_angle_weights`
 """
 struct FDKplan{
     C <: CtGeom,
     I <: ImageGeom{3},
     H <: AbstractVector{<:RealU},
-    P <: Any,
+    V <: AbstractArray{<:RealU},
 }
-    cg::C
+    rg::C
     ig::I
     filter::H # frequency response Hk of apodized ramp filter, length npad
-    parker_weight::P
-
-#=
-    function FDKplan(
-        cg::C,
-        ig::I,
-        window::W,
-        parker_weight::P,
-    ) where {C <: CtGeom, I <: ImageGeom{3},
-        W <: Window, P <: AbstractArray{<:Real}}
-        return FDKplan{C,I,W,P}(cg, ig, window, parker_weight)
-    end
-=#
+    view_weight::V
 end
 
 
 """
-    plan = plan_fbp(cg, ig; window=Window(), ...)
+    plan = plan_fbp(rg, ig; window=Window(), ...)
 
 Plan FDK 3D CBCT image reconstruction,
 with either flat or arc detector.
 
-To use this, you first call it with the CT geometry and image geometry.
+To use this method,
+you first call it with the CT geometry
+and image geometry.
 The routine returns the initialized `plan`.
 Thereafter, to to perform FDK reconstruction,
 call `fbp` with the `plan`
 (perhaps numerous times for the same geometry).
 
-
 # in
-- `cg::CtGeom`
+- `rg::CtGeom`
 - `ig::ImageGeom` only reconstruct pixels within `ig.mask`.
 
-# options
+# option
 - `window::Window` e.g., `Window(Hamming(), 0.8)`; default `Window()`
-- `npad::Int` # of radial bins after padding; default `nextpow(2, cg.ns + 1)`
+- `npad::Int` # of radial bins after padding;
+  default `nextpow(2, rg.ns + 1)`
 - `decon1::Bool` deconvolve interpolator effect? (default `true`)
--`T::Type{<:Number}` type of sino elements (default `Float32`)
 
 # out
 - `plan::FDKplan` initialized plan
 
 """
 function plan_fbp(
-    cg::CtGeom,
-    ig::ImageGeom ;
+    rg::CtGeom,
+    ig::ImageGeom,
+    ;
     window::Window = Window(),
-    npad::Int = nextpow(2, cg.ns + 1),
+    npad::Int = nextpow(2, rg.ns + 1),
     decon1::Bool = true,
-    T::Type{<:Number} = Float32,
+    filter::AbstractVector{<:RealU} = fbp_filter(rg ; npad, window, decon1),
 )
 
-    filter = fbp_filter(cg ; npad, window, decon1)
-    weight = parker_weight(cg)
-
-    return FDKplan(cg, ig, filter, weight)
+    weight = _fdk_weights(rg)
+    return FDKplan(rg, ig, filter, weight)
 end
 
 
-function Base.show(io::IO, ::MIME"text/plain", p::FDKplan{C,I,H,P}) where {C,I,H,P}
-    c = p.cg
-    println(io, "FDKplan{C,I,H,P} with")
-    println(io, " C = $C ", (c.ns, c.nt, c.na))
-    i = p.ig
-    println(io, " I = $I ", i.dims)
+function _fdk_weights(rg::CtGeom)
+    weight = parker_weight(rg) .*
+        fdk_weight_cyl(rg) .*
+        _angle_weights(_ar(rg))
+    return weight
+end
+
+
+function Base.show(io::IO, ::MIME"text/plain", p::FDKplan{C,I,H,V}) where {C,I,H,V}
+    rg = p.rg
+    println(io, "FDKplan{C,I,H,V} with")
+    println(io, " C = $C ", (rg.ns, rg.nt, rg.na))
+    ig = p.ig
+    println(io, " I = $I ", ig.dims)
     println(io, " H = $H ", size(p.filter), " with extrema ", extrema(p.filter))
-    println(io, " P = $P ", size(p.parker_weight), " with extrema ", extrema(p.parker_weight))
+    println(io, " V = $V ", size(p.view_weight), " with extrema ", extrema(p.view_weight))
 end

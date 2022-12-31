@@ -54,9 +54,9 @@ function fbp!(
     image::AxisMatrix{<:Number},
     sino::AxisMatrix{<:Number},
 )
-    sg = sino_geom(sino)
+    rg = sino_geom(sino)
     ig = ImageGeom(image)
-    plan = FBPplan(sg, ig)
+    plan = FBPplan(rg, ig)
     fbp!(image, sino, plan)
 end
 

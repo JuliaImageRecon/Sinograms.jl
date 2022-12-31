@@ -24,13 +24,13 @@ footprint_size(st::CtPar, ig::ImageGeom{3})::Float32 = _footprint_di(ig) / st.ds
 
 function footprint_size(st::Union{SinoFanArc,CtFanArc}, ig::ImageGeom)::Float32
     rfov = _footprint_rfov(ig)
-    rfov > 0.99 * st.dso && throw("bad dso")
-    return _footprint_ratio(st, ig) * st.dsd / (st.dso - rfov)
+    rfov > 0.99 * _dso(st) && throw("bad dso")
+    return _footprint_ratio(st, ig) * st.dsd / (_dso(st) - rfov)
 end
 
 function footprint_size(st::Union{SinoFanFlat,CtFanFlat}, ig::ImageGeom)::Float32
-    smax = maximum(abs, st.s)
+    smax = maximum(abs, _s(st))
     rfov = _footprint_rfov(ig)
-    rfov > 0.99 * st.dso && throw("bad dso")
-    return _footprint_ratio(st, ig) * sqrt(st.dsd^2 + smax^2) / (st.dso - rfov)
+    rfov > 0.99 * _dso(st) && throw("bad dso")
+    return _footprint_ratio(st, ig) * sqrt(st.dsd^2 + smax^2) / (_dso(st) - rfov)
 end

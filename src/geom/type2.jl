@@ -39,47 +39,42 @@ for a 2D parallel or fan-beam system.
 * `d`, `source_offset`, `dsd`, `dod`
   must all have the same units.
 
-# Derived values (available by `getproperty`), i.e., `st.?`
+# Basic methods
 
-* `.ds|dr` radial sample spacing (`NaN` for `:moj`)
-* `.s (nb) s` sample locations
-* `.w = (nb-1)/2 + offset` "middle" sample position
-* `.ad (na)` source angles `degrees`
-* `.ar (na)` source angles `radians`
-* `.rfov` radial FOV
-* `.xds (nb)` center of detector elements (beta=0)
-* `.yds (nb)` ""
+* `angles` (na) in degrees
+* `dims (nb, na)`
+* `ones = ones(Float32, nb, na)`
+* `zeros = zeros(Float32, nb, na)`
+* `rays` iterator of `(r, ϕ)` parallel-beam coordinate tuples of size `(nb, na)`
+* `downsample(st, down)` reduce sampling by integer factor
+* `oversample(st, over)`
+* `sino_geom_plot!` plot system geometry
+
+# Non-exported helper functions for developers:
+
+* `_ds|dr` radial sample spacing (`NaN` for `:moj`)
+* `_s (nb) s` sample locations
+* `_w = (nb-1)/2 + offset` "middle" sample position
+* `_ar (na)` source angles [radians]
+* `_rfov` radial FOV
+* `_xds (nb)` center of detector elements (beta=0)
+* `_yds (nb)` ""
+* `_tau(rg, x, y)` projected s/ds for each `(x,y)` pair `(length(x), na)`
+* `_shape(rg, sino [,:])` reshape `sino` into array `(nb,na[,:])`
+* `_unitv(rg [, (ib,ia)])`
+  unit 'vector' with single nonzero element
 
 For mojette:
 
-* `.d_ang (na)` angle-dependent radial spacing
+* `_d_ang (na)` angle-dependent radial spacing
 
 For fan beam:
 
-* `dso = dsd - dod` distance from source to origin (Inf for parallel beam)
-* `dfs` distance from source to detector focal spot
+* `_dso = dsd - dod` distance from source to origin (Inf for parallel beam)
+* `_dfs` distance from source to detector focal spot
         (0 for 3rd gen CT, `Inf` for flat detectors)
-* `.gamma (nb)` gamma sample values `radians`
-* `.gamma_max` half of fan angle `radians`, if offset=0
-
-# Basic methods
-
-* `dims (nb, na)`
-* `sino_s (nb) s` sample locations
-* `sino_w = (nb-1)/2 + offset` ('middle' sample position)
-* `rays` iterator of `(r, ϕ)` parallel-beam coordinate tuples of size `(nb, na)`
-* `ones = ones(Float32, nb, na)`
-* `zeros = zeros(Float32, nb, na)`
-* `downsample(st, down)`
-* `oversample(st, over)`
-* `angles` (na) in degrees
-* `sino_geom_plot!` plot system geometry
-
-# Methods
-
-* `.shape(sino)` reshape sinograms into array `(nb,na,:)`
-* `.unitv(;ib,ia)` unit 'vector' with single nonzero element
-* `.taufun(x,y)` projected s/ds for each (x,y) pair `(numel(x),na)`
+* `_gamma(rg [,s]) (nb)` gamma sample values `radians`, optionally given `s` values
+* `_gamma_max = max(|γ|)` half of fan angle `radians`, if `offset_s` == 0
 
 # Notes
 * Use `ct_geom()` instead for 3D axial or helical cone-beam CT.
@@ -190,7 +185,7 @@ function SinoPar( ;
     offset::Real = 0,
     na::Int = 2 * floor(Int, nb * π/2 / 2),
     orbit::RealU = 180,
-    orbit_start::RealU = zero(eltype(orbit)),
+    orbit_start::RealU = zero(typeof(orbit)),
 )
 
     To = _promoter(orbit, orbit_start)
@@ -223,7 +218,7 @@ function SinoMoj( ;
     offset::Real = 0,
     na::Int = 2 * floor(Int, nb * π/2 / 2),
     orbit::RealU = 180,
-    orbit_start::RealU = zero(eltype(orbit)),
+    orbit_start::RealU = zero(typeof(orbit)),
 )
 
     To = _promoter(orbit, orbit_start)
@@ -267,8 +262,8 @@ function SinoFanArc( ;
     offset::Real = 0,
     na::Int = 2 * floor(Int, nb * π/2 / 2),
     orbit::RealU = 360,
-    orbit_start::RealU = zero(eltype(orbit)),
-    source_offset::RealU = zero(eltype(d)),
+    orbit_start::RealU = zero(typeof(orbit)),
+    source_offset::RealU = zero(typeof(d)),
     dsd::RealU = 4 * nb * d,
     dod::RealU = nb * d,
 )
@@ -288,8 +283,8 @@ function SinoFanArc(orbit::Symbol ;
 ) where {To <: RealU}
     orbit == :short || error("bad orbit $orbit")
     tmp = SinoFanArc( ; orbit=To(360), kwargs...)
-    na = ceil(Int, na * tmp.orbit_short / To(360))
-    return SinoFanArc( ; na, orbit = To(tmp.orbit_short), kwargs...)
+    na = ceil(Int, na * _orbit_short(tmp) / To(360))
+    return SinoFanArc( ; na, orbit = To(_orbit_short(tmp)), kwargs...)
 end
 
 
@@ -324,8 +319,8 @@ function SinoFanFlat( ;
     offset::Real = 0,
     na::Int = 2 * floor(Int, nb * π/2 / 2),
     orbit::RealU = 360,
-    orbit_start::RealU = zero(eltype(orbit)),
-    source_offset::RealU = zero(eltype(d)),
+    orbit_start::RealU = zero(typeof(orbit)),
+    source_offset::RealU = zero(typeof(d)),
     dsd::RealU = 4 * nb * d,
     dod::RealU = nb * d,
 )
@@ -345,13 +340,13 @@ function SinoFanFlat(orbit::Symbol ;
 ) where {To <: RealU}
     orbit == :short || error("bad orbit $orbit")
     tmp = SinoFanFlat( ; orbit=To(360), kwargs...)
-    na = ceil(Int, na * tmp.orbit_short / To(360))
-    return SinoFanFlat( ; na, orbit = To(tmp.orbit_short), kwargs...)
+    na = ceil(Int, na * _orbit_short(tmp) / To(360))
+    return SinoFanFlat( ; na, orbit = To(_orbit_short(tmp)), kwargs...)
 end
 
 
 """
-    SinoFan(Val(:ge1) ; kwargs...)
+    SinoFanArc(Val(:ge1) ; kwargs...)
 GE Lightspeed system CT geometry.
 
 # option
@@ -371,33 +366,33 @@ These numbers are published in IEEE T-MI Oct. 2006, p.1272-1283 wang:06:pwl.
 
 ```jldoctest
 julia> SinoFanArc(Val(:ge1))
-SinoFanArc{Float64, Float32} :
+SinoFanArc{Float32, Float32} :
  nb::Int64 888
- d::Float64 1.0239
+ d::Float32 1.0239
  offset::Float32 1.25
  na::Int64 984
  orbit::Float32 360.0
  orbit_start::Float32 0.0
- source_offset::Float64 0.0
- dsd::Float64 949.075
- dod::Float64 408.075
+ source_offset::Float32 0.0
+ dsd::Float32 949.075
+ dod::Float32 408.075
 ```
 """
 function SinoFanArc(::Val{:ge1} ;
     unit::RealU = 1,
     nb::Int = 888,
-    d::RealU = 1.0239 * unit,
-    offset::Real = 1.25,
+    d::RealU = 1.0239f0 * unit,
+    offset::Real = 1.25f0,
     na::Int = 984,
     orbit::Union{Symbol,Real} = 360,
-    dsd::RealU = 949.075 * unit,
-    dod::RealU = 408.075 * unit,
+    dsd::RealU = 949.075f0 * unit,
+    dod::RealU = 408.075f0 * unit,
     kwargs...,
 )
 
     if orbit === :short
         na = 642 # trick: reduce na for short scans
-        orbit = na / 984 * 360
+        orbit = Float32(na / 984 * 360)
     end
 
     return SinoFanArc( ; nb, d, offset,

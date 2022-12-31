@@ -9,30 +9,26 @@ using ImageGeoms: ImageGeom, embed
 
 # fan-beam case
 function fbp_back(
-    sg::SinoFan{Td, To},
+    rg::SinoFan,
     ig::ImageGeom,
-    sino::AbstractMatrix{Ts} ;
+    sino::AbstractMatrix{<:Number} ;
     ia_skip::Int = 1,
-) where {Td, To, Ts <: Number}
+)
 
-    dims(sg) == size(sino) || throw("sino size")
+    dims(rg) == size(sino) || throw("sino size")
 
-    is_arc = iszero(sg.dfs) ? true : isinf(sg.dfs) ? false : throw("bad dfs")
-
-    # type inference help:
-    Toffset = Float32 # eltype(sg.offset)
-    T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
+    is_arc = iszero(_dfs(rg)) ? true : isinf(_dfs(rg)) ? false : throw("bad dfs")
 
     return fbp_back_fan(
-        sino, sg.ar,
-        sg.dsd, sg.dso,
-        sg.source_offset, is_arc,
-        sg.ds, sg.offset,
-#       sg.rfov,
+        sino, _ar(rg),
+        rg.dsd, _dso(rg),
+        rg.source_offset, is_arc,
+        rg.d, rg.offset,
+#       _rfov(rg),
 #       ndgrid(axes(ig)...)...,
         axes(ig)...,
         ig.mask ; ia_skip,
-    )::Matrix{T}
+    )
 end
 
 
@@ -56,7 +52,7 @@ function fbp_back_fan_old(
 ) where {Tds <: RealU, Tc <: RealU, Toffset <: Real, Ts <: Number, To <: RealU}
 
     Td = promote_type(Tds, Tc)
-    T = eltype(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
+    T = typeof(oneunit(Ts) * (oneunit(Td) * oneunit(To) / oneunit(Td) + oneunit(Toffset)))
 
     nb, na = size(sino)
 
@@ -124,7 +120,7 @@ function fbp_back_fan_old(
     end
 
     img .*= (π * ia_skip / na)
-    return embed(img, mask)::Matrix{T}
+    return embed(img, mask)
 end
 =#
 
@@ -170,9 +166,10 @@ function fbp_back_fan(
     offset::Toffset,
     xc::AbstractArray{Tc},
     yc::AbstractArray{Tc},
-    mask::AbstractMatrix{Bool} ;
+    mask::AbstractMatrix{Bool},
+    ;
     ia_skip::Int = 1,
-    T::Type{<:Number} = eltype(oneunit(Ts) *
+    T::Type{<:Number} = typeof(oneunit(Ts) *
         (oneunit(To) * oneunit(Tc) / oneunit(Tds) + oneunit(Toffset))),
 ) where {Ts <: Number, To <: RealU, Tds <: RealU, Toffset <: Real, Tc <: RealU}
 
@@ -291,7 +288,7 @@ function fbp_back_fan_xy(
     wb::Tb, # (nb+1)/2 + offset
     x_ds::Tx, # xc / ds
     y_ds::Tx ;
-    T::Type{<:Number} = eltype(oneunit(Ts) * one(To) * one(Tb) * one(Tx)),
+    T::Type{<:Number} = typeof(oneunit(Ts) * one(To) * one(Tb) * one(Tx)),
 ) where {Ts <: Number, To <: Real, Tb <: Real, Tx <: Real}
 
     nb = size(sino,1)
@@ -335,5 +332,5 @@ function fbp_back_fan_xy(
         end
     end
 
-    return pixel * (π / na_subset)
+    return pixel
 end

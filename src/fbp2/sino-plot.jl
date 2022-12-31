@@ -11,14 +11,14 @@ using .Plots: scatter, plot, plot!, default, xlims!
 
 
 """
-    sino_plot_rays(sg::SinoGeom ; kwargs...)
+    sino_plot_rays(rg::SinoGeom ; kwargs...)
 
 Make a scatter plot of the `(r, ϕ)` sample locations for all rays.
 Requires `Plots`.
 """
-function sino_plot_rays(sg::SinoGeom; kwargs...)
-#   r, phi = rays(sg)
-    i = rays(sg)
+function sino_plot_rays(rg::SinoGeom; kwargs...)
+#   r, phi = rays(rg)
+    i = rays(rg)
     r = [i[1] for i in i]
     ϕ = [i[2] for i in i]
     ad = rad2deg.(ϕ)
@@ -34,7 +34,7 @@ function sino_plot_rays(sg::SinoGeom; kwargs...)
         markershape=:circle, linewidth=0, label="",
         ylims, xlims, xlabel = "r", ylabel="ϕ",
         xticks = (-1:1)*rmax, yticks = [0,360] * unit_a,
-        title = nameof(typeof(sg)),
+        title = nameof(typeof(rg)),
         kwargs...
     )
 end
@@ -114,32 +114,33 @@ end
 
 
 """
-    sino_geom_plot!(sg)
+    sino_geom_plot!(rg)
 Picture of the source position / detector geometry.
 """
-function sino_geom_plot!(sg::SinoGeom)
+function sino_geom_plot!(rg::SinoGeom)
 
-    plot!(; title = nameof(typeof(sg)))
+    plot!(; title = nameof(typeof(rg)))
 
 #=
-    if sg isa SinoPar
+    if rg isa SinoPar
     end
 =#
 
-    if sg isa SinoFan
+    if rg isa SinoFan
         sino_geom_plot_fan!(
-            sg.ar,
-            sg.rfov,
-            sg.dso,
-            sg.xds,
-            sg.yds,
+            _ar(rg),
+            _rfov(rg),
+            _dso(rg),
+            _xds(rg),
+            _yds(rg),
         )
 
-    elseif sg isa SinoMoj
+    elseif rg isa SinoMoj
         θ = LinRange(0, 2π, 100)
-        rphi = sg.nb/2 * sg.d_moj.(θ)
+        d_moj = _d_moj(rg)
+        rphi = rg.nb/2 * d_moj.(θ)
         plot!(rphi .* cos.(θ), rphi .* sin.(θ), color=:blue, label="")
-    #   rmax = maximum(sg.s)
+    #   rmax = maximum(_s(rg))
     #   axis([-1 1 -1 1] * max([rmax ig.fov/2]) * 1.1)
     end
 
@@ -148,13 +149,13 @@ end
 
 
 """
-    sino_geom_plot!(sg, ig)
+    sino_geom_plot!(rg, ig)
 Picture of the source position / detector geometry.
 """
 function sino_geom_plot!(
-    sg::SinoGeom,
+    rg::SinoGeom,
     ig::ImageGeom;
 )
-    sino_geom_plot_ig!(sg.rfov; ig)
-    sino_geom_plot!(sg)
+    sino_geom_plot_ig!(_rfov(rg); ig)
+    sino_geom_plot!(rg)
 end

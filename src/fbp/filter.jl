@@ -7,8 +7,8 @@ using FFTW
 
 
 """
-    Hk = fbp_filter(st::Union{SinoGeom,CtGeom} ;
-        npad=0, ds::RealU = st.d, decon1::Bool=true, window=Window())
+    Hk = fbp_filter(rg::RayGeom ;
+        npad=0, ds::RealU = rg.d, decon1::Bool=true, window=Window())
 
 Compute frequency response of ramp-like filter
 used for FBP image reconstruction.
@@ -16,28 +16,28 @@ Supports parallel-beam and fan-beam tomographic geometries in 2D and 3D.
 This code samples the band-limited ramp to avoid the aliasing that
 would be caused by sampling the ramp directly in the frequency domain.
 
-in
-- `st::Union{SinoGeom,CtGeom}`
+# in
+- `rg::RayGeom`
 
-options
+# option
 - `npad::Int` # of padded samples. (default: next power of 2)
 - `ds::Td` detector sample spacing (default from `st`)
 - `decon1::Bool` deconvolve effect of linear interpolator? (default: true)
 - `window::Window` apodizer; default: `Window()`
 
-out
+# out
 - `Hk::Vector` apodized ramp filter frequency response
 """
 function fbp_filter(
-    st::Union{SinoGeom{Td},CtGeom{Td}} = SinoPar() ;
-    npad::Int = nextpow(2, st.nb + 1),
-    ds::Td = st isa SinoGeom ? st.d : st.ds,
+    rg::RayGeom{Td} = SinoPar(),
+    ;
+    npad::Int = nextpow(2, rg.nb + 1),
+    ds::Td = _ds(rg),
     decon1::Bool = true,
     window::Window = Window(),
 ) where {Td <: RealU}
 
-#   U = eltype(1 / oneunit(Td))
-    hn, nn = fbp_ramp(st, npad)
+    hn, nn = fbp_ramp(rg, npad)
 
     unit = oneunit(eltype(hn)) # handle units
     Hk = unit * fft(fftshift(hn / unit))
@@ -47,12 +47,57 @@ function fbp_filter(
     Hk = ds * Hk # differential for discrete-space convolution vs integral
 
     # Linear interpolation is like blur with a triangular response,
-    # so we can compensate for this approximately in frequency domain.
+    # so we can approximately compensate for this effect in the frequency domain.
     if decon1
         Hk ./= fftshift(sinc.(nn / npad).^2)
     end
 
-    return Hk#::Vector{U}
+    return Hk
+end
+
+
+"""
+    fft_filter(data::Array, filter::Vector [, dim])
+
+Apply filter to selected dimensions of array `data` using FFT.
+
+# in
+- `data::AbstractArray{<:Number} (n, (L))`
+- `filter::AbstractVector (n)` apodized ramp filter frequency response
+
+# option
+- `dim` non-singleton dimensions of `filter` (typically `1`)
+
+# out
+- `out::AbstractArray` data filtered along dimension `dim`
+
+If the input data is real,
+so will be the output;
+this assumes `filter` frequency response
+has appropriate symmetry.
+"""
+fft_filter
+
+function _fft_filter(
+    data::AbstractArray{<:Number},
+    filter::AbstractArray,
+    dim = findall(!=(1), size(filter)),
+)
+    return ifft(fft(data, dim) .* filter, dim)
+end
+
+function fft_filter(
+    data::AbstractArray{<:Complex},
+    args...
+)
+    return _fft_filter(data, args...)
+end
+
+function fft_filter(
+    data::AbstractArray{<:Real},
+    args...
+)
+    return _reale(_fft_filter(data, args...))
 end
 
 
@@ -62,152 +107,40 @@ end
 Apply ramp-like filters to sinogram(s) for 2D FBP image reconstruction.
 Supports both parallel-beam and fan-beam tomographic geometries in 2D and 3D.
 
-in
+# in
 - `sino::AbstractArray{<:Number}` `[nb (L)]` sinograms
 - `filter::AbstractVector` `(npad ≥ nb)` apodized ramp filter frequency response
 
-options
+# option
 - `extra::Int` # of extra sinogram radial samples to keep (default: 0)
 - `npad::Int` # of padded samples. (default: next power of 2)
 
-out
+# out
 - `sino::AbstractArray` sinogram with filtered rows
 """
 function fbp_sino_filter(
-    sino::AbstractArray{Ts, N},
-    filter::AbstractVector{Tf} ;
+    sino::AbstractArray{Ts},
+    filter::AbstractVector{<:Number},
+    ;
     extra::Int = 0,
-) where {N, Ts <: Number, Tf <: Number}
+) where {Ts <: Number}
 
     npad = length(filter)
-    nb = size(sino,1)
-    nb + extra > npad && throw("nb=$nb + extra=$extra > npad=$npad")
+    nb = size(sino, 1)
+    nb + extra > npad && error("nb=$nb + extra=$extra > npad=$npad")
 
-    dimpadding = collect(size(sino))
-    dimpadding[1] = npad - dimpadding[1]
-    tmp = zeros(Ts, dimpadding...)
-    sino = cat(dims=1, sino, tmp) # padded sinogram
+    dimpadded = (npad, size(sino)[2:end]...)
+    tmp = zeros(Ts, dimpadded)
+    selectdim(tmp, 1, 1:size(sino,1)) .= sino
+    sino = tmp # padded sinogram
 
-    is_real = isreal(sino)
-
-    # handle fft with units
-    unit_s = oneunit(Ts)
-    unit_f = oneunit(Tf)
-    # apply filter to each sinogram row
-    sino = (unit_s * unit_f) * ifft(fft(sino/unit_s, 1) .* (filter/unit_f), 1)
-
-    if is_real
-        sino = _reale(sino)
-    end
+    sino = fft_filter(sino, filter) # apply filter to each sinogram row
 
     # trick: possibly keep extra column(s) for zeros!
     sino = reshape(sino, npad, :) # (npad,…)
-    sino = sino[1:(nb+extra), :]
+    sino = @view sino[1:(nb+extra), :]
     sino[(nb+1):(nb+extra), :] .= zero(eltype(sino))
-    sino = reshape(sino, nb, :, dimpadding[3:end]...) # for >2D sinogram array
+    sino = reshape(sino, nb, :, dimpadded[3:end]...) # for >2D sinogram array
 
-    U = eltype(unit_s * unit_f)
-    return sino::Array{U, N}
+    return sino
 end
-
-
-#=
-function fbp_sino_filter(
-    aa::AbstractArray{Ts,N},
-    filter::AbstractVector{Tf} ;
-    kwargs...,
-) where {N, Ts <: Number, Tf <: Number}
-    fun(sino) = fbp_sino_filter(sino, filter; kwargs...)
-    unit_s = oneunit(Ts)
-    unit_f = oneunit(Tf)
-    U = eltype(unit_s * unit_f)
-    out = mapslices(fun, aa, dims=[1,2])
-    return out::Array{U,N}
-end
-=#
-
-
-#= old version with window
-"""
-    sino, Hk, hh, nn = fbp_sino_filter(sg::SinoGeom, sino ;
-        extra=0, npad=0, decon1=1, window=Window())
-
-Apply ramp-like filters to sinogram(s) for 2D FBP image reconstruction.
-Both parallel-beam and fan-beam tomographic geometries are supported.
-This code samples the band-limited ramp to avoid the aliasing that
-would be caused by sampling the ramp directly in the frequency domain.
-
-in
-- `sg::SinoGeom`
-- `sino::AbstractArray{<:Number}` : `[nb (L)]` sinograms
-
-options
-- `extra::Int` # of extra sinogram radial samples to keep (default: 0)
-- `npad::Int` # of padded samples. (default: next power of 2)
-- `decon1::Bool` deconvolve effect of linear interpolator? (default: true)
-- `window::Window` apodizer; default: `Window()`
-
-out
-- `sino::AbstractArray` sinogram with filtered rows
-- `Hk::Vector` apodized ramp filter frequency response
-- `hn::Vector` samples of band-limited ramp filter
-- `nn::AbstractVector` `-(npad/2):(npad/2-1)` vector for convenience
-
-"""
-function fbp_sino_filter(
-    sg::SinoGeom,
-    sino::AbstractArray{<:Number};
-    extra::Int = 0,
-    npad::Int = nextpow(2, sg.nb + 1),
-    decon1::Bool = true,
-    window::Window = Window(),
-)
-
-    ds = sg.d
-    nb = sg.nb
-    na = sg.na
-    nb == size(sino,1) || throw("sinogram nb mismatch")
-    na == size(sino,2) || throw("sinogram na mismatch")
-    nb + extra > npad && throw("nb=$nb + extra=$extra > npad=$npad")
-
-    dimpadding = collect(size(sino))
-    dimpadding[1] = npad - dimpadding[1]
-    tmp = zeros(eltype(sino), dimpadding...)
-    sino = cat(dims=1, sino, tmp) # padded sinogram
-    hn, nn = fbp_ramp(sg, npad)
-
-    unit = oneunit(eltype(hn)) # handle units
-    Hk = unit * fft(fftshift(hn / unit))
-    Hk = _reale(Hk)
-
-    Hk .*= fbp_window(window, npad)
-    Hk = ds * Hk # differential for discrete-space convolution vs integral
-
-    # Linear interpolation is like blur with a triangular response,
-    # so we can compensate for this approximately in frequency domain.
-    if decon1 != 0
-        Hk ./= fftshift(sinc.(nn / npad).^2)
-    end
-
-    is_real = isreal(sino)
-    unit = oneunit(eltype(sino)) # handle units
-    sino = unit * ifft(fft(sino/unit, 1) .* Hk, 1) # apply filter to each sinogram row
-    if is_real
-        sino = _reale(sino)
-    end
-
-    # trick: possibly keep extra column(s) for zeros!
-    sino = reshape(sino, npad, :) # (npad,…)
-    sino = sino[1:(nb+extra),:]
-    sino[(nb+1):(nb+extra),:] .= zero(eltype(sino))
-    sino = reshape(sino, nb, na, dimpadding[3:end]...) # for >2D sinogram array
-
-    return sino, Hk, hn, nn
-end
-=#
-
-#=
-function fbp_sino_filter(how::Symbol, sino::AbstractArray{<:Number}; kwargs...)
-    return mapslices(sino -> fbp_sino_filter(how, sino; kwargs...), sino, [1,2])
-end
-=#

@@ -47,46 +47,41 @@ and `t` denotes the axial direction (along `z`).
 * `ds`, `dt`, `source_offset`, `dsd`, `dod`
   must all be unitless or have the same units.
 
-# Derived values (available by `getproperty`), i.e., `st.?`
-
-* `.dim` dimensions: `(ns,nt,na)`
-* `.s (ns) s` sample locations
-* `.t (nt) t` sample locations
-* `.ws = (ns-1)/2 + offset_s` "middle" sample position
-* `.wt = (nt-1)/2 + offset_t`
-* `.ad (na)` source angles [degrees]
-* `.ar (na)` source angles [radians]
-* `.rad (ns)` radial distance of each ray from origin
-* `.rfov` max radius within FOV
-* `.zfov` axial FOV
-
-For fan beam:
-
-* `dso = dsd - dod` distance from source to origin (Inf for parallel beam)
-* `dfs` distance from source to detector focal spot
-        (0 for 3rd gen CT, `Inf` for flat detectors)
-* `.gamma (ns)` gamma sample values `radians`
-* `.gamma_s` gamma values given s values
-* `.gamma_max` half of fan angle `radians`, if offset_s=0
-* `.gamma_max_abs` half of fan angle `radians` - recommended
-* `.cone_angle` (half) cone angle on axis (s=0): +/- angle
-
 # Basic methods
 
+* `angles` (na) in degrees
 * `dims (ns, nt, na)`
 * `ones = ones(Float32, ns,nt,na)`
 * `zeros = zeros(Float32, ns,nt,na)`
 * `rays` iterator of `(u,v,ϕ,θ)` samples
 * `downsample(st, down)` reduce sampling by integer factor
 * `oversample(st, over)`
-* `ct_geom_plot!` plot system geometry
+* `ct_geom_plot3` plot system geometry
 
-# Methods
+# Non-exported helper functions for developers:
 
-* `.shape(proj)` reshape `proj`
-* `.plot2(ig)` plot the 2D geometry of the image
-* `.plot3(ig)` plot the 3D geometry of the cone beam setup
-* `.unitv(is,it,ia)` unit vector with single nonzero element
+* `_s (ns) s` sample locations
+* `_t (nt) t` sample locations
+* `_ws = (ns-1)/2 + offset_s` "middle" sample position
+* `_wt = (nt-1)/2 + offset_t`
+* `_ar (na)` source angles [radians]
+* `_rfov` max radius within FOV
+* `_zfov` axial FOV
+* `_xds (nb)` center of detector elements (beta=0)
+* `_yds (nb)` ""
+* `_tau(rg, x, y)` projected s/ds for each `(x,y)` pair `(length(x), na)`
+* `_shape(rg, proj [,:])` reshape `proj` into array `(ns,nt,na[,:])`
+* `_unitv(rg [, (is,it,ia)])`
+  unit 'vector' with single nonzero element
+
+For fan beam:
+
+* `_dso = dsd - dod` distance from source to origin (Inf for parallel beam)
+* `_dfs` distance from source to detector focal spot
+        (0 for 3rd gen CT, `Inf` for flat detectors)
+* `_gamma(rg [,s]) (ns)` gamma sample values `radians`, optionally given `s` values
+* `_gamma_max = max(|γ|)` half of fan angle `radians`, if `offset_s` == 0
+* `_cone_angle` (half) cone angle on axis (s=0): +/- angle
 
 # Notes
 Use `sino_geom()` instead for 2D geometries.
@@ -222,7 +217,7 @@ function CtPar( ;
     offset_t::Real = 0,
     na::Int = 60,
     orbit::RealU = 180,
-    orbit_start::RealU = zero(eltype(orbit)),
+    orbit_start::RealU = zero(typeof(orbit)),
 )
 
     To = _promoter(orbit, orbit_start)
@@ -265,7 +260,7 @@ function CtMoj( ;
     offset_t::Real = 0,
     na::Int = 60,
     orbit::RealU = 180,
-    orbit_start::RealU = zero(eltype(orbit)),
+    orbit_start::RealU = zero(typeof(orbit)),
 )
 
     To = _promoter(orbit, orbit_start)
@@ -317,8 +312,8 @@ function CtFanArc( ;
     offset_t::Real = 0,
     na::Int = 64,
     orbit::RealU = 360,
-    orbit_start::RealU = zero(eltype(orbit)),
-    source_offset::RealU = zero(eltype(ds)),
+    orbit_start::RealU = zero(typeof(orbit)),
+    source_offset::RealU = zero(typeof(ds)),
     dsd::RealU = 4 * ns * ds,
     dod::RealU = ns * ds,
     src::CtSource = CtSourceCircle(),
@@ -340,8 +335,9 @@ function CtFanArc(orbit::Symbol ;
 ) where {To <: RealU}
     orbit == :short || error("bad orbit $orbit")
     tmp = CtFanArc( ; orbit=To(360), kwargs...)
-    na = ceil(Int, na * tmp.orbit_short / To(360))
-    return CtFanArc( ; na, orbit = To(tmp.orbit_short), kwargs...)
+    os = _orbit_short(tmp)
+    na = ceil(Int, na * os / To(360))
+    return CtFanArc( ; na, orbit = To(os), kwargs...)
 end
 
 
@@ -383,10 +379,9 @@ function CtFanFlat( ;
     offset_s::Real = 0,
     offset_t::Real = 0,
     na::Int = 64,
-#   orbit::Union{Symbol,Real} = 360,
     orbit::RealU = 360,
-    orbit_start::RealU = zero(eltype(orbit)),
-    source_offset::RealU = zero(eltype(ds)),
+    orbit_start::RealU = zero(typeof(orbit)),
+    source_offset::RealU = zero(typeof(ds)),
     dsd::RealU = 4ns * ds,
     dod::RealU = ns * ds,
     src::CtSource = CtSourceCircle(),
@@ -408,8 +403,9 @@ function CtFanFlat(orbit::Symbol ;
 ) where {To <: RealU}
     orbit == :short || error("bad orbit $orbit")
     tmp = CtFanFlat( ; orbit=To(360), kwargs...)
-    na = ceil(Int, na * tmp.orbit_short / To(360))
-    return CtFanFlat( ; na, orbit = To(tmp.orbit_short), kwargs...)
+    os = _orbit_short(tmp)
+    na = ceil(Int, na * os / To(360))
+    return CtFanFlat( ; na, orbit = os, kwargs...)
 end
 
 

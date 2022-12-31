@@ -67,16 +67,16 @@ clim = (0.95, 1.05) .* μ
 # Here is the ideal phantom image:
 oversample = 3
 true_image = phantom(axes(ig)..., ob, oversample)
-jim(axes(ig), true_image, "True 3D Shepp-Logan phantom image"; clim)
+pt = jim(axes(ig), true_image, "True 3D Shepp-Logan phantom image"; clim)
 
 # Define the system geometry
 # (for some explanation use `?CtGeom`):
 p = (ns = 130, ds = 0.3cm, nt = 80, dt = 0.4cm, na = 50, dsd = 200cm, dod = 40cm)
-cg = CtFanArc( ; p...)
+rg = CtFanArc( ; p...)
 
 # Examine the geometry to verify the FOV
 # (this is more interesting when interacting via other Plot backends):
-ct_geom_plot3(cg, ig)
+ct_geom_plot3(rg, ig)
 
 #
 prompt()
@@ -84,8 +84,8 @@ prompt()
 
 # CBCT projections
 # using `Sinogram.rays` and `ImagePhantoms.radon`:
-proj_arc = radon(rays(cg), ob)
-jim(cg.s, cg.t, proj_arc ;
+proj_arc = radon(rays(rg), ob)
+pa = jim(axes(rg)[1:2], proj_arc ;
     title="Shepp-Logan projections (arc)", xlabel="s", ylabel="t")
 
 
@@ -103,31 +103,32 @@ which would save work if we were reconstructing many images.
 For illustration we include `Hamming` window.
 =#
 
-plan = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
+plan = plan_fbp(rg, ig; window = Window(Hamming(), 1.0))
 fdk_arc = fdk(plan, proj_arc)
-jim(axes(ig), fdk_arc, "FDK image (arc)"; clim)
+par = jim(axes(ig), fdk_arc, "FDK image (arc)"; clim)
 
 #
 err_arc = fdk_arc - true_image
-jim(axes(ig), err_arc, "Error image (arc)"; clim = (-1,1) .* (0.05μ))
+elim = (-1,1) .* (0.02μ)
+pae = jim(axes(ig), err_arc, "Error image (arc)"; clim = elim)
 
 
 #=
 ## Repeat with flat detector geometry
 =#
 
-cg = CtFanFlat( ; p...)
-proj_flat = radon(rays(cg), ob)
-jim(cg.s, cg.t, proj_flat ;
+rg = CtFanFlat( ; p...)
+proj_flat = radon(rays(rg), ob)
+pfp = jim(axes(rg)[1:2], proj_flat ;
     title="Shepp-Logan projections (flat)", xlabel="s", ylabel="t")
 
-plan = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
+plan = plan_fbp(rg, ig; window = Window(Hamming(), 1.0))
 fdk_flat = fdk(plan, proj_flat)
-jim(axes(ig), fdk_flat, "FDK image (flat)"; clim)
+pfr = jim(axes(ig), fdk_flat, "FDK image (flat)"; clim)
 
 #
 err_flat = fdk_flat - true_image
-jim(axes(ig), err_flat, "Error image (flat)"; clim = (-1,1) .* (0.05μ))
+pfe = jim(axes(ig), err_flat, "Error image (flat)"; clim = elim)
 
 #=
 As expected for CBCT,
@@ -138,15 +139,21 @@ the largest errors are in the end slices.
 #=
 ## Short scan
 =#
-cg = CtFanFlat(:short ; p...)
-proj_short = radon(rays(cg), ob)
-jim(cg.s, cg.t, proj_short ;
+rg = CtFanFlat(:short ; p..., na = 200)
+proj_short = radon(rays(rg), ob)
+psp = jim(axes(rg)[1:2], proj_short ;
     title="Shepp-Logan projections (flat,short)", xlabel="s", ylabel="t")
 
-plan_short = plan_fbp(cg, ig; window = Window(Hamming(), 1.0))
+#
+plan_short = plan_fbp(rg, ig; window = Window(Hamming(), 1.0))
+psw = jim(axes(rg)[[1,3]], plan_short.view_weight[:,1,:];
+    title = "View weights (including Parker)",
+    xlabel="s", ylabel="angle")
+
+#
 fdk_short = fdk(plan_short, proj_short)
-jim(axes(ig), fdk_short, "FDK image (flat,short)"; clim)
+psr = jim(axes(ig), fdk_short, "FDK image (flat,short)"; clim)
 
 #
 err_short = fdk_short - true_image
-jim(axes(ig), err_flat, "Error image (flat,short)"; clim = (-1,1) .* (0.05μ))
+pse = jim(axes(ig), err_flat, "Error image (flat,short)"; clim = elim)
