@@ -47,7 +47,7 @@ call `fbp` with the `plan`
 - `rg::CtGeom`
 - `ig::ImageGeom` only reconstruct pixels within `ig.mask`.
 
-# options
+# option
 - `window::Window` e.g., `Window(Hamming(), 0.8)`; default `Window()`
 - `npad::Int` # of radial bins after padding;
   default `nextpow(2, rg.ns + 1)`

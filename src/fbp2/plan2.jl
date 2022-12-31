@@ -35,13 +35,11 @@ struct FBPNormalPlan{
     S <: SinoGeom,
     I <: ImageGeom,
     H <: AbstractVector{<:RealU},
-#   P <: Any,
     V <: AbstractArray{<:RealU},
 } <: FBPplan
     rg::S
     ig::I
     filter::H # frequency response Hk of apodized ramp filter, length npad
-#   parker_weight::P # typically a Matrix of nonnegative reals
     view_weight::V
 #   moj::Moj # todo
 end
@@ -194,6 +192,5 @@ function Base.show(io::IO, ::MIME"text/plain", p::FBPNormalPlan{S,I,H,V}) where 
     ig = p.ig
     println(io, " I = $I ", ig.dims)
     println(io, " H = $H with extrema ", extrema(p.filter))
-#   println(io, " P = $P ", size(p.parker_weight), " with extrema ", extrema(p.parker_weight))
     println(io, " V = $V ", size(p.view_weight), " with extrema ", extrema(p.view_weight))
 end
