@@ -136,7 +136,7 @@ function cbct_back_fan!(
             proj, sinβ, cosβ, dt / ds, ws, wt,
 #           offset_source / ds,
             dsd / ds, dso / ds, is_arc,
-            xc_ds[c[1]], yc_ds[c[2]], zc_ds[c[3]]
+            xc_ds[c[1]], yc_ds[c[2]], zc_ds[c[3]],
         )
     end
 
