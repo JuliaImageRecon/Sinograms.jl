@@ -82,7 +82,7 @@ function parker_weight_fan_short(
         @warn("orbit $orbit exceeds short scan $orbit_short by %g views")
     #   (orbit - orbit_short) / rad2deg(ar[begin+1] - ar[begin]))
 
-    bet = ar .- ar[begin] # trick: force 0 start, so this ignores orbit_start!
+    bet = ar .- minimum(ar) # trick: force 0 start, so this ignores orbit_start!
     bet = max.(bet, zero(eltype(bet))) # fix for issue #49
     (gg, bb) = ndgrid(gam, bet)
 
