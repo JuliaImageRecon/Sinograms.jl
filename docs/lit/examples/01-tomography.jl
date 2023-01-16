@@ -13,7 +13,7 @@ This page was generated from a single Julia file:
 #md # using the "Edit on GitHub" link in the top right.
 
 #md # The corresponding notebook can be viewed in
-#md # [nbviewer](http://nbviewer.jupyter.org/) here:
+#md # [nbviewer](https://nbviewer.org/) here:
 #md # [`01-tomography.ipynb`](@__NBVIEWER_ROOT_URL__/01-tomography.ipynb),
 #md # and opened in [binder](https://mybinder.org/) here:
 #md # [`01-tomography.ipynb`](@__BINDER_ROOT_URL__/01-tomography.ipynb).
@@ -51,7 +51,7 @@ for a Julia package related to
 imaging.)
 
 In an
-[X-ray CT imaging system](http://en.wikipedia.org/wiki/File:Ct-internals.jpg),
+[X-ray CT imaging system](https://en.wikipedia.org/wiki/File:Ct-internals.jpg),
 X-rays emitted from an X-ray source
 are transmitted through an object
 (e.g., a patient in medical CT)
@@ -151,7 +151,7 @@ is called the "forward problem."
 
 ## Image reconstruction
 
-[Image reconstruction](http://en.wikipedia.org/wiki/Image_reconstruction)
+[Image reconstruction](https://en.wikipedia.org/wiki/Image_reconstruction)
 is the process of solving the
 [inverse problem](https://en.wikipedia.org/wiki/Inverse_problem)
 of recovering an estimate ``\hat{f}(x,y)``
@@ -267,7 +267,7 @@ model-based image reconstruction (MBIR) methods
 and methods that use suitable machine-learning approaches
 can improve image quality significantly.
 See this
-[2020 survey paper](http://doi.org/10.1109/JPROC.2019.2936204).
+[2020 survey paper](https://doi.org/10.1109/JPROC.2019.2936204).
 =#
 
 

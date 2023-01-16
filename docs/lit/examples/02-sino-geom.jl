@@ -14,7 +14,7 @@ This page was generated from a single Julia file:
 #md # using the "Edit on GitHub" link in the top right.
 
 #md # The corresponding notebook can be viewed in
-#md # [nbviewer](http://nbviewer.jupyter.org/) here:
+#md # [nbviewer](https://nbviewer.org/) here:
 #md # [`02-sino-geom.ipynb`](@__NBVIEWER_ROOT_URL__/02-sino-geom.ipynb),
 #md # and opened in [binder](https://mybinder.org/) here:
 #md # [`02-sino-geom.ipynb`](@__BINDER_ROOT_URL__/02-sino-geom.ipynb).
@@ -141,7 +141,7 @@ with the addition of specifying:
 
 Here is an example that corresponds to a GE Lightspeed CT system.
 These numbers are published in
-[IEEE T-MI Oct. 2006, p.1272-1283](http://doi.org/10.1109/TMI.2006.882141).
+[IEEE T-MI Oct. 2006, p.1272-1283](https://doi.org/10.1109/TMI.2006.882141).
 =#
 
 rg = SinoFanArc( ; nb=888, na=984,

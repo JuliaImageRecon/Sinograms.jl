@@ -30,7 +30,7 @@ Tested with Julia ≥ 1.8.
 * See the Tomopedia list: https://tomopedia.github.io/software
 * CASToR https://castor-project.org
 * Duke MCR todo
-* FreeCT http://cvib.ucla.edu/freect C/CUDA
+* FreeCT https://cvib.ucla.edu/freect C/CUDA
 * SIRF https://github.com/SyneRBI/SIRF
 
 
@@ -47,5 +47,5 @@ Tested with Julia ≥ 1.8.
 [docs-stable-url]: https://JuliaImageRecon.github.io/Sinograms.jl/stable
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://JuliaImageRecon.github.io/Sinograms.jl/dev
-[license-img]: http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat
+[license-img]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat
 [license-url]: LICENSE
