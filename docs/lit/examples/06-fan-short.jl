@@ -7,7 +7,7 @@ using the Julia package
 for a "short" scan
 where the rotation (`orbit`) is 180° plus the fan angle.
 This case requires
-[Parker weighting](http://doi.org/10.1118/1.595078).
+[Parker weighting](https://doi.org/10.1118/1.595078).
 
 This page focuses on fan-beam with an "arc" detector,
 i.e., 3rd-generation CT systems
@@ -27,7 +27,7 @@ This page was generated from a single Julia file:
 #md # using the "Edit on GitHub" link in the top right.
 
 #md # The corresponding notebook can be viewed in
-#md # [nbviewer](http://nbviewer.jupyter.org/) here:
+#md # [nbviewer](https://nbviewer.org/) here:
 #md # [`06-fan-short.ipynb`](@__NBVIEWER_ROOT_URL__/06-fan-short.ipynb),
 #md # and opened in [binder](https://mybinder.org/) here:
 #md # [`06-fan-short.ipynb`](@__BINDER_ROOT_URL__/06-fan-short.ipynb).
