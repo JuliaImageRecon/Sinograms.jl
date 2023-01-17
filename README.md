@@ -30,7 +30,7 @@ Tested with Julia ≥ 1.8.
 * See the Tomopedia list: https://tomopedia.github.io/software
 * CASToR https://castor-project.org
 * Duke MCR todo
-* FreeCT https://cvib.ucla.edu/freect C/CUDA
+* FreeCT https://gitlab.com/freect/freect C/CUDA
 * SIRF https://github.com/SyneRBI/SIRF
 
 
