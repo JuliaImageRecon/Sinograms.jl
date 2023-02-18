@@ -4,20 +4,9 @@
 This page describes the 2D sinogram geometries
 available in the Julia package
 [`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl).
-
-This page was generated from a single Julia file:
-[02-sino-geom.jl](@__REPO_ROOT_URL__/02-sino-geom.jl).
 =#
 
-#md # In any such Julia documentation,
-#md # you can access the source code
-#md # using the "Edit on GitHub" link in the top right.
-
-#md # The corresponding notebook can be viewed in
-#md # [nbviewer](https://nbviewer.org/) here:
-#md # [`02-sino-geom.ipynb`](@__NBVIEWER_ROOT_URL__/02-sino-geom.ipynb),
-#md # and opened in [binder](https://mybinder.org/) here:
-#md # [`02-sino-geom.ipynb`](@__BINDER_ROOT_URL__/02-sino-geom.ipynb).
+#srcURL
 
 
 # ### Setup
@@ -39,7 +28,7 @@ isinteractive() ? jim(:prompt, true) : prompt(:draw);
 
 
 #=
-### 2D Sinogram geometries
+## 2D Sinogram geometries
 
 To perform 2D image reconstruction
 from a 2D sinogram,

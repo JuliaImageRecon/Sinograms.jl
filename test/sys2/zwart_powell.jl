@@ -4,8 +4,8 @@ using Sinograms: zwart_powell
 using Test: @test, @testset, @test_throws, @inferred
 
 @testset "zwart_powell" begin
-    r = LinRange(-1, 1, 101) * 2
-    ϕ = LinRange(0, π, 181)
+    r = range(-1, 1, 101) * 2
+    ϕ = range(0, π, 181)
 
     myfun(r, ϕ) = zwart_powell.(r, ϕ')
     sino = @inferred myfun(r, ϕ)

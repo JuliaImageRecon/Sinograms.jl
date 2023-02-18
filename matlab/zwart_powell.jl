@@ -17,8 +17,8 @@ if !@isdefined(irtdir)
 end
 
 
-r = LinRange(-1, 1, 2001) * 2
-phi = LinRange(0, 2π, 361)
+r = range(-1, 1, 2001) * 2
+phi = range(0, 2π, 361)
 jsino = zwart_powell.(r, phi')
 
 rr, pp = ndgrid_array(r, phi) # for matlab...
