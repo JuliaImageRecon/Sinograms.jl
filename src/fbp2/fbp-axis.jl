@@ -23,7 +23,7 @@ Returns an image of size `[nr × nr]`.
 """
 function fbp(
     sino::AbstractMatrix{<:Number} ;
-    r::StepRangeLen{<:Number} = LinRange(-1,1,size(sino,1)) * (size(sino,1)-1)/2,
+    r::StepRangeLen{<:Number} = range(-1,1,size(sino,1)) * (size(sino,1)-1)/2,
     ϕ::StepRangeLen{<:Number} = (0:size(sino,2)-1) / size(sino,2) * π,
     kwargs...,
 )
@@ -41,8 +41,8 @@ function fbp(
     ny::Int = ny,
     dx::RealU = diff(axes(sino)[1][[2,1]]), # dr
     dy::RealU = dx,
-    x::StepRangeLen{<:Number} = LinRange(-1,1)*(nx-1)/2/nx * dx,
-    y::StepRangeLen{<:Number} = LinRange(-1,1)*(ny-1)/2/ny * dy,
+    x::StepRangeLen{<:Number} = range(-1,1)*(nx-1)/2/nx * dx,
+    y::StepRangeLen{<:Number} = range(-1,1)*(ny-1)/2/ny * dy,
 )
     T = promote_type(eltype(sino), Float32)
     image = AxisMatrix(zeros(T, nx, ny), x, y)

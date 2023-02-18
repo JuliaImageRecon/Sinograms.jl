@@ -75,7 +75,7 @@ function sino_geom_plot_ig!(
     )
 
     scat!([zero(xmin)], [zero(xmin)], marker=:circle)
-    θ = LinRange(0, 2π, 401)
+    θ = range(0, 2π, 401)
     plot!(rfov * cos.(θ), rfov * sin.(θ), color=:magenta) # rfov circle
     plot!(aspect_ratio = 1)
 end
@@ -91,7 +91,7 @@ function sino_geom_plot_fan!(
 
     x0 = zero(dso)
     y0 = dso
-    t = LinRange(0, 2π, 100)
+    t = range(0, 2π, 100)
     rot = ar[1]
     rot = [cos(rot) -sin(rot); sin(rot) cos(rot)]
     p0 = rot * [x0; y0]
@@ -136,7 +136,7 @@ function sino_geom_plot!(rg::SinoGeom)
         )
 
     elseif rg isa SinoMoj
-        θ = LinRange(0, 2π, 100)
+        θ = range(0, 2π, 100)
         d_moj = _d_moj(rg)
         rphi = rg.nb/2 * d_moj.(θ)
         plot!(rphi .* cos.(θ), rphi .* sin.(θ), color=:blue, label="")
