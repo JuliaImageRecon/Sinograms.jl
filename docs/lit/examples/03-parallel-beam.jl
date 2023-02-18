@@ -4,20 +4,9 @@
 This page describes parallel-beam tomographic image reconstruction
 using the Julia package
 [`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl).
-
-This page was generated from a single Julia file:
-[03-parallel-beam.jl](@__REPO_ROOT_URL__/03-parallel-beam.jl).
 =#
 
-#md # In any such Julia documentation,
-#md # you can access the source code
-#md # using the "Edit on GitHub" link in the top right.
-
-#md # The corresponding notebook can be viewed in
-#md # [nbviewer](https://nbviewer.org/) here:
-#md # [`03-parallel-beam.ipynb`](@__NBVIEWER_ROOT_URL__/03-parallel-beam.ipynb),
-#md # and opened in [binder](https://mybinder.org/) here:
-#md # [`03-parallel-beam.ipynb`](@__BINDER_ROOT_URL__/03-parallel-beam.ipynb).
+#srcURL
 
 
 # ### Setup
@@ -38,7 +27,7 @@ isinteractive() ? jim(:prompt, true) : prompt(:draw);
 
 
 #=
-### Parallel-beam sinogram of Shepp-Logan phantom
+## Parallel-beam sinogram of Shepp-Logan phantom
 
 For illustration,
 we start by synthesizing

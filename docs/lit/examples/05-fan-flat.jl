@@ -8,20 +8,9 @@ using the Julia package
 This page focuses on fan-beam with a "flat" detector,
 i.e., one row of a flat-panel detector
 as used in many cone-beam CT (CBCT) systems.
-
-This page was generated from a single Julia file:
-[05-fan-flat.jl](@__REPO_ROOT_URL__/05-fan-flat.jl).
 =#
 
-#md # In any such Julia documentation,
-#md # you can access the source code
-#md # using the "Edit on GitHub" link in the top right.
-
-#md # The corresponding notebook can be viewed in
-#md # [nbviewer](https://nbviewer.org/) here:
-#md # [`05-fan-flat.ipynb`](@__NBVIEWER_ROOT_URL__/05-fan-flat.ipynb),
-#md # and opened in [binder](https://mybinder.org/) here:
-#md # [`05-fan-flat.ipynb`](@__BINDER_ROOT_URL__/05-fan-flat.ipynb).
+#srcURL
 
 
 # ### Setup
@@ -43,7 +32,7 @@ isinteractive() ? jim(:prompt, true) : prompt(:draw);
 
 
 #=
-### Fan-beam sinogram of Shepp-Logan phantom
+## Fan-beam sinogram of Shepp-Logan phantom
 
 For illustration,
 we start by synthesizing

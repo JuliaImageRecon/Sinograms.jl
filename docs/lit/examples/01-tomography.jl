@@ -3,20 +3,9 @@
 
 This page gives an overview of the Julia package
 [`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl).
-
-This page was generated from a single Julia file:
-[01-tomography.jl](@__REPO_ROOT_URL__/01-tomography.jl).
 =#
 
-#md # In any such Julia documentation,
-#md # you can access the source code
-#md # using the "Edit on GitHub" link in the top right.
-
-#md # The corresponding notebook can be viewed in
-#md # [nbviewer](https://nbviewer.org/) here:
-#md # [`01-tomography.ipynb`](@__NBVIEWER_ROOT_URL__/01-tomography.ipynb),
-#md # and opened in [binder](https://mybinder.org/) here:
-#md # [`01-tomography.ipynb`](@__BINDER_ROOT_URL__/01-tomography.ipynb).
+#srcURL
 
 
 # ### Setup
@@ -35,7 +24,7 @@ isinteractive() ? jim(:prompt, true) : prompt(:draw);
 
 
 #=
-### Tomography
+## Tomography
 
 [Tomography](https://en.wikipedia.org/wiki/Tomography)
 is the process of imaging cross sections of an object
@@ -271,13 +260,4 @@ See this
 =#
 
 
-# ### Reproducibility
-
-# This page was generated with the following version of Julia:
-
-io = IOBuffer(); versioninfo(io); split(String(take!(io)), '\n')
-
-
-# And with the following package versions
-
-import Pkg; Pkg.status()
+include("../../../inc/reproduce.jl")

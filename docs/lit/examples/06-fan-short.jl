@@ -17,20 +17,9 @@ at the X-ray source.
 This geometry is popular
 in part because it facilitates
 anti-scatter grids.
-
-This page was generated from a single Julia file:
-[06-fan-short.jl](@__REPO_ROOT_URL__/06-fan-short.jl).
 =#
 
-#md # In any such Julia documentation,
-#md # you can access the source code
-#md # using the "Edit on GitHub" link in the top right.
-
-#md # The corresponding notebook can be viewed in
-#md # [nbviewer](https://nbviewer.org/) here:
-#md # [`06-fan-short.ipynb`](@__NBVIEWER_ROOT_URL__/06-fan-short.ipynb),
-#md # and opened in [binder](https://mybinder.org/) here:
-#md # [`06-fan-short.ipynb`](@__BINDER_ROOT_URL__/06-fan-short.ipynb).
+#srcURL
 
 
 # ### Setup

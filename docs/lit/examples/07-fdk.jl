@@ -6,21 +6,9 @@ for cone-beam computed tomography (CBCT)
 with both arc and flat detectors
 using the Julia package
 [`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl).
-
-This page was generated from a single Julia file:
-[07-fdk.jl](@__REPO_ROOT_URL__/07-fdk.jl).
 =#
 
-#md # In any such Julia documentation,
-#md # you can access the source code
-#md # using the "Edit on GitHub" link in the top right.
-
-#md # The corresponding notebook can be viewed in
-#md # [nbviewer](https://nbviewer.org/) here:
-#md # [`07-fdk.ipynb`](@__NBVIEWER_ROOT_URL__/07-fdk.ipynb),
-#md # and opened in [binder](https://mybinder.org/) here:
-#md # [`07-fdk.ipynb`](@__BINDER_ROOT_URL__/07-fdk.ipynb).
-
+#srcURL
 
 # ### Setup
 
@@ -43,7 +31,7 @@ isinteractive() ? jim(:prompt, true) : prompt(:draw);
 
 
 #=
-### CBCT projections of 3D Shepp-Logan phantom
+## CBCT projections of 3D Shepp-Logan phantom
 
 For illustration,
 we start by synthesizing
