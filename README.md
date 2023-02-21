@@ -10,6 +10,9 @@ https://github.com/JuliaImageRecon/Sinograms.jl
 [![docs-stable][docs-stable-img]][docs-stable-url]
 [![docs-dev][docs-dev-img]][docs-dev-url]
 [![code-style][code-blue-img]][code-blue-url]
+[![deps](https://juliahub.com/docs/Sinograms/deps.svg)](https://juliahub.com/ui/Packages/Sinograms/DzgGR?t=2)
+[![version](https://juliahub.com/docs/Sinograms/version.svg)](https://juliahub.com/ui/Packages/Sinograms/DzgGR)
+[![pkgeval](https://juliahub.com/docs/Sinograms/pkgeval.svg)](https://juliahub.com/ui/Packages/Sinograms/DzgGR)
 <img src="docs/src/assets/logo.png" alt="logo" width="150"/>
 
 See the examples under the blue "docs" badges above.
