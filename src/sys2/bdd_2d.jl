@@ -27,8 +27,9 @@ function projection(phantom::AbstractMatrix{<:T}, geo ; draw::Bool = false) wher
 
     # Pixel boundaries
     (pixelX,pixelY) = ndgrid((-(nPix/2):(nPix/2)), (-(nPix/2):(nPix/2)))
-    pixelX = pixelX' .* pSize
-    pixelY = reverse(pixelY' .- pSize/2, dims = 1)
+    pixelX = pixelX' * pSize
+    pixelY = reverse(pixelY' .- 1/2, dims = 1)
+    pixelY = pixelY * pSize
 
     sinogram = zeros(length(angle),nDet)
 
@@ -128,8 +129,9 @@ function backprojection(sinogram::AbstractMatrix{<:T},geo ; draw::Bool = false) 
 
     # Pixel boundaries
     (pixelX,pixelY) = ndgrid(-(nPix/2):(nPix/2), -(nPix/2):(nPix/2))
-    pixelX = pixelX' .* pSize
-    pixelY = reverse(pixelY' .- pSize/2, dims = 1)
+    pixelX = pixelX' * pSize
+    pixelY = reverse(pixelY' .- 1/2, dims = 1)
+    pixelY = pixelY * pSize
 
     reconImg = zeros(nPix,nPix)
     reconImgTmp = reconImg
