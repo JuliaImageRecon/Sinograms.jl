@@ -55,13 +55,13 @@ using Unitful: mm, @u_str
     jim(1:geo.nPix, 1:geo.nPix, imageB'; title="bdd_2d backprojection", aspect_ratio = :auto, xlabel="mm", ylabel="mm")
 
     #check adjoint 
-    # x = randn(geo.nPix, geo.nPix)
-    # sinoX = projection(x, geo)
+    x = rand(geo.nPix, geo.nPix)*u"mm^-1"
+    sinoX = projection(x, geo)
     
-    # y = randn(length(geo.angle), geo.nDet)
-    # imY = backprojection(y, geo)
+    y = rand(length(geo.angle), geo.nDet)*u"mm^-1"
+    imY = backprojection(y, geo)
     
-    #@show (dot(sinoX,y), dot(x, imY))
-    #@test dot(sinoX,y) ≈ dot(x, imY)
+    @show (dot(sinoX,y), dot(x, imY))
+    @test isapprox(dot(sinoX,y), dot(x, imY); rtol = 3e-3)
 
 end

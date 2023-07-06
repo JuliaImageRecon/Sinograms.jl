@@ -123,6 +123,7 @@ function backprojection(sinogram::AbstractMatrix{<:T},geo ; draw::Bool = false) 
     nDet = geo.nDet     
     angle = geo.angle 
 
+
     # Detector boundaries
     detX = (-(nDet/2):(nDet/2)) .* dSize
     detY = (-(DSD-DS0)-(dSize/2)) .* ones(nDet+1)
@@ -165,23 +166,23 @@ function backprojection(sinogram::AbstractMatrix{<:T},geo ; draw::Bool = false) 
             pixm = reverse(map2y.(rtubeX,rtubeY,pixelX,pixelY)', dims = 2)
         end
         
-        # scaling factor calculation
-        L = zeros(1,nPix) 
+        # scaling factor calculation  
+        detSize = diff(detm, dims = 1)
+        L = zeros(nDet) 
+
         if (axisCase) 
-            for n = 1:nPix 
-                pixSize = pixm[n,2]-pixm[n,1] 
-                pix_mid = (pixm[n] + pixm[n+1])/2
-                theta = atan(abs(rtubeX-pix_mid)/abs(rtubeY)) # theta is the angle btw the ray to det_mid and y-axis
-                L[n] = abs(pSize./(pixSize.*cos(theta)))
+            for n = 1:nDet 
+                det_mid = (detm[n] + detm[n+1])/2
+                theta = atan(abs(rtubeX-det_mid)/abs(rtubeY)) # theta is the angle btw the ray to det_mid and y-axis
+                L[n] = abs(pSize./(detSize[n].*cos(theta)))
             end
         else
-            for n = 1:nPix
-                pixSize = pixm[n,2]-pixm[n,1] 
-                pix_mid = (pixm[n] + pixm[n+1])/2
-                theta = acot(abs(rtubeY-pix_mid)/abs(rtubeX))
-                L[n] = abs(pSize./(pixSize.*sin(theta)))
-            end  
-        end     
+            for n = 1:nDet
+                det_mid = (detm[n] + detm[n+1])/2
+                theta = acot(abs(rtubeY-det_mid)/abs(rtubeX))
+                L[n] = abs(pSize./(detSize[n].*sin(theta)))
+            end 
+        end 
 
         # For each row
         for row in 1:nPix
@@ -190,7 +191,7 @@ function backprojection(sinogram::AbstractMatrix{<:T},geo ; draw::Bool = false) 
             detSize = diff(detm, dims = 1)      
             
             #detm = vec(detm)
-            Ppj = integrate1D(sinogram[proj,:],detSize)
+            Ppj = integrate1D(sinogram[proj,:] .* L, detSize)
 
             if detm[1] > detm[2] #if descending
                 interp_func = linear_interpolation(reverse(detm), reverse(vec(Ppj)), extrapolation_bc=Flat())
@@ -199,7 +200,7 @@ function backprojection(sinogram::AbstractMatrix{<:T},geo ; draw::Bool = false) 
             end
             Pdk = interp_func.(vec(rowm))
             
-            reconImgTmp[row,:] = abs.(diff(Pdk, dims = 1)') .* L
+            reconImgTmp[row,:] = abs.(diff(Pdk, dims = 1)')
             
         end # Row loop 
         
@@ -211,7 +212,7 @@ function backprojection(sinogram::AbstractMatrix{<:T},geo ; draw::Bool = false) 
            
     end # Projection loop
     
-    reconImg = reconImg / length(angle) 
+    # reconImg = reconImg / length(angle) 
     return reconImg
 
 end # endfunc
