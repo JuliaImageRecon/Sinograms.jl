@@ -68,10 +68,10 @@ prompt()
 
 # Ellipse parameters for SheppLoganToft phantom:
 μ = 0.01 / mm # typical linear attenuation coefficient
-ob = shepp_logan(SheppLoganToft(); fovs = fovs(ig), u = (1, 1, μ))
+ob = shepp_logan(SheppLoganToft(); fovs = fovs(ig), u = (1, 1, μ));
 
 # Create a phantom image:
-testimage = phantom(axes(ig)..., ob)
+testimage = phantom(axes(ig)..., ob);
 
 # Show the true phantom image.
 pt = jim(axes(ig), testimage)
@@ -124,7 +124,7 @@ For illustration we include `Hamming` window.
 
 plan = plan_fbp(rg, ig; window = Window(Hamming(), 1.0))
 fbp_image_b = fbp(plan, sinogramB)
-fbp_image_r = fbp(plan, sinogramR)
+fbp_image_r = fbp(plan, sinogramR);
 
 # A narrow color window is needed to see the soft tissue structures:
 clim = (0.04, 1.1) .* μ
