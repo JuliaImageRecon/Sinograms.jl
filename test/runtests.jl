@@ -27,6 +27,7 @@ include("fbp3/fdk.jl")
 include("fbp3/ct-plot.jl")
 
 include("sys2/zwart_powell.jl")
+include("sys2/bdd_2d.jl")
 
 @testset "Sinograms" begin
     @test isempty(detect_ambiguities(Sinograms))
