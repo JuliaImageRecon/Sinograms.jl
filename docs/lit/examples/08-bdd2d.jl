@@ -2,25 +2,30 @@
 # [2D Branchless Distance-driven Projection and Backprojection](@id 08-bdd2d)
 
 This page describes the 2D branchless distance-driven projection
-and backprojection (bdd_2d) for fan-beam geometries with a "flat" detector
+and backprojection method
+of
+[Basu & De Man, 2006](https://doi.org/10.1117/12.659893)
+for fan-beam geometries with a "flat" detector
 using the Julia package
 [`Sinograms.jl`](https://github.com/JuliaImageRecon/Sinograms.jl).
 
-This page compares the results to the radon transform method. 
-
-This page was generated from a single Julia file:
-[08-bdd2d.jl](@__REPO_ROOT_URL__/08-bdd2d.jl).
+This page compares the results to the `radon` transform method.
 =#
+
+#srcURL
 
 # ### Setup
 
 # Packages needed here.
 
-using Sinograms: projection, backprojection, SinoFanFlat, rays, plan_fbp, fbp, Window, Hamming, sino_geom_plot!
-using ImagePhantoms: shepp_logan, SheppLoganToft, radon, phantom
 using ImageGeoms: ImageGeom, fovs, MaskCircle
+using ImagePhantoms: shepp_logan, SheppLoganToft, radon, phantom
 using MIRTjim: jim, prompt
-using Unitful: mm, @u_str
+import Plots
+using Sinograms: projection, backprojection
+import Sinograms
+using Sinograms: SinoFanFlat, rays, plan_fbp, fbp, Window, Hamming, sino_geom_plot!, angles
+using Unitful: mm
 
 # The following line is helpful when running this file as a script;
 # this way it will prompt user to hit a key after each figure is displayed.
@@ -28,32 +33,30 @@ using Unitful: mm, @u_str
 isinteractive() ? jim(:prompt, true) : prompt(:draw);
 
 #=
-### Fan-beam sinogram of SheppLoganToft phantom
+## Fan-beam sinogram of SheppLoganToft phantom
 
 For illustration,
 we start by synthesizing
 a fan-beam sinogram
-of the SheppLoganToft phantom.
+of the `SheppLoganToft` phantom.
 
 For completeness,
-we use units (from Unitful),
+we use units (from `Unitful`),
 but units are optional.
-
 =#
 
-# Make a tuple to define image geometry.
-deg = 1
-geo = (DSD = 949mm, DS0 = 541mm, pSize = 1mm, dSize = 1.0239mm, 
-    nPix = 512, nDet = 888, angle = deg2rad.(0:deg:360-deg))
+# Define the sinogram geometry
+rg = SinoFanFlat( ; nb = 910, d = 1.0239mm, na = 360, dsd = 949mm, dod = 408mm)
 
-# Use `ImageGeom` to define the image geometry for radon test.
-ig = ImageGeom(MaskCircle(); dims=(512,512), deltas = (1mm,1mm) )
+# Define the image geometry
+ig = ImageGeom(MaskCircle(); dims=(512,512), deltas = (1mm,1mm))
 
-# Use `SinoFanFlat` to define the sinogram geometry.
-rg = SinoFanFlat( ; nb = 888, d = 1.0239mm, na = 360, dsd = 949mm, dod = 408mm)
+# Make a tuple to define imaging geometry for bdd code. todo
+geo = (DSD = rg.dsd, DS0 = Sinograms._dso(rg), pSize = ig.deltas[1],
+    dSize = rg.d, nPix = ig.dims[1], nDet = rg.nb, angle = Sinograms._ar(rg))
 
 # Examine the geometry to verify the FOV:
-jim(axes(ig), ig.mask; prompt=false)
+pa = jim(axes(ig), ig.mask; prompt=false)
 sino_geom_plot!(rg, ig)
 
 #
@@ -67,45 +70,63 @@ ob = shepp_logan(SheppLoganToft(); fovs = fovs(ig), u = (1, 1, μ))
 testimage = phantom(axes(ig)..., ob)
 
 # Show the true phantom image.
-jim(reverse(testimage, dims=2))
+pt = jim(axes(ig), testimage)
 
-# Arc fan-beam sinogram for SheppLoganToft phantom:
-sinogramB = projection(reverse(rot180(testimage'), dims=2), geo)
-sinogramR = radon(rays(rg), ob)
-p1 = jim(1:geo.nDet, 1:length(geo.angle), sinogramB'; title="bdd_2d sinogram", aspect_ratio = :auto, xlabel="r (mm)", ylabel="ϕ")
-p2 = jim(axes(rg), sinogramR; title="Radon test sinogram", xlabel="r", ylabel="ϕ")
-jim(p1,p2)
+# Fan-beam sinograms for phantom:
+if !@isdefined(sinogramR)
+    @time sinogramR = radon(rays(rg), ob)
+    # Ensure that sinogram is not truncated
+    @assert all(==(0), sum(abs, sinogramR, dims=2)[[1,end]])
+end;
 
-# Here is the difference image of sinogram using bdd_2d versus radon transform method.
-jim(axes(rg), sinogramR - sinogramB', title="Error image", aspect_ratio = :auto, xlabel="r", ylabel="ϕ")
+if !@isdefined(sinogramB)
+    @time sinogramB = projection(reverse(rot180(testimage'), dims=2), geo)
+    sinogramB = sinogramB' # todo
+end;
+
+p1 = jim(axes(rg), sinogramB; prompt=false,
+ title="bdd_2d sinogram", xlabel="r", ylabel="ϕ")
+p2 = jim(axes(rg), sinogramR; prompt=false,
+ title="Radon test sinogram", xlabel="r", ylabel="ϕ")
+p12 = jim(p1,p2)
+
+# Difference of sinogram using `bdd_2d` versus `radon` method.
+pd = jim(axes(rg), sinogramR - sinogramB;
+ title="Difference sinogram", xlabel="r", ylabel="ϕ")
+
 
 #=
-## Backprojection of bdd_2d
+## Backprojection with `bdd_2d`
+# Note that the back-projected image is not a useful reconstruction.
+# See next section for image reconstruction via FBP.
 =#
+if !@isdefined(imageB)
+    @time imageB = backprojection(sinogramB'/1mm, geo) # todo
+    imageB = rotr90(imageB) # todo
+end
+pb = jim(axes(ig), imageB;
+ title="bdd_2d backprojection", xlabel="x", ylabel="y")
 
-# Note that backprojected image is not a reconstructed image. Refer to the next section for image reconstruction via FBP.
-sinogram = sinogramB*u"mm^-1" # include units
-imageB = backprojection(sinogram, geo)
-jim(1:geo.nPix, 1:geo.nPix, imageB'; title="bdd_2d backprojection", aspect_ratio = :auto, xlabel="mm", ylabel="mm")
 
 #=
 ## Image reconstruction via FBP
-This section compares the reconstructed image using the bdd_2d sinogram and the radon test sinogram.
+Compare the reconstructed image using the `bdd_2d` sinogram
+and the `radon` sinogram.
 
-Here we start with a "plan",
-which would save work if we were reconstructing many images.
+Here we start with a "plan"
+that would save work if we were reconstructing many images.
 For illustration we include `Hamming` window.
 =#
 
 plan = plan_fbp(rg, ig; window = Window(Hamming(), 1.0))
-fbp_image_b = fbp(plan, sinogramB')
+fbp_image_b = fbp(plan, sinogramB)
 fbp_image_r = fbp(plan, sinogramR)
 
 # A narrow color window is needed to see the soft tissue structures:
 clim = (0.04, 1.1) .* μ
 r1 = jim(axes(ig), fbp_image_b, "FBP image with bdd_2d"; clim)
 r2 = jim(axes(ig), fbp_image_r, "FBP image with radon"; clim)
-jim(r1,r2)
+r12 = jim(r1,r2; size=(1000,300))
 
 # For comparison, here is the difference image.
-jim(axes(ig), fbp_image_b - fbp_image_r, "Error image")
+pe = jim(axes(ig), fbp_image_b - fbp_image_r, "Difference image")
