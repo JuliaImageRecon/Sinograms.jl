@@ -78,13 +78,13 @@ pt = jim(axes(ig), testimage)
 
 # Fan-beam sinograms for phantom:
 if !@isdefined(sinogramR)
-    sinogramR = radon(rays(rg), ob)
-    # Ensure that sinogram is not truncated
+    @time sinogramR = radon(rays(rg), ob)
+    ## Ensure that sinogram is not truncated
     @assert all(==(0), sum(abs, sinogramR, dims=2)[[1,end]])
 end;
 
 if !@isdefined(sinogramB)
-    sinogramB = project_bdd(reverse(rot180(testimage'), dims=2), geo)
+    @time sinogramB = project_bdd(reverse(rot180(testimage'), dims=2), geo)
     sinogramB = sinogramB' # todo
 end;
 
@@ -105,7 +105,7 @@ pd = jim(axes(rg), sinogramR - sinogramB;
 # See next section for image reconstruction via FBP.
 =#
 if !@isdefined(imageB)
-    imageB = backproject_bdd(sinogramB'/1mm, geo) # todo
+    @time imageB = backproject_bdd(sinogramB'/1mm, geo) # todo
     imageB = rotr90(imageB) # todo
 end
 pb = jim(axes(ig), imageB;
