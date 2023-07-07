@@ -1,6 +1,6 @@
 # test/bdd_2d.jl
 
-using Sinograms: projection, backprojection
+using Sinograms: project_bdd, backproject_bdd
 using Sinograms: SinoFanFlat, rays, plan_fbp, fbp, Window, Hamming
 import Sinograms # downsample, _ar, _dso
 using ImageGeoms: ImageGeom, fovs, MaskCircle
@@ -28,7 +28,7 @@ using Unitful: mm
     testimage = phantom(axes(ig)..., ob)
 
     # forward projector
-    sinogramB = projection(reverse(rot180(testimage'), dims=2),geo)
+    sinogramB = project_bdd(reverse(rot180(testimage'), dims=2), geo)
     sinogram = sinogramB / 1mm # include units
 
     # check dimensions
@@ -39,16 +39,16 @@ using Unitful: mm
     sinogramR = radon(rays(rg), ob)
 
     # back projector
-    imageB = backprojection(sinogram,geo)
+    imageB = backproject_bdd(sinogram, geo)
     @test imageB isa Matrix
     @test size(imageB) == (geo.nPix, geo.nPix)
 
     # adjoint
     x = rand(geo.nPix, geo.nPix) / 1mm
-    sinoX = projection(x, geo)
+    sinoX = project_bdd(x, geo)
 
     y = rand(length(geo.angle), geo.nDet) / 1mm
-    imY = backprojection(y, geo)
+    imY = backproject_bdd(y, geo)
 
     @show (dot(sinoX,y), dot(x, imY))
     @test isapprox(dot(sinoX,y), dot(x, imY); rtol = 2e-2)

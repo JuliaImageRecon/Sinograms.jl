@@ -19,11 +19,12 @@ This page compares the results to the `radon` transform method.
 # Packages needed here.
 
 using ImageGeoms: ImageGeom, fovs, MaskCircle
+import ImageGeoms # downsample
 using ImagePhantoms: shepp_logan, SheppLoganToft, radon, phantom
 using MIRTjim: jim, prompt
 import Plots
-using Sinograms: projection, backprojection
-import Sinograms
+using Sinograms: project_bdd, backproject_bdd
+import Sinograms # downsample, _ar, _dso
 using Sinograms: SinoFanFlat, rays, plan_fbp, fbp, Window, Hamming, sino_geom_plot!, angles
 using Unitful: mm
 
@@ -46,10 +47,13 @@ but units are optional.
 =#
 
 # Define the sinogram geometry
+down = 4 # save time
 rg = SinoFanFlat( ; nb = 910, d = 1.0239mm, na = 360, dsd = 949mm, dod = 408mm)
+rg = Sinograms.downsample(rg, down)
 
 # Define the image geometry
 ig = ImageGeom(MaskCircle(); dims=(512,512), deltas = (1mm,1mm))
+ig = ImageGeoms.downsample(ig, down)
 
 # Make a tuple to define imaging geometry for bdd code. todo
 geo = (DSD = rg.dsd, DS0 = Sinograms._dso(rg), pSize = ig.deltas[1],
@@ -80,7 +84,7 @@ if !@isdefined(sinogramR)
 end;
 
 if !@isdefined(sinogramB)
-    @time sinogramB = projection(reverse(rot180(testimage'), dims=2), geo)
+    @time sinogramB = project_bdd(reverse(rot180(testimage'), dims=2), geo)
     sinogramB = sinogramB' # todo
 end;
 
@@ -101,7 +105,7 @@ pd = jim(axes(rg), sinogramR - sinogramB;
 # See next section for image reconstruction via FBP.
 =#
 if !@isdefined(imageB)
-    @time imageB = backprojection(sinogramB'/1mm, geo) # todo
+    @time imageB = backproject_bdd(sinogramB'/1mm, geo) # todo
     imageB = rotr90(imageB) # todo
 end
 pb = jim(axes(ig), imageB;
