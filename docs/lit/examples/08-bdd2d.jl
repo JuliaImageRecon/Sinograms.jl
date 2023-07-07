@@ -68,13 +68,9 @@ prompt()
 
 # Ellipse parameters for SheppLoganToft phantom:
 μ = 0.01 / mm # typical linear attenuation coefficient
-ob = shepp_logan(SheppLoganToft(); fovs = fovs(ig), u = (1, 1, μ));
-
-# Create a phantom image:
-testimage = phantom(axes(ig)..., ob);
-
-# Show the true phantom image.
-pt = jim(axes(ig), testimage)
+ob = shepp_logan(SheppLoganToft(); fovs = fovs(ig), u = (1, 1, μ))
+testimage = phantom(axes(ig)..., ob) # Create a phantom image
+pt = jim(axes(ig), testimage) # Show the true phantom image
 
 # Fan-beam sinograms for phantom:
 if !@isdefined(sinogramR)
@@ -101,8 +97,8 @@ pd = jim(axes(rg), sinogramR - sinogramB;
 
 #=
 ## Backprojection with `bdd_2d`
-# Note that the back-projected image is not a useful reconstruction.
-# See next section for image reconstruction via FBP.
+(The un-filtered back-projected image is not a useful reconstruction.
+See next section for image reconstruction via FBP.)
 =#
 if !@isdefined(imageB)
     @time imageB = backproject_bdd(sinogramB'/1mm, geo) # todo
