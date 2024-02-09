@@ -24,6 +24,7 @@ Tested with Julia ≥ 1.8.
 
 * [JuliaImageRecon](https://github.com/JuliaImageRecon)
 * [Michigan Image Reconstruction Toolbox (MIRT)](https://github.com/JeffFessler/MIRT.jl)
+* [RadonKA.jl with CUDA and multithreading support](https://github.com/roflmaostc/RadonKA.jl)
 * https://github.com/JuliaImages/ImageReconstruction.jl (`radon`, `iradon`)
 * https://github.com/JeffFessler/SPECTrecon.jl
 
