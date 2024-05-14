@@ -27,17 +27,29 @@ typically degrees.
 angles(rg::RayGeom) =
     range(rg.orbit_start, length = rg.na, step = rg.orbit / rg.na)
 
-# angles in radians
+"""
+    _ar(rg::RayGeom)
+Angles in radians.
+"""
 _ar(rg::RayGeom) = to_radians(angles(rg))
 
-# minimum orbit for a fan-beam short scan
+"""
+    _orbit_short(rg::RayGeom)
+Minimum orbit for a fan-beam short scan.
+"""
 _orbit_short(rg::RayGeom) = 180 + 2 * rad2deg(_gamma_max(rg)) # (degrees)
 
-# distance from detector arc focal spot to source for fan-beam
+"""
+   _dfs(::Union{SinoFan,CtFan})
+Distance from detector arc focal spot to source for fan-beam.
+"""
 _dfs(::Union{SinoFanArc{Td},CtFanArc{Td}}) where Td = zero(Td)
 _dfs(::Union{SinoFanFlat{Td},CtFanFlat{Td}}) where Td = Inf * oneunit(Td)
 
-# distance from source to origin for fan-beam
+"""
+    _dso(rg::Union{SinoFan,CtFan}) = rg.dsd - rg.dod
+Distance from source to origin for fan-beam.
+"""
 _dso(rg::Union{SinoFan,CtFan}) = rg.dsd - rg.dod
 
 """
