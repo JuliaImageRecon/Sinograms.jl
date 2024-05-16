@@ -6,8 +6,9 @@ Show 2D sinogram geometries.
 
 export sino_plot_rays, sino_geom_plot!
 
-#using Sinograms: SinoGeom, RealU
-using .Plots: scatter, plot, plot!, default, xlims!
+import Sinograms: SinoGeom, RealU
+using Plots: scatter, plot, plot!, default, xlims!
+using ImageGeoms: ImageGeom
 
 
 """

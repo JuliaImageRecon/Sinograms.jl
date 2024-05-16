@@ -1,14 +1,17 @@
-# units.jl
+# Sinograms_Units.jl
+# Support data with units iff user has loaded Unitful
 
-using .Unitful: °, rad, NoDims, unit
+module Sinograms_Units
 
+import Unitful: °, rad, NoDims, unit
+import Unitful: Units, Quantity, convfact, ustrip
+import Unitful: uconvert
+import Unitful
 import FFTW #: fft, ifft
 
 #=
 https://github.com/PainterQubits/Unitful.jl/issues/375
 =#
-using .Unitful: Units, Quantity, convfact, ustrip
-import .Unitful: uconvert
 function uconvert(a::Units, x::Quantity{T,D,U}) where {T<:AbstractFloat,D,U}
     return Quantity(x.val * T(convfact(a, U())), a)
 end
@@ -53,3 +56,5 @@ fft_filter(data::AbstractArray{<: Unitful.Quantity{<:Complex}}, args...) =
 
 fft_filter(data::AbstractArray{<: Unitful.Quantity{<:Real}}, args...) =
     _reale(_fft_filter(data, args...))
+
+end # module

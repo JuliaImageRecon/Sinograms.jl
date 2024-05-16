@@ -6,8 +6,8 @@ Show CT geometries.
 
 export ct_geom_plot2!, ct_geom_plot3
 
-#using Sinograms: CtGeom, RealU, source_zs
-using .Plots: plot, plot!, default
+import Sinograms: CtGeom, CtFan, RealU, _source_zs
+using Plots: plot, plot!, default
 using ImageGeoms: axes
 
 
