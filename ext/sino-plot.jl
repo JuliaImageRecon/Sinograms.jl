@@ -4,9 +4,9 @@ Show 2D sinogram geometries.
 2022-01-23, Jeff Fessler
 =#
 
-export sino_plot_rays, sino_geom_plot!
-
-import Sinograms: SinoGeom, RealU
+import Sinograms: SinoGeom, RealU, rays
+import Sinograms: sino_plot_rays # extended here
+import Sinograms: sino_geom_plot! # extended here
 using Plots: scatter, plot, plot!, default, xlims!
 using ImageGeoms: ImageGeom
 

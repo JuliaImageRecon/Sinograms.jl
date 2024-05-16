@@ -43,8 +43,9 @@ include("sys2/footprint.jl")
 include("sys2/zwart_powell.jl")
 include("sys2/bdd_2d.jl")
 
-# methods defined in the extension
+# methods defined in the extension(s)
 export sino_plot_rays
-function sino_plot_rays(defined_in_extension::Nothing) end
+sino_plot_rays(::Nothing) = throw("Run `using Plots` first")
+sino_geom_plot!(::Nothing) = throw("Run `using Plots` first")
 
 end # module
