@@ -14,7 +14,7 @@ using the Julia package
 
 # Packages needed here.
 
-using Plots: plot, gui # these 2 must precede Sinograms for Requires to work!
+using Plots: plot, gui
 using Unitful: cm
 using Sinograms: CtFanArc, CtFanFlat # CtPar
 using Sinograms: rays, plan_fbp, Window, Hamming, fdk, ct_geom_plot3

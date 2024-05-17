@@ -25,7 +25,7 @@ function values(rg::R) where {R <: CtGeom}
 end
 
 
-function _test_construct(geo ; ds=2mm, orbit=180.0°)
+function _test_construct3(geo ; ds=2mm, orbit=180.0°)
     rg = @inferred geo(; ds, orbit)
     args = values(rg)
     Td = typeof(ds)
@@ -48,7 +48,7 @@ end
     ds, orbit = 2mm, 180.0° # stress
     for geo in list
         @test (@inferred geo(; ds, orbit)) isa CtGeom
-        @test _test_construct(geo)
+        @test _test_construct3(geo)
     end
 
     rg = @inferred ge1( ; unit = oneunit(ds), orbit=:short)

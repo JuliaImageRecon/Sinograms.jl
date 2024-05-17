@@ -24,7 +24,7 @@ function values(rg::R) where {R <: SinoGeom}
 end
 
 
-function _test_construct(geo ; d=2mm, orbit=180.0°)
+function _test_construct2(geo ; d=2mm, orbit=180.0°)
     rg = @inferred geo(; d, orbit)
     args = values(rg)
     Td = typeof(d)
@@ -46,7 +46,7 @@ end
     d, orbit = 2mm, 180.0° # stress
     for geo in list
         @test (@inferred geo(; d, orbit)) isa SinoGeom
-        @test _test_construct(geo)
+        @test _test_construct2(geo)
     end
 
     rg = @inferred ge1( ; unit = oneunit(d), orbit=:short)

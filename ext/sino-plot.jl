@@ -4,17 +4,19 @@ Show 2D sinogram geometries.
 2022-01-23, Jeff Fessler
 =#
 
-export sino_plot_rays, sino_geom_plot!
+import Sinograms: sino_plot_rays, sino_geom_plot! # extended here
 
-#using Sinograms: SinoGeom, RealU
-using .Plots: scatter, plot, plot!, default, xlims!
+using Sinograms: SinoGeom, RealU, rays, SinoPar, SinoFan, SinoMoj
+using Sinograms: _ar, _rfov, _dso, _xds, _yds, _d_moj
+using Plots: scatter, plot, plot!, default, xlims!
+using ImageGeoms: ImageGeom
 
 
 """
     sino_plot_rays(rg::SinoGeom ; kwargs...)
 
 Make a scatter plot of the `(r, ϕ)` sample locations for all rays.
-Requires `Plots`.
+Needs `Plots`.
 """
 function sino_plot_rays(rg::SinoGeom; kwargs...)
 #   r, phi = rays(rg)
@@ -101,12 +103,12 @@ function sino_geom_plot_fan!(
     ylims = (-1,1) .* dso
     tmp = ar .+ π/2 # trick: angle beta defined ccw from y axis
     scat!([p0[1]], [p0[2]], color=:blue, marker=:square, # source
-        ; xlims, ylims)
-    plot!(dso * cos.(t), dso * sin.(t), color=:cyan) # source circle
+        ; xlims, ylims, label="")
+    plot!(dso * cos.(t), dso * sin.(t), color=:cyan, label="") # source circle
     scat!(dso * cos.(tmp), dso * sin.(tmp),
-        color=:blue, marker=:circle, markersize=2) # source points
+        color=:blue, marker=:circle, markersize=2, label="") # source points
     scat!(vec(pd[1,:]), vec(pd[2,:]), marker=:circle,
-        color=:orange, markersize=1) # detectors
+        color=:orange, markersize=1, label="") # detectors
 
     plot!([pd[1,1], p0[1], pd[1,end]], [pd[2,1], p0[2], pd[2,end]],
         color=:red, label="")

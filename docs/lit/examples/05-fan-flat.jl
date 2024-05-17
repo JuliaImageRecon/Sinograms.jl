@@ -17,7 +17,7 @@ as used in many cone-beam CT (CBCT) systems.
 
 # Packages needed here.
 
-using Plots: plot, gui # these 2 must precede Sinograms for Requires to work!
+using Plots: plot, gui
 using Unitful: cm
 using Sinograms: SinoFanFlat, rays, plan_fbp, Window, Hamming, fbp, sino_geom_plot!
 using ImageGeoms: ImageGeom, fovs, MaskCircle

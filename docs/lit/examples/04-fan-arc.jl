@@ -22,7 +22,7 @@ anti-scatter grids.
 
 # Packages needed here.
 
-using Plots: plot, gui # these 2 must precede Sinograms for Requires to work!
+using Plots: plot, gui
 using Unitful: mm
 using Sinograms: SinoFanArc, rays, plan_fbp, fbp, sino_geom_plot!
 using ImageGeoms: ImageGeom, fovs, MaskCircle
