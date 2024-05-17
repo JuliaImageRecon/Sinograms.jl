@@ -16,7 +16,7 @@ using ImageGeoms: ImageGeom
     sino_plot_rays(rg::SinoGeom ; kwargs...)
 
 Make a scatter plot of the `(r, ϕ)` sample locations for all rays.
-Requires `Plots`.
+Needs `Plots`.
 """
 function sino_plot_rays(rg::SinoGeom; kwargs...)
 #   r, phi = rays(rg)

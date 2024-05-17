@@ -6,7 +6,7 @@ Show CT geometries.
 
 import Sinograms: ct_geom_plot2!, ct_geom_plot3 # extended here
 
-using Sinograms: CtGeom, CtFan, RealU, _source_zs
+using Sinograms: CtGeom, CtFan, RealU, _t, _source_zs
 using Plots: plot, plot!, default
 using ImageGeoms: axes
 
