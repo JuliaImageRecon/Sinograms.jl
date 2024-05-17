@@ -1,23 +1,19 @@
 #=
 units.jl
 Test conversion of arrays from degrees to radians.
-This is tricky because of Requires.jl
+This is tricky because of package extensions.
 =#
 
-using Sinograms: to_radians, fft_filter
-using InteractiveUtils: @which
+using Sinograms: to_radians, fft_filter, Sinograms
 using Test
 
 function _is_sinograms(x)
-    tmp = string(@which to_radians(x))
-    check = findall("Sinograms.jl", tmp)
-    return length(check) == 1
+    return parentmodule(to_radians, (typeof(x),)) == Sinograms
 end
 
 function _is_units(x)
-    tmp = string(@which to_radians(x))
-    check = findall("units.jl", tmp)
-    return length(check) == 1
+    return parentmodule(to_radians, (typeof(x),)) ==
+        Base.get_extension(Sinograms, :Sinograms_Units)
 end
 
 
@@ -27,7 +23,7 @@ end
     ar = @inferred to_radians(aa)
     @test ar ≈ [π]
     @test ar[1] isa Float32
-    isinteractive() && @test _is_sinograms(aa)
+    @test _is_sinograms(aa)
 end
 
 
@@ -43,19 +39,19 @@ using Unitful: °, rad
     ar = @inferred to_radians(aa)
     @test ar ≈ [π]
     @test ar[1] isa Float32
-    isinteractive() && @test _is_sinograms(aa)
+    @test _is_sinograms(aa)
 
     aa = [1f0rad] # radians
     ar = @inferred to_radians(aa)
     @test ar ≈ [1rad]
     @test ar[1].val isa Float32
-    isinteractive() && @test _is_units(aa)
+    @test _is_units(aa)
 
     aa = [180f0°] # degrees
     ar = @inferred to_radians(aa)
     @test ar ≈ [1π * rad]
     @test ar[1].val isa Float32
-    isinteractive() && @test _is_units(aa)
+    @test _is_units(aa)
 end
 
 

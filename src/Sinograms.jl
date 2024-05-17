@@ -6,6 +6,7 @@ module Sinograms
 const RealU = Number # Real or Unitful
 
 include("unit.jl")
+include("exts.jl")
 
 include("geom/util.jl")
 include("geom/ct-source.jl")
@@ -42,10 +43,5 @@ include("fbp3/fdk.jl")
 include("sys2/footprint.jl")
 include("sys2/zwart_powell.jl")
 include("sys2/bdd_2d.jl")
-
-# methods defined in the extension(s)
-export sino_plot_rays
-sino_plot_rays(::Nothing) = throw("Run `using Plots` first")
-sino_geom_plot!(::Nothing) = throw("Run `using Plots` first")
 
 end # module

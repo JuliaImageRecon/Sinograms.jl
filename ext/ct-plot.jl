@@ -4,9 +4,9 @@ Show CT geometries.
 2022-10-01, Jeff Fessler
 =#
 
-export ct_geom_plot2!, ct_geom_plot3
+import Sinograms: ct_geom_plot2!, ct_geom_plot3 # extended here
 
-import Sinograms: CtGeom, CtFan, RealU, _source_zs
+using Sinograms: CtGeom, CtFan, RealU, _source_zs
 using Plots: plot, plot!, default
 using ImageGeoms: axes
 

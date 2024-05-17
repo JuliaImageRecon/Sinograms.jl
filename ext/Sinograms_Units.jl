@@ -3,11 +3,15 @@
 
 module Sinograms_Units
 
-import Unitful: °, rad, NoDims, unit
-import Unitful: Units, Quantity, convfact, ustrip
+# extended:
+import Sinograms: fft_filter, to_radians, _unit_precision
+import FFTW: fft, ifft
 import Unitful: uconvert
-import Unitful
-import FFTW #: fft, ifft
+
+using Sinograms: _fft_filter, _reale
+using Unitful: °, rad, NoDims, unit
+using Unitful: Units, Quantity, convfact, ustrip
+
 
 #=
 https://github.com/PainterQubits/Unitful.jl/issues/375
@@ -22,19 +26,19 @@ end
 
 Convert `Unitful` quantity array to radians.
 """
-function to_radians(aa::AbstractArray{<: Unitful.Quantity{T}}) where {T <: AbstractFloat}
+function to_radians(aa::AbstractArray{<: Quantity{T}}) where {T <: AbstractFloat}
     U = eltype(aa)
     c = rad(oneunit(U)) / oneunit(U)
     return aa * c
 end
 
 
-_unit_precision(x::Unitful.Quantity{T}) where {T <: Number} = "Unit{$T}"
+_unit_precision(x::Quantity{T}) where {T <: Number} = "Unit{$T}"
 
 
 # generic unitless linear operation applied to data with units
 function _linear_fun(fun::Function,
-    x::AbstractArray{<: Unitful.Quantity},
+    x::AbstractArray{<: Quantity},
     args...
 )
     x0 = ustrip(x) # unitless view into x data
@@ -45,16 +49,15 @@ function _linear_fun(fun::Function,
 end
 
 # fft for data with units
-FFTW.fft(x::AbstractArray{<: Unitful.Quantity}, args...) =
-    _linear_fun(FFTW.fft, x, args...)
-FFTW.ifft(x::AbstractArray{<: Unitful.Quantity}, args...) =
-    _linear_fun(FFTW.ifft, x, args...)
+fft(x::AbstractArray{<: Quantity}, args...) =
+    _linear_fun(fft, x, args...)
+ifft(x::AbstractArray{<: Quantity}, args...) =
+    _linear_fun(ifft, x, args...)
 
-
-fft_filter(data::AbstractArray{<: Unitful.Quantity{<:Complex}}, args...) =
+fft_filter(data::AbstractArray{<: Quantity{<:Complex}}, args...) =
     _fft_filter(data, args...)
 
-fft_filter(data::AbstractArray{<: Unitful.Quantity{<:Real}}, args...) =
+fft_filter(data::AbstractArray{<: Quantity{<:Real}}, args...) =
     _reale(_fft_filter(data, args...))
 
 end # module
