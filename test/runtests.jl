@@ -6,8 +6,8 @@ using Test: @test, @test_throws, @testset, detect_ambiguities
 # test extension stubs before loading the extension
 @testset "exts" begin
     @test_throws String sino_plot_rays()
-    @test_throws String sino_geom_plot!()
-#   @test_throws String ct_geom_plot2!()
+#   @test_throws String sino_geom_plot!()
+    @test_throws String ct_geom_plot2!()
     @test_throws String ct_geom_plot3() # todo
 end
 
