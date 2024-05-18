@@ -4,8 +4,8 @@
 export sino_plot_rays, sino_geom_plot!
 export ct_geom_plot2!, ct_geom_plot3
 
-sino_plot_rays(::Nothing) = throw("Run `using Plots` first")
-sino_geom_plot!(::Nothing) = throw("Run `using Plots` first")
+sino_plot_rays(args...; kwargs...) = throw("First run `using Plots`")
+sino_geom_plot!(args...; kwargs...) = throw("First run `using Plots`")
 
-ct_geom_plot2!(::Nothing) = throw("Run `using Plots` first")
-ct_geom_plot3(::Nothing) = throw("Run `using Plots` first")
+ct_geom_plot2!(args...; kwargs...) = throw("First run `using Plots`")
+ct_geom_plot3(args...; kwargs...) = throw("First run `using Plots`")
