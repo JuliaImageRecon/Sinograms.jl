@@ -19,7 +19,6 @@ Make a scatter plot of the `(r, ϕ)` sample locations for all rays.
 Needs `Plots`.
 """
 function sino_plot_rays(rg::SinoGeom; kwargs...)
-#   r, phi = rays(rg)
     i = rays(rg)
     r = [i[1] for i in i]
     ϕ = [i[2] for i in i]
