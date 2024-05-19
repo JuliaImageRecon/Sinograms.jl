@@ -14,6 +14,7 @@ FFTW = "1.5"
 ImageGeoms = "0.11"
 Interpolations = "0.14, 0.15"
 LazyGrids = "1"
+Plots = "1.40"
 Unitful = "1.19"
 julia = "1.10"
 
