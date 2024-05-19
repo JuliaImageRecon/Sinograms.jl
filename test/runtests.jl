@@ -1,6 +1,6 @@
 # runtests.jl
 
-using Sinograms
+using Sinograms: Sinograms
 using Test: @test, @test_throws, @testset, detect_ambiguities
 
 include("aqua.jl")

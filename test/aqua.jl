@@ -3,5 +3,5 @@ import Aqua
 using Test: @testset
 
 @testset "aqua" begin
-    Aqua.test_all(Sinograms: Sinograms)
+    Aqua.test_all(Sinograms)
 end
