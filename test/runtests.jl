@@ -3,6 +3,8 @@
 using Sinograms
 using Test: @test, @test_throws, @testset, detect_ambiguities
 
+include("aqua.jl")
+
 # test extension stubs before loading the extension
 @testset "exts" begin
 # todo
