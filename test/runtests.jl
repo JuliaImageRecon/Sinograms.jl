@@ -6,13 +6,7 @@ using Test: @test, @test_throws, @testset, detect_ambiguities
 include("aqua.jl")
 
 # test extension stubs before loading the extension
-@testset "exts" begin
-# todo
-#   @test_throws String sino_plot_rays()
-    @test_throws String sino_geom_plot!()
-    @test_throws String ct_geom_plot2!()
-    @test_throws String ct_geom_plot3()
-end
+include("ext0.jl")
 
 include("units.jl")
 
