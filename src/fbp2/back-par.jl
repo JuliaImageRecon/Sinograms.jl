@@ -235,7 +235,7 @@ function fbp_back_par!(
             sino, sinϕ, cosϕ,
             wb, xc_ds[c[1]], yc_ds[c[2]]; T,
         )
-    end
+    end # COV_EXCL_LINE
 
 #=
     # similar speed

@@ -248,7 +248,7 @@ function fbp_back_fan!(
             dsd/ds, dso/ds, source_offset/ds, is_arc,
             wb, xc_ds[c[1]], yc_ds[c[2]]; T,
         )
-    end
+    end # COV_EXCL_LINE
 
     return image
 end

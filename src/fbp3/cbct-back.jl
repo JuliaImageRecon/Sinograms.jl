@@ -138,7 +138,7 @@ function cbct_back_fan!(
             dsd / ds, dso / ds, is_arc,
             xc_ds[c[1]], yc_ds[c[2]], zc_ds[c[3]],
         )
-    end
+    end # COV_EXCL_LINE
 
     return image
 end
