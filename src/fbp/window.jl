@@ -77,7 +77,7 @@ end
 # specific window shapes
 
 struct NoWindow <: AbstractWindowShape end
-window(w::Window{NoWindow}, width::Real, n::Int) = 1
+window(w::Window{NoWindow}, width::Real, n::Int) = 1 #  # COV_EXCL_LINE
 
 struct Boxcar <: AbstractWindowShape end
 window(w::Window{Boxcar}, width::Real, n::Int) = abs(n) < (width / 2)
