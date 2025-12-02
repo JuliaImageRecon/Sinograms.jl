@@ -17,7 +17,7 @@ https://github.com/JuliaImageRecon/Sinograms.jl
 
 See the examples under the blue "docs" badges above.
 
-Tested with Julia ≥ 1.10.
+Tested with Julia ≥ 1.12.
 
 
 ### Related packages in Julia
