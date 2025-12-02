@@ -26,7 +26,7 @@ repo = eval(:($reps))
 Documenter.DocMeta.setdocmeta!(repo, :DocTestSetup, :(using $reps); recursive=true)
 
 # preprocessing
-inc1 = "include(\"../../../inc/reproduce.jl\")"
+inc1 = "include(\"../../inc/reproduce.jl\")"
 
 function prep_markdown(str, root, file)
     inc_read(file) = read(joinpath("docs/inc", file), String)
