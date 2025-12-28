@@ -2,7 +2,8 @@
 
 export fbp_filter, fbp_sino_filter
 
-using FFTW
+using FFTW: fft, ifft, fftshift
+
 #using Sinograms: SinoGeom, SinoPar, Window, fbp_ramp, fbp_window, _reale
 
 

@@ -2,6 +2,7 @@
 
 export fbp
 
+using FFTW: fft, ifft
 using ImageGeoms: ImageGeom
 # using Sinograms: SinoGeom, SinoPar, SinoFan, SinoMoj, _reale, FBPplan
 
