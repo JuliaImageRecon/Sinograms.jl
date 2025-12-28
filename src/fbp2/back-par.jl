@@ -3,7 +3,7 @@
 export fbp_back
 
 using LazyGrids: ndgrid
-using ImageGeoms: ImageGeom, embed
+using ImageGeoms: ImageGeom #, embed
 #using Sinograms: SinoPar
 
 
