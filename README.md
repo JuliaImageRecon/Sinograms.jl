@@ -26,7 +26,8 @@ Tested with Julia ≥ 1.12.
 * [Michigan Image Reconstruction Toolbox (MIRT)](https://github.com/JeffFessler/MIRT.jl)
 * [RadonKA.jl with CUDA and multithreading support](https://github.com/roflmaostc/RadonKA.jl)
 * https://github.com/JuliaImages/ImageReconstruction.jl (`radon`, `iradon`)
-* https://github.com/JeffFessler/SPECTrecon.jl
+* https://github.com/JuliaImageRecon/SPECTrecon.jl
+* https://github.com/MolloiLab/BasisSimulator.jl (GPU-portable polychromatic CT simulator)
 
 
 ### Related packages in other languages
