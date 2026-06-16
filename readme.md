@@ -25,23 +25,26 @@ Tested with Julia ≥ 1.12.
 * [JuliaImageRecon](https://github.com/JuliaImageRecon)
 * [Michigan Image Reconstruction Toolbox (MIRT)](https://github.com/JeffFessler/MIRT.jl)
 * [RadonKA.jl with CUDA and multithreading support](https://github.com/roflmaostc/RadonKA.jl)
-* https://github.com/JuliaImages/ImageReconstruction.jl (`radon`, `iradon`)
-* https://github.com/JuliaImageRecon/SPECTrecon.jl
-* https://github.com/MolloiLab/BasisSimulator.jl (GPU-portable polychromatic CT simulator)
+* [ImageReconstruction.jl](https://github.com/JuliaImages/ImageReconstruction.jl) (`radon`, `iradon`)
+* [SPECTrecon.jl](https://github.com/JuliaImageRecon/SPECTrecon.jl)
+* [BasisSimulator.jl](https://github.com/MolloiLab/BasisSimulator.jl) (GPU-portable polychromatic CT simulator)
 
 
 ### Related packages in other languages
 
-* See the Tomopedia list: https://tomopedia.github.io/software
-* CASToR https://castor-project.org
-* Duke MCR todo
-* FreeCT https://gitlab.com/freect/freect C/CUDA
-* SIRF https://github.com/SyneRBI/SIRF
+* [Tomopedia list](https://tomopedia.github.io/software)
+* [CASToR](https://castor-project.org)
+* [Duke MCR](https://doi.org/10.1002/mp.16532)
+* [FreeCT](https://gitlab.com/freect/freect) C/CUDA
+* [SIRF](https://github.com/SyneRBI/SIRF)
 
 
 <!-- URLs -->
 [action-img]: https://github.com/JuliaImageRecon/Sinograms.jl/workflows/CI/badge.svg
 [action-url]: https://github.com/JuliaImageRecon/Sinograms.jl/actions
+
+[aqua-img]: https://juliatesting.github.io/Aqua.jl/dev/assets/badge.svg
+[aqua-url]: https://github.com/JuliaTesting/Aqua.jl
 
 [codecov-img]: https://codecov.io/github/JuliaImageRecon/Sinograms.jl/coverage.svg
 [codecov-url]: https://codecov.io/github/JuliaImageRecon/Sinograms.jl
