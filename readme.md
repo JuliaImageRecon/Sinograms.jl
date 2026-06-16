@@ -3,17 +3,17 @@ Julia library for working with
 sinograms / tomography / Radon transform / cone-beam CT / CBCT
 
 https://github.com/JuliaImageRecon/Sinograms.jl
+<img src="docs/src/assets/logo.png" alt="logo" width="150"/>
 
-[![action status][action-img]][action-url]
-[![codecov][codecov-img]][codecov-url]
-[![license][license-img]][license-url]
 [![docs-stable][docs-stable-img]][docs-stable-url]
 [![docs-dev][docs-dev-img]][docs-dev-url]
-[![code-style][code-blue-img]][code-blue-url]
-[![deps](https://juliahub.com/docs/Sinograms/deps.svg)](https://juliahub.com/ui/Packages/Sinograms/DzgGR?t=2)
-[![version](https://juliahub.com/docs/Sinograms/version.svg)](https://juliahub.com/ui/Packages/Sinograms/DzgGR)
-[![pkgeval](https://juliahub.com/docs/Sinograms/pkgeval.svg)](https://juliahub.com/ui/Packages/Sinograms/DzgGR)
-<img src="docs/src/assets/logo.png" alt="logo" width="150"/>
+[![action][action-img]][action-url]
+[![Aqua QA][aqua-img]][aqua-url]
+[![codecov][codecov-img]][codecov-url]
+[![deps][deps-img]][deps-url]
+[![license][license-img]][license-url]
+[![pkgeval][pkgeval-img]][pkgeval-url]
+[![version][ver-img]][ver-url]
 
 See the examples under the blue "docs" badges above.
 
@@ -42,15 +42,23 @@ Tested with Julia ≥ 1.12.
 <!-- URLs -->
 [action-img]: https://github.com/JuliaImageRecon/Sinograms.jl/workflows/CI/badge.svg
 [action-url]: https://github.com/JuliaImageRecon/Sinograms.jl/actions
-[build-img]: https://github.com/JuliaImageRecon/Sinograms.jl/workflows/CI/badge.svg?branch=main
-[build-url]: https://github.com/JuliaImageRecon/Sinograms.jl/actions?query=workflow%3ACI+branch%3Amain
-[code-blue-img]: https://img.shields.io/badge/code%20style-blue-4495d1.svg
-[code-blue-url]: https://github.com/invenia/BlueStyle
-[codecov-img]: https://codecov.io/github/JuliaImageRecon/Sinograms.jl/coverage.svg?branch=main
-[codecov-url]: https://codecov.io/github/JuliaImageRecon/Sinograms.jl?branch=main
-[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
-[docs-stable-url]: https://JuliaImageRecon.github.io/Sinograms.jl/stable
+
+[codecov-img]: https://codecov.io/github/JuliaImageRecon/Sinograms.jl/coverage.svg
+[codecov-url]: https://codecov.io/github/JuliaImageRecon/Sinograms.jl
+
+[deps-img]: https://juliahub.com/docs/Sinograms/deps.svg
+[deps-url]: https://juliahub.com/ui/Packages/Sinograms
+
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://JuliaImageRecon.github.io/Sinograms.jl/dev
-[license-img]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://JuliaImageRecon.github.io/Sinograms.jl/stable
+
+[license-img]: https://img.shields.io/badge/license-MIT-brightgreen.svg
 [license-url]: LICENSE
+
+[pkgeval-img]: https://juliaci.github.io/NanosoldierReports/pkgeval_badges/S/Sinograms.svg
+[pkgeval-url]: https://juliaci.github.io/NanosoldierReports/pkgeval_badges/S/Sinograms.html
+
+[ver-img]: https://juliahub.com/docs/Sinograms/version.svg
+[ver-url]: https://juliahub.com/ui/Packages/Sinograms
